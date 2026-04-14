@@ -741,6 +741,7 @@ function renderApostasTable(rows) {
       <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${a.entrada||''}">${a.entrada||'—'}</td>
       <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis" title="${ti}">${ti}</td>
       <td>${bo}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;font-size:0.75rem;color:var(--muted)" title="${a.contas_utilizadas||''}">${a.contas_utilizadas||'—'}</td>
       <td class="mono">${fmtU(a.stake_unidades)}</td>
       <td class="mono">${parseFloat(a.odd||0).toFixed(2)}</td>
       <td><span class="status-badge ${statusClass(a.status)}">${a.status}</span></td>
