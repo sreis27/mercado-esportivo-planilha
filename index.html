@@ -110,7 +110,8 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
 
 /* ── Charts ── */
 .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
-.chart-card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.25rem; position:relative; }
+.chart-card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.25rem; }
+.chart-card canvas { display:block; }
 .chart-title { font-family:var(--mono); font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem; }
 .chart-full { grid-column:1/-1; }
 
@@ -204,6 +205,8 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       <div class="nav-item" onclick="showPage('bookies')"><span class="icon">🏠</span><span>Bookies</span></div>
       <div class="nav-item" onclick="showPage('operadores')"><span class="icon">👤</span><span>Operadores</span></div>
       <div class="nav-item" onclick="showPage('esportes')"><span class="icon">⚽</span><span>Esportes</span></div>
+      <div class="nav-item" onclick="showPage('tipos_aposta')"><span class="icon">🎯</span><span>Tipos de Aposta</span></div>
+      <div class="nav-item" onclick="showPage('mercados')"><span class="icon">📌</span><span>Mercados</span></div>
     </nav>
     <div class="sidebar-footer">
       <button class="logout-btn" onclick="doLogout()">Sair</button>
@@ -230,7 +233,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       <input type="hidden" id="fId">
       <div class="form-group">
         <label>Data do evento *</label>
-        <input type="date" id="fData">
+        <input type="date" id="fData" onchange="calcStakeUnidades()">
       </div>
       <div class="form-group">
         <label>Operador *</label>
@@ -242,13 +245,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       </div>
       <div class="form-group">
         <label>Tipo de aposta</label>
-        <select id="fTipo">
-          <option>Simples</option>
-          <option>Dupla</option>
-          <option>Tripla</option>
-          <option>Multipla</option>
-          <option>Criar aposta</option>
-        </select>
+        <select id="fTipo"></select>
       </div>
       <div class="form-group full">
         <label>Evento (partida/campeonato)</label>
@@ -256,7 +253,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       </div>
       <div class="form-group">
         <label>Mercado</label>
-        <input type="text" id="fMercado" placeholder="ex: ML, Over 2.5">
+        <select id="fMercado"></select>
       </div>
       <div class="form-group">
         <label>Entrada</label>
@@ -264,7 +261,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       </div>
       <div class="form-group">
         <label>Tipster / Grupo</label>
-        <select id="fTipster"></select>
+        <select id="fTipster" onchange="calcStakeUnidades()"></select>
       </div>
       <div class="form-group">
         <label>Bookie</label>
@@ -284,7 +281,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       </div>
       <div class="form-group">
         <label>Status</label>
-        <select id="fStatus" onchange="calcLucro()">
+        <select id="fStatus" onchange="onStatusChange()">
           <option value="PENDING">Pending</option>
           <option value="WON">Won</option>
           <option value="LOST">Lost</option>
@@ -294,9 +291,9 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
           <option value="CASH OUT">Cash Out</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Resultado (retorno bruto)</label>
-        <input type="number" id="fResultado" placeholder="0.00" step="0.01" oninput="calcLucro()">
+      <div class="form-group" id="fResultadoGroup" style="display:none">
+        <label>Retorno bruto (Cash Out)</label>
+        <input type="number" id="fResultado" placeholder="0.00" step="0.01">
       </div>
     </div>
     <div class="modal-footer">
@@ -348,7 +345,7 @@ const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const SENHA   = 'officedash';
 
 let currentUser = sessionStorage.getItem('rm_apost_user');
-let cache = { operadores:[], tipsters:[], bookies:[], esportes:[], stakes:[] };
+let cache = { operadores:[], tipsters:[], bookies:[], esportes:[], stakes:[], tipos_aposta:[], mercados:[] };
 let apostasData = [];
 let filtros = { operador:'', tipster:'', bookie:'', status:'', periodo:'', search:'' };
 let sortField = 'data_evento', sortAsc = false;
@@ -384,29 +381,33 @@ async function showApp() {
 
 // ── CACHE ──────────────────────────────────────────────────
 async function loadCache() {
-  const [op,ti,bo,es,st] = await Promise.all([
+  const [op,ti,bo,es,st,ta,me] = await Promise.all([
     sbGet('operadores?select=id,nome,ativo&order=nome'),
     sbGet('tipsters?select=id,nome,ativo&order=nome'),
     sbGet('bookies?select=id,nome,ativo&order=nome'),
     sbGet('esportes?select=id,nome&order=nome'),
     sbGet('stakes_historico?select=id,tipster_id,valor_reais,vigente_a_partir,criado_por&order=vigente_a_partir.desc'),
+    sbGet('tipos_aposta?select=id,nome,ativo&order=nome'),
+    sbGet('mercados?select=id,nome,ativo&order=nome'),
   ]);
   cache.operadores = op; cache.tipsters = ti; cache.bookies = bo;
-  cache.esportes = es; cache.stakes = st;
+  cache.esportes = es; cache.stakes = st; cache.tipos_aposta = ta; cache.mercados = me;
   populateFormSelects();
 }
 
 function populateFormSelects() {
-  const sel = (id, items, label='nome') => {
+  const sel = (id, items, useNome=false, label='nome') => {
     const el = document.getElementById(id);
     if (!el) return;
     el.innerHTML = `<option value="">-- Selecione --</option>` +
-      items.filter(i=>i.ativo!==false).map(i=>`<option value="${i.id}">${i[label]}</option>`).join('');
+      items.filter(i=>i.ativo!==false).map(i=>`<option value="${useNome ? i.nome : i.id}">${i[label]}</option>`).join('');
   };
-  sel('fOperador', cache.operadores);
-  sel('fTipster',  cache.tipsters);
-  sel('fBookie',   cache.bookies);
-  sel('fEsporte',  cache.esportes);
+  sel('fOperador',  cache.operadores);
+  sel('fTipster',   cache.tipsters);
+  sel('fBookie',    cache.bookies);
+  sel('fEsporte',   cache.esportes);
+  sel('fTipo',      cache.tipos_aposta, true);
+  sel('fMercado',   cache.mercados, true);
 }
 
 async function sbGet(path) {
@@ -430,9 +431,9 @@ async function sbDelete(table, id) {
 // ── PAGES ──────────────────────────────────────────────────
 function showPage(page) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const navMap = { dashboard:0, apostas:1, tipsters:2, bookies:3, operadores:4, esportes:5 };
+  const navMap = { dashboard:0, apostas:1, tipsters:2, bookies:3, operadores:4, esportes:5, tipos_aposta:6, mercados:7 };
   document.querySelectorAll('.nav-item')[navMap[page]]?.classList.add('active');
-  const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes' };
+  const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de Aposta', mercados:'Mercados' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
   document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
   const content = document.getElementById('pageContent');
@@ -513,11 +514,11 @@ function renderDashStats(data) {
       <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${won.length} de ${settled.length}</div></div>
     </div>
     <div class="charts-grid">
-      <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;height:280px"><canvas id="chartBookie"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;height:280px"><canvas id="chartTipster"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;height:280px"><canvas id="chartOperador"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">Distribuição de Status</div><div style="position:relative;height:280px"><canvas id="chartStatus"></canvas></div></div>
-      <div class="chart-card chart-full"><div class="chart-title">Evolução Acumulada (unidades)</div><div style="position:relative;height:200px"><canvas id="chartEvolucao"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><canvas id="chartBookie" style="max-height:280px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><canvas id="chartTipster" style="max-height:280px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><canvas id="chartOperador" style="max-height:280px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Distribuição de Status</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><canvas id="chartStatus" style="max-height:280px"></canvas></div></div>
+      <div class="chart-card chart-full"><div class="chart-title">Evolução Acumulada (unidades)</div><div style="position:relative;width:100%;height:200px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:200px"></canvas></div></div>
     </div>`;
 
   setTimeout(() => renderCharts(data), 50);
@@ -529,7 +530,7 @@ function renderCharts(data) {
   charts = {};
 
   const chartOpts = (horizontal=false) => ({
-    responsive:true, maintainAspectRatio:false,
+    responsive:true, maintainAspectRatio:false, animation:false,
     indexAxis: horizontal ? 'y' : 'x',
     plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ${fmtU(ctx.raw)}` } } },
     scales:{
@@ -575,7 +576,7 @@ function renderCharts(data) {
   charts['chartStatus'] = new Chart(document.getElementById('chartStatus'), {
     type:'doughnut',
     data:{ labels:Object.keys(statusCount), datasets:[{ data:Object.values(statusCount), backgroundColor:Object.keys(statusCount).map(s=>sColors[s]||'gray'), borderWidth:0 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } } }
+    options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ position:'right', labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } } }
   });
 
   // Evolução acumulada por mês
@@ -601,7 +602,7 @@ function renderCharts(data) {
       ]
     },
     options:{
-      responsive:true, maintainAspectRatio:false,
+      responsive:true, maintainAspectRatio:false, animation:false,
       plugins:{ legend:{ labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } },
       scales:{
         x:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
@@ -743,23 +744,45 @@ function editAposta(id) {
   document.getElementById('fTipster').value        = a.tipster_id||'';
   document.getElementById('fBookie').value         = a.bookie_id||'';
   document.getElementById('fEvento').value         = a.evento||'';
-  document.getElementById('fMercado').value        = a.mercado||'';
+  // Set select by value (text-based selects)
+  const setSelText = (id, val) => { const el=document.getElementById(id); if(!el||!val) return; [...el.options].forEach(o=>{if(o.value===val)o.selected=true;}); };
+  setSelText('fMercado', a.mercado||'');
+  document.getElementById('fMercado').value = a.mercado||'';
   document.getElementById('fEntrada').value        = a.entrada||'';
   document.getElementById('fStakeReais').value     = a.stake_reais||'';
   document.getElementById('fStakeUnidades').value  = a.stake_unidades||'';
   document.getElementById('fOdd').value            = a.odd||'';
-  document.getElementById('fStatus').value         = a.status||'PENDING';
-  document.getElementById('fTipo').value           = a.tipo_aposta||'Simples';
+  document.getElementById('fStatus').value = a.status||'PENDING';
+  onStatusChange();
+  document.getElementById('fTipo').value = a.tipo_aposta||'';
   document.getElementById('fResultado').value      = a.resultado||'';
   document.getElementById('modalAposta').classList.add('open');
 }
 
 function calcStakeUnidades() {
-  const sr = parseFloat(document.getElementById('fStakeReais').value)||0;
-  document.getElementById('fStakeUnidades').value = sr > 0 ? sr.toFixed(4) : '';
+  const sr       = parseFloat(document.getElementById('fStakeReais').value)||0;
+  const tipsterId = document.getElementById('fTipster').value;
+  const dataEvento = document.getElementById('fData').value;
+  if (!sr) { document.getElementById('fStakeUnidades').value=''; return; }
+  if (tipsterId && dataEvento) {
+    const stakes = cache.stakes
+      .filter(s => s.tipster_id === tipsterId && s.vigente_a_partir <= dataEvento)
+      .sort((a,b) => b.vigente_a_partir.localeCompare(a.vigente_a_partir));
+    if (stakes.length > 0) {
+      const unidades = sr / stakes[0].valor_reais;
+      document.getElementById('fStakeUnidades').value = unidades.toFixed(4);
+      return;
+    }
+  }
+  document.getElementById('fStakeUnidades').value = sr.toFixed(4);
 }
 
-function calcLucro() {}
+function onStatusChange() {
+  const st = document.getElementById('fStatus').value;
+  const group = document.getElementById('fResultadoGroup');
+  if (group) group.style.display = st === 'CASH OUT' ? 'block' : 'none';
+  if (st !== 'CASH OUT') { const r = document.getElementById('fResultado'); if(r) r.value=''; }
+}
 
 async function saveAposta() {
   const id = document.getElementById('fId').value;
@@ -776,7 +799,7 @@ async function saveAposta() {
     tipster_id     : document.getElementById('fTipster').value||null,
     bookie_id      : document.getElementById('fBookie').value||null,
     evento         : document.getElementById('fEvento').value,
-    mercado        : document.getElementById('fMercado').value,
+    mercado        : document.getElementById('fMercado').value || '',
     entrada        : document.getElementById('fEntrada').value,
     stake_reais    : stake,
     stake_unidades : stake,
@@ -845,10 +868,12 @@ async function showHistAposta(id) {
 // ── CADASTROS ──────────────────────────────────────────────
 async function renderCadastro(tipo) {
   const config = {
-    tipsters:   { label:'Tipster',   cacheKey:'tipsters',   temStake:true  },
-    bookies:    { label:'Bookie',    cacheKey:'bookies',    temStake:false },
-    operadores: { label:'Operador',  cacheKey:'operadores', temStake:false },
-    esportes:   { label:'Esporte',   cacheKey:'esportes',   temStake:false },
+    tipsters:    { label:'Tipster',        cacheKey:'tipsters',    temStake:true  },
+    bookies:     { label:'Bookie',         cacheKey:'bookies',     temStake:false },
+    operadores:  { label:'Operador',       cacheKey:'operadores',  temStake:false },
+    esportes:    { label:'Esporte',        cacheKey:'esportes',    temStake:false },
+    tipos_aposta:{ label:'Tipo de Aposta', cacheKey:'tipos_aposta',temStake:false },
+    mercados:    { label:'Mercado',        cacheKey:'mercados',    temStake:false },
   };
   const cfg = config[tipo];
   if (!cfg) return;
