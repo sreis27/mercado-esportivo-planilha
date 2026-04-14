@@ -265,11 +265,11 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       </div>
       <div class="form-group">
         <label>Bookie</label>
-        <select id="fBookie" onchange="filterContasByBookie()"></select>
+        <select id="fBookie"></select>
       </div>
-      <div class="form-group">
-        <label>Conta utilizada</label>
-        <select id="fConta"><option value="">-- Selecione --</option></select>
+      <div class="form-group full">
+        <label>Contas utilizadas (separe por vírgula)</label>
+        <input type="text" id="fConta" placeholder="ex: luciaditrich, deiav, greice">
       </div>
       <div class="form-group">
         <label>Stake (R$)</label>
@@ -449,18 +449,39 @@ function showPage(page) {
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────
-async function renderDashboard() {
+async function renderDashboard(savedFilters) {
   const content = document.getElementById('pageContent');
-  content.innerHTML = `
-    <div class="filters" id="dashFilters">
-      <select class="filter-select" id="dfOp" onchange="renderDashboard()"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="dfTi" onchange="renderDashboard()"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="dfBo" onchange="renderDashboard()"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="dfSt" onchange="renderDashboard()"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
-      <input type="date" class="filter-select" id="dfDe" onchange="renderDashboard()" placeholder="De">
-      <input type="date" class="filter-select" id="dfAte" onchange="renderDashboard()" placeholder="Até">
-    </div>
-    <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
+
+  // Render filters bar (only once or restore values)
+  if (!document.getElementById('dashFilters')) {
+    content.innerHTML = `
+      <div class="filters" id="dashFilters">
+        <select class="filter-select" id="dfOp" onchange="updateDashboard()"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
+        <select class="filter-select" id="dfTi" onchange="updateDashboard()"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
+        <select class="filter-select" id="dfBo" onchange="updateDashboard()"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
+        <select class="filter-select" id="dfSt" onchange="updateDashboard()"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
+        <input type="date" class="filter-select" id="dfDe" onchange="updateDashboard()">
+        <input type="date" class="filter-select" id="dfAte" onchange="updateDashboard()">
+      </div>
+      <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
+  }
+
+  // Restore saved filter values if provided
+  if (savedFilters) {
+    if (savedFilters.op)  document.getElementById('dfOp').value  = savedFilters.op;
+    if (savedFilters.ti)  document.getElementById('dfTi').value  = savedFilters.ti;
+    if (savedFilters.bo)  document.getElementById('dfBo').value  = savedFilters.bo;
+    if (savedFilters.st)  document.getElementById('dfSt').value  = savedFilters.st;
+    if (savedFilters.de)  document.getElementById('dfDe').value  = savedFilters.de;
+    if (savedFilters.ate) document.getElementById('dfAte').value = savedFilters.ate;
+  }
+
+  await updateDashboard();
+}
+
+async function updateDashboard() {
+  const dashContent = document.getElementById('dashContent');
+  if (dashContent) dashContent.innerHTML = '<div class="loading"><div class="spinner"></div>Calculando...</div>';
 
   const filters = buildDashFilters();
   let url = `apostas?select=id,data_evento,stake_reais,stake_unidades,odd,status,lucro_reais,lucro_unidades,operador_id,tipster_id,bookie_id`;
@@ -668,7 +689,7 @@ async function queryApostas() {
   const de  = document.getElementById('tDe')?.value;
   const ate = document.getElementById('tAte')?.value;
 
-  let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,conta_id,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,atualizado_por,atualizado_em&order=data_evento.desc&limit=10000`;
+  let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,contas_utilizadas,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,atualizado_por,atualizado_em&order=data_evento.desc&limit=10000`;
   if (op)  url += `&operador_id=eq.${op}`;
   if (ti)  url += `&tipster_id=eq.${ti}`;
   if (bo)  url += `&bookie_id=eq.${bo}`;
@@ -761,8 +782,7 @@ function editAposta(id) {
   setSelText('fMercado', a.mercado||'');
   document.getElementById('fMercado').value = a.mercado||'';
   document.getElementById('fEntrada').value = a.entrada||'';
-  if (a.bookie_id) { document.getElementById('fBookie').value = a.bookie_id; filterContasByBookie(); }
-  setTimeout(() => { if (a.conta_id) document.getElementById('fConta').value = a.conta_id||''; }, 100);
+  document.getElementById('fConta').value = a.contas_utilizadas||'';
   document.getElementById('fStakeReais').value     = a.stake_reais||'';
   document.getElementById('fStakeUnidades').value  = a.stake_unidades||'';
   document.getElementById('fOdd').value            = a.odd||'';
@@ -827,7 +847,7 @@ async function saveAposta() {
     bookie_id      : document.getElementById('fBookie').value||null,
     evento         : document.getElementById('fEvento').value,
     mercado        : document.getElementById('fMercado').value || '',
-    conta_id       : document.getElementById('fConta').value || null,
+    contas_utilizadas: document.getElementById('fConta').value || null,
     entrada        : document.getElementById('fEntrada').value,
     stake_reais    : stake,
     stake_unidades : stake,
