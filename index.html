@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mercado Esportivo — Apostas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #080810;
+  --s1: #0f0f1a;
+  --s2: #16162a;
+  --s3: #1e1e35;
+  --border: #2a2a45;
+  --accent: #6c63ff;
+  --accent2: #00d4aa;
+  --yellow: #ffd84d;
+  --red: #ff4d6a;
+  --green: #00d4aa;
+  --text: #e8e8f5;
+  --muted: #6b6b90;
+  --font: 'Syne', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; }
+
+/* ── Login ── */
+#loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+.login-box { background:var(--s1); border:1px solid var(--border); border-radius:20px; padding:2.5rem; width:100%; max-width:380px; }
+.login-logo { font-family:var(--mono); font-size:0.85rem; color:var(--accent); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.3rem; }
+.login-logo span { color:var(--muted); }
+.login-sub { font-size:0.78rem; color:var(--muted); margin-bottom:2rem; font-family:var(--mono); }
+.login-group { display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1rem; }
+.login-group label { font-family:var(--mono); font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
+.login-group select, .login-group input { background:var(--s2); border:1px solid var(--border); color:var(--text); padding:0.7rem 1rem; border-radius:10px; font-family:var(--font); font-size:0.9rem; outline:none; transition:border-color 0.2s; width:100%; }
+.login-group select:focus, .login-group input:focus { border-color:var(--accent); }
+.login-btn { background:linear-gradient(135deg, var(--accent), #9b5fff); border:none; color:#fff; padding:0.8rem; border-radius:10px; font-family:var(--mono); font-size:0.85rem; font-weight:500; cursor:pointer; width:100%; margin-top:0.5rem; letter-spacing:0.05em; transition:opacity 0.2s; }
+.login-btn:hover { opacity:0.85; }
+.login-error { color:var(--red); font-size:0.75rem; font-family:var(--mono); margin-top:0.5rem; display:none; }
+
+/* ── App ── */
+#app { display:none; }
+.sidebar { position:fixed; left:0; top:0; width:220px; height:100vh; background:var(--s1); border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:50; }
+.sidebar-logo { padding:1.5rem; border-bottom:1px solid var(--border); }
+.sidebar-logo .brand { font-family:var(--mono); font-size:0.8rem; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; }
+.sidebar-logo .user { font-family:var(--mono); font-size:0.68rem; color:var(--muted); margin-top:0.3rem; }
+.sidebar-logo .user span { color:var(--accent2); }
+nav { flex:1; padding:1rem 0; overflow-y:auto; }
+.nav-section { font-family:var(--mono); font-size:0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; padding:0.5rem 1.5rem; margin-top:0.5rem; }
+.nav-item { display:flex; align-items:center; gap:0.75rem; padding:0.65rem 1.5rem; color:var(--muted); font-size:0.85rem; cursor:pointer; transition:all 0.15s; border-left:2px solid transparent; }
+.nav-item:hover { color:var(--text); background:var(--s2); }
+.nav-item.active { color:var(--accent); border-left-color:var(--accent); background:rgba(108,99,255,0.08); }
+.nav-item .icon { font-size:14px; width:18px; text-align:center; }
+.sidebar-footer { padding:1rem 1.5rem; border-top:1px solid var(--border); }
+.logout-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.5rem 1rem; border-radius:8px; font-family:var(--mono); font-size:0.72rem; cursor:pointer; width:100%; transition:all 0.2s; }
+.logout-btn:hover { border-color:var(--red); color:var(--red); }
+.main { margin-left:220px; min-height:100vh; }
+.topbar { background:var(--s1); border-bottom:1px solid var(--border); padding:0 2rem; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:40; }
+.topbar-title { font-family:var(--mono); font-size:0.85rem; color:var(--text); letter-spacing:0.05em; }
+.content { padding:1.5rem 2rem; }
+
+/* ── Cards ── */
+.cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.5rem; }
+.card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.2rem 1.4rem; }
+.card-label { font-family:var(--mono); font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem; }
+.card-value { font-family:var(--mono); font-size:1.4rem; font-weight:500; }
+.card-value.green { color:var(--green); }
+.card-value.yellow { color:var(--yellow); }
+.card-value.red { color:var(--red); }
+.card-value.purple { color:var(--accent); }
+.card-value.cyan { color:var(--accent2); }
+.card-sub { font-family:var(--mono); font-size:0.72rem; color:var(--muted); margin-top:0.25rem; }
+
+/* ── Filters ── */
+.filters { display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem; align-items:center; }
+.filter-select, .filter-input { background:var(--s1); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.9rem; border-radius:8px; font-family:var(--font); font-size:0.82rem; outline:none; cursor:pointer; }
+.filter-input { width:200px; }
+.filter-select:focus, .filter-input:focus { border-color:var(--accent); }
+.btn-primary { background:var(--accent); border:none; color:#fff; padding:0.5rem 1.2rem; border-radius:8px; font-family:var(--mono); font-size:0.78rem; cursor:pointer; transition:opacity 0.2s; }
+.btn-primary:hover { opacity:0.85; }
+.btn-outline { background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.5rem 1rem; border-radius:8px; font-family:var(--mono); font-size:0.78rem; cursor:pointer; transition:all 0.2s; }
+.btn-outline:hover { border-color:var(--accent2); color:var(--accent2); }
+.btn-danger { background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.3rem 0.6rem; border-radius:6px; font-size:0.75rem; cursor:pointer; transition:all 0.15s; }
+.btn-danger:hover { border-color:var(--red); color:var(--red); }
+.btn-edit { background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.3rem 0.6rem; border-radius:6px; font-size:0.75rem; cursor:pointer; transition:all 0.15s; }
+.btn-edit:hover { border-color:var(--accent); color:var(--accent); }
+
+/* ── Table ── */
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+thead th { background:var(--s2); color:var(--muted); font-family:var(--mono); font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding:0.75rem 1rem; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; }
+thead th:hover { color:var(--text); }
+tbody tr { border-bottom:1px solid rgba(42,42,69,0.5); transition:background 0.15s; }
+tbody tr:hover { background:var(--s1); }
+td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
+.mono { font-family:var(--mono); font-size:0.78rem; }
+.status-badge { padding:0.2rem 0.6rem; border-radius:4px; font-family:var(--mono); font-size:0.68rem; font-weight:500; }
+.s-won { background:rgba(0,212,170,0.12); color:var(--green); }
+.s-lost { background:rgba(255,77,106,0.12); color:var(--red); }
+.s-pending { background:rgba(108,99,255,0.12); color:var(--accent); }
+.s-void { background:rgba(107,107,144,0.15); color:var(--muted); }
+.s-halfwon { background:rgba(0,212,170,0.07); color:#7eeedd; }
+.s-halflost { background:rgba(255,77,106,0.07); color:#ff8fa0; }
+.s-cashout { background:rgba(255,216,77,0.1); color:var(--yellow); }
+.positive { color:var(--green); font-family:var(--mono); }
+.negative { color:var(--red); font-family:var(--mono); }
+.neutral { color:var(--muted); font-family:var(--mono); }
+
+/* ── Charts ── */
+.charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+.chart-card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.25rem; }
+.chart-title { font-family:var(--mono); font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem; }
+.chart-full { grid-column:1/-1; }
+
+/* ── Modal ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--s1); border:1px solid var(--border); border-radius:16px; padding:2rem; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; }
+.modal h2 { font-family:var(--mono); font-size:0.85rem; color:var(--accent); margin-bottom:1.5rem; letter-spacing:0.08em; text-transform:uppercase; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.form-group { display:flex; flex-direction:column; gap:0.4rem; }
+.form-group.full { grid-column:1/-1; }
+.form-group label { font-family:var(--mono); font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+.form-group input, .form-group select, .form-group textarea { background:var(--s2); border:1px solid var(--border); color:var(--text); padding:0.6rem 0.8rem; border-radius:8px; font-family:var(--font); font-size:0.85rem; outline:none; transition:border-color 0.2s; }
+.form-group input:focus, .form-group select:focus { border-color:var(--accent); }
+.modal-footer { display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem; }
+.btn-save { background:linear-gradient(135deg, var(--accent), #9b5fff); border:none; color:#fff; padding:0.6rem 1.5rem; border-radius:8px; font-family:var(--mono); font-size:0.8rem; cursor:pointer; }
+
+/* ── Cadastros ── */
+.crud-table { background:var(--s1); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+.crud-table table { width:100%; }
+
+/* ── Loading ── */
+.loading { display:flex; align-items:center; justify-content:center; padding:4rem; gap:0.75rem; color:var(--muted); font-family:var(--mono); font-size:0.8rem; }
+.spinner { width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── Toast ── */
+.toast { position:fixed; bottom:2rem; right:2rem; background:var(--s2); border:1px solid var(--accent); color:var(--accent); padding:0.75rem 1.5rem; border-radius:10px; font-family:var(--mono); font-size:0.78rem; z-index:999; transform:translateY(100px); opacity:0; transition:all 0.3s; }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.error { border-color:var(--red); color:var(--red); }
+
+/* ── Hist modal ── */
+.hist-item { padding:0.75rem 0; border-bottom:1px solid var(--border); }
+.hist-item:last-child { border-bottom:none; }
+.hist-campo { font-family:var(--mono); color:var(--accent); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em; }
+.hist-valores { display:flex; align-items:center; gap:0.5rem; margin:0.25rem 0; font-family:var(--mono); font-size:0.75rem; }
+.hist-ant { color:var(--red); text-decoration:line-through; }
+.hist-nov { color:var(--green); }
+.hist-meta { font-size:0.68rem; color:var(--muted); font-family:var(--mono); }
+.hist-user { color:var(--accent2); }
+
+@media (max-width:768px) {
+  .sidebar { width:60px; }
+  .sidebar-logo .brand, .sidebar-logo .user, .nav-item span, .nav-section { display:none; }
+  .nav-item { justify-content:center; padding:0.75rem; }
+  .main { margin-left:60px; }
+  .charts-grid { grid-template-columns:1fr; }
+  .form-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">RM <span>/</span> Mercado Esportivo</div>
+    <div class="login-sub">Gestão de Apostas</div>
+    <div class="login-group">
+      <label>Usuário</label>
+      <select id="loginUser">
+        <option value="">Selecione...</option>
+        <option value="Samuel">Samuel</option>
+        <option value="Diego">Diego</option>
+        <option value="Amaral">Amaral</option>
+      </select>
+    </div>
+    <div class="login-group">
+      <label>Senha</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-error" id="loginError">Usuário ou senha incorretos.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">Mercado Esportivo</div>
+      <div class="user">Operador: <span id="sideUser"></span></div>
+    </div>
+    <nav>
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></div>
+      <div class="nav-item" onclick="showPage('apostas')"><span class="icon">📋</span><span>Apostas</span></div>
+      <div class="nav-section">Cadastros</div>
+      <div class="nav-item" onclick="showPage('tipsters')"><span class="icon">👥</span><span>Tipsters</span></div>
+      <div class="nav-item" onclick="showPage('bookies')"><span class="icon">🏠</span><span>Bookies</span></div>
+      <div class="nav-item" onclick="showPage('operadores')"><span class="icon">👤</span><span>Operadores</span></div>
+      <div class="nav-item" onclick="showPage('esportes')"><span class="icon">⚽</span><span>Esportes</span></div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div style="display:flex;gap:0.75rem">
+        <button class="btn-primary" id="topbarAddBtn" onclick="openAddModal()" style="display:none">+ Nova Aposta</button>
+      </div>
+    </div>
+    <div class="content" id="pageContent"></div>
+  </div>
+</div>
+
+<!-- Modal Aposta -->
+<div class="modal-overlay" id="modalAposta">
+  <div class="modal">
+    <h2 id="modalApostaTitle">Nova Aposta</h2>
+    <div class="form-grid">
+      <input type="hidden" id="fId">
+      <div class="form-group">
+        <label>Data do evento *</label>
+        <input type="date" id="fData">
+      </div>
+      <div class="form-group">
+        <label>Operador *</label>
+        <select id="fOperador"></select>
+      </div>
+      <div class="form-group">
+        <label>Esporte</label>
+        <select id="fEsporte"></select>
+      </div>
+      <div class="form-group">
+        <label>Tipo de aposta</label>
+        <select id="fTipo">
+          <option>Simples</option>
+          <option>Dupla</option>
+          <option>Tripla</option>
+          <option>Multipla</option>
+          <option>Criar aposta</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Evento (partida/campeonato)</label>
+        <input type="text" id="fEvento" placeholder="ex: Grêmio x Flamengo">
+      </div>
+      <div class="form-group">
+        <label>Mercado</label>
+        <input type="text" id="fMercado" placeholder="ex: ML, Over 2.5">
+      </div>
+      <div class="form-group">
+        <label>Entrada</label>
+        <input type="text" id="fEntrada" placeholder="ex: Grêmio">
+      </div>
+      <div class="form-group">
+        <label>Tipster / Grupo</label>
+        <select id="fTipster"></select>
+      </div>
+      <div class="form-group">
+        <label>Bookie</label>
+        <select id="fBookie"></select>
+      </div>
+      <div class="form-group">
+        <label>Stake (R$)</label>
+        <input type="number" id="fStakeReais" placeholder="0.00" step="0.01" oninput="calcStakeUnidades()">
+      </div>
+      <div class="form-group">
+        <label>Stake (unidades)</label>
+        <input type="number" id="fStakeUnidades" placeholder="auto" step="0.0001" readonly style="opacity:0.6">
+      </div>
+      <div class="form-group">
+        <label>Odd</label>
+        <input type="number" id="fOdd" placeholder="0.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="fStatus" onchange="calcLucro()">
+          <option value="PENDING">Pending</option>
+          <option value="WON">Won</option>
+          <option value="LOST">Lost</option>
+          <option value="VOID">Void</option>
+          <option value="HALF WON">Half Won</option>
+          <option value="HALF LOST">Half Lost</option>
+          <option value="CASH OUT">Cash Out</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Resultado (retorno bruto)</label>
+        <input type="number" id="fResultado" placeholder="0.00" step="0.01" oninput="calcLucro()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalAposta')">Cancelar</button>
+      <button class="btn-save" onclick="saveAposta()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Histórico -->
+<div class="modal-overlay" id="modalHist">
+  <div class="modal">
+    <h2>Histórico de Alterações</h2>
+    <div id="histContent"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalHist')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cadastro genérico -->
+<div class="modal-overlay" id="modalCadastro">
+  <div class="modal" style="max-width:420px">
+    <h2 id="modalCadastroTitle">Novo Cadastro</h2>
+    <div id="modalCadastroBody"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalCadastro')">Cancelar</button>
+      <button class="btn-save" id="btnSalvarCadastro">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Stakes -->
+<div class="modal-overlay" id="modalStakes">
+  <div class="modal">
+    <h2 id="modalStakesTitle">Stakes</h2>
+    <div id="modalStakesBody"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalStakes')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL  = 'https://yfdrifvhsiumdxgypkjm.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmZHJpZnZoc2l1bWR4Z3lwa2ptIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTkzMjg0OCwiZXhwIjoyMDkxNTA4ODQ4fQ.s1R7Akclh0LxGkljtHaBHCSJgbU9SFL8pvQArIiXsXQ';
+const SENHA   = 'officedash';
+
+let currentUser = sessionStorage.getItem('rm_apost_user');
+let cache = { operadores:[], tipsters:[], bookies:[], esportes:[], stakes:[] };
+let apostasData = [];
+let filtros = { operador:'', tipster:'', bookie:'', status:'', periodo:'', search:'' };
+let sortField = 'data_evento', sortAsc = false;
+let charts = {};
+
+const hdrs = { 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'return=representation' };
+
+// ── AUTH ───────────────────────────────────────────────────
+function doLogin() {
+  const u = document.getElementById('loginUser').value;
+  const p = document.getElementById('loginPass').value;
+  if (!u || p !== SENHA) { document.getElementById('loginError').style.display='block'; return; }
+  currentUser = u;
+  sessionStorage.setItem('rm_apost_user', u);
+  document.getElementById('loginError').style.display='none';
+  showApp();
+}
+function doLogout() {
+  sessionStorage.removeItem('rm_apost_user');
+  currentUser = null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginUser').value='';
+}
+async function showApp() {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('sideUser').textContent = currentUser;
+  await loadCache();
+  showPage('dashboard');
+}
+
+// ── CACHE ──────────────────────────────────────────────────
+async function loadCache() {
+  const [op,ti,bo,es,st] = await Promise.all([
+    sbGet('operadores?select=id,nome,ativo&order=nome'),
+    sbGet('tipsters?select=id,nome,ativo&order=nome'),
+    sbGet('bookies?select=id,nome,ativo&order=nome'),
+    sbGet('esportes?select=id,nome&order=nome'),
+    sbGet('stakes_historico?select=id,tipster_id,valor_reais,vigente_a_partir,criado_por&order=vigente_a_partir.desc'),
+  ]);
+  cache.operadores = op; cache.tipsters = ti; cache.bookies = bo;
+  cache.esportes = es; cache.stakes = st;
+  populateFormSelects();
+}
+
+function populateFormSelects() {
+  const sel = (id, items, label='nome') => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = `<option value="">-- Selecione --</option>` +
+      items.filter(i=>i.ativo!==false).map(i=>`<option value="${i.id}">${i[label]}</option>`).join('');
+  };
+  sel('fOperador', cache.operadores);
+  sel('fTipster',  cache.tipsters);
+  sel('fBookie',   cache.bookies);
+  sel('fEsporte',  cache.esportes);
+}
+
+async function sbGet(path) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: hdrs });
+  return r.ok ? r.json() : [];
+}
+async function sbPost(table, data) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method:'POST', headers:hdrs, body:JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPatch(table, id, data) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, { method:'PATCH', headers:hdrs, body:JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function sbDelete(table, id) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, { method:'DELETE', headers:hdrs });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ── PAGES ──────────────────────────────────────────────────
+function showPage(page) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navMap = { dashboard:0, apostas:1, tipsters:2, bookies:3, operadores:4, esportes:5 };
+  document.querySelectorAll('.nav-item')[navMap[page]]?.classList.add('active');
+  const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes' };
+  document.getElementById('topbarTitle').textContent = titles[page] || page;
+  document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
+  const content = document.getElementById('pageContent');
+  content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+  if (page==='dashboard') renderDashboard();
+  else if (page==='apostas') renderApostas();
+  else renderCadastro(page);
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────
+async function renderDashboard() {
+  const content = document.getElementById('pageContent');
+  content.innerHTML = `
+    <div class="filters" id="dashFilters">
+      <select class="filter-select" id="dfOp" onchange="renderDashboard()"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="dfTi" onchange="renderDashboard()"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="dfBo" onchange="renderDashboard()"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="dfSt" onchange="renderDashboard()"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
+      <input type="date" class="filter-select" id="dfDe" onchange="renderDashboard()" placeholder="De">
+      <input type="date" class="filter-select" id="dfAte" onchange="renderDashboard()" placeholder="Até">
+    </div>
+    <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
+
+  const filters = buildDashFilters();
+  let url = `apostas?select=id,data_evento,stake_reais,stake_unidades,odd,status,lucro_reais,lucro_unidades,operador_id,tipster_id,bookie_id`;
+  if (filters.length) url += '&' + filters.join('&');
+  url += '&limit=50000';
+
+  const data = await sbGet(url);
+  renderDashStats(data);
+  renderDashCharts(data);
+}
+
+function buildDashFilters() {
+  const f = [];
+  const op  = document.getElementById('dfOp')?.value;
+  const ti  = document.getElementById('dfTi')?.value;
+  const bo  = document.getElementById('dfBo')?.value;
+  const st  = document.getElementById('dfSt')?.value;
+  const de  = document.getElementById('dfDe')?.value;
+  const ate = document.getElementById('dfAte')?.value;
+  if (op)  f.push(`operador_id=eq.${op}`);
+  if (ti)  f.push(`tipster_id=eq.${ti}`);
+  if (bo)  f.push(`bookie_id=eq.${bo}`);
+  if (st)  f.push(`status=eq.${st}`);
+  if (de)  f.push(`data_evento=gte.${de}`);
+  if (ate) f.push(`data_evento=lte.${ate}`);
+  return f;
+}
+
+function renderDashStats(data) {
+  const settled = data.filter(a => !['PENDING'].includes(a.status));
+  const won     = data.filter(a => ['WON','HALF WON'].includes(a.status));
+  const plU     = settled.reduce((s,a) => s + (parseFloat(a.lucro_unidades)||0), 0);
+  const plR     = settled.reduce((s,a) => s + (parseFloat(a.lucro_reais)||0), 0);
+  const invU    = data.reduce((s,a) => s + (parseFloat(a.stake_unidades)||0), 0);
+  const invR    = data.reduce((s,a) => s + (parseFloat(a.stake_reais)||0), 0);
+  const roiU    = invU > 0 ? (plU / invU * 100) : 0;
+  const roiR    = invR > 0 ? (plR / invR * 100) : 0;
+  const acerto  = settled.length > 0 ? (won.length / settled.length * 100) : 0;
+
+  // Odd média ponderada pela stake
+  let sumOddStake = 0, sumStake = 0;
+  data.forEach(a => { const s = parseFloat(a.stake_unidades)||0; const o = parseFloat(a.odd)||0; sumOddStake += o*s; sumStake += s; });
+  const oddMedia = sumStake > 0 ? sumOddStake / sumStake : 0;
+  const stakeMedia = data.length > 0 ? invU / data.length : 0;
+
+  const pl_color = plU >= 0 ? 'green' : 'red';
+
+  document.getElementById('dashContent').innerHTML = `
+    <div class="cards-grid">
+      <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${data.length.toLocaleString('pt-BR')}</div></div>
+      <div class="card"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div></div>
+      <div class="card"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
+      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div></div>
+      <div class="card"><div class="card-label">Odd Média ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">ponderada por stake</div></div>
+      <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMedia)}</div></div>
+      <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${won.length} de ${settled.length}</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card"><div class="chart-title">P/L por Bookie</div><canvas id="chartBookie" height="240"></canvas></div>
+      <div class="chart-card"><div class="chart-title">P/L por Tipster</div><canvas id="chartTipster" height="240"></canvas></div>
+      <div class="chart-card"><div class="chart-title">P/L por Operador</div><canvas id="chartOperador" height="240"></canvas></div>
+      <div class="chart-card"><div class="chart-title">Distribuição de Status</div><canvas id="chartStatus" height="240"></canvas></div>
+      <div class="chart-card chart-full"><div class="chart-title">Evolução Acumulada (unidades)</div><canvas id="chartEvolucao" height="120"></canvas></div>
+    </div>`;
+
+  setTimeout(() => renderCharts(data), 50);
+}
+
+function renderCharts(data) {
+  const settled = data.filter(a => !['PENDING'].includes(a.status));
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
+
+  const chartOpts = (horizontal=false) => ({
+    responsive:true, maintainAspectRatio:false,
+    indexAxis: horizontal ? 'y' : 'x',
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ${fmtU(ctx.raw)}` } } },
+    scales:{
+      x:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
+      y:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} }
+    }
+  });
+
+  // Helper: group by FK
+  const groupBy = (arr, fkField, cacheArr) => {
+    const map = {};
+    arr.forEach(a => {
+      const id   = a[fkField];
+      const item = cacheArr.find(c=>c.id===id);
+      const name = item?.nome || 'Outros';
+      if (!map[name]) map[name] = 0;
+      map[name] += parseFloat(a.lucro_unidades)||0;
+    });
+    return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  };
+
+  const makeBar = (id, entries, horizontal=true) => {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const labels = entries.map(e=>e[0]);
+    const vals   = entries.map(e=>e[1]);
+    const colors = vals.map(v => v>=0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,77,106,0.7)');
+    charts[id] = new Chart(canvas, {
+      type:'bar',
+      data:{ labels, datasets:[{ data:vals, backgroundColor:colors, borderRadius:4 }] },
+      options: chartOpts(horizontal)
+    });
+  };
+
+  makeBar('chartBookie',   groupBy(settled,'bookie_id',   cache.bookies));
+  makeBar('chartTipster',  groupBy(settled,'tipster_id',  cache.tipsters));
+  makeBar('chartOperador', groupBy(settled,'operador_id', cache.operadores));
+
+  // Status donut
+  const statusCount = {};
+  data.forEach(a => { statusCount[a.status] = (statusCount[a.status]||0)+1; });
+  const sColors = { WON:'rgba(0,212,170,0.8)', LOST:'rgba(255,77,106,0.8)', PENDING:'rgba(108,99,255,0.8)', VOID:'rgba(107,107,144,0.6)', 'HALF WON':'rgba(0,212,170,0.4)', 'HALF LOST':'rgba(255,77,106,0.4)', 'CASH OUT':'rgba(255,216,77,0.7)' };
+  charts['chartStatus'] = new Chart(document.getElementById('chartStatus'), {
+    type:'doughnut',
+    data:{ labels:Object.keys(statusCount), datasets:[{ data:Object.values(statusCount), backgroundColor:Object.keys(statusCount).map(s=>sColors[s]||'gray'), borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } } }
+  });
+
+  // Evolução acumulada por mês
+  const byMonth = {};
+  settled.sort((a,b)=>a.data_evento>b.data_evento?1:-1).forEach(a => {
+    const mes = a.data_evento?.substring(0,7);
+    if (!mes) return;
+    if (!byMonth[mes]) byMonth[mes] = 0;
+    byMonth[mes] += parseFloat(a.lucro_unidades)||0;
+  });
+  const meses = Object.keys(byMonth).sort();
+  let acum = 0;
+  const acumVals = meses.map(m => { acum += byMonth[m]; return parseFloat(acum.toFixed(4)); });
+  const mensalVals = meses.map(m => parseFloat(byMonth[m].toFixed(4)));
+
+  charts['chartEvolucao'] = new Chart(document.getElementById('chartEvolucao'), {
+    type:'bar',
+    data:{
+      labels: meses.map(m => { const [y,mo]=m.split('-'); return `${mo}/${y.slice(2)}`; }),
+      datasets:[
+        { type:'line', label:'Acumulado', data:acumVals, borderColor:'#ffd84d', backgroundColor:'rgba(255,216,77,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#ffd84d', tension:0.3, yAxisID:'y1' },
+        { label:'Mensal', data:mensalVals, backgroundColor: mensalVals.map(v=>v>=0?'rgba(0,212,170,0.6)':'rgba(255,77,106,0.6)'), borderRadius:4, yAxisID:'y' }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } },
+      scales:{
+        x:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
+        y:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
+        y1:{ position:'right', ticks:{color:'#ffd84d',font:{family:'JetBrains Mono',size:10}}, grid:{display:false} }
+      }
+    }
+  });
+}
+
+// ── APOSTAS TABLE ──────────────────────────────────────────
+async function renderApostas() {
+  const content = document.getElementById('pageContent');
+  content.innerHTML = `
+    <div class="filters">
+      <input type="text" class="filter-input" id="tSearch" placeholder="Buscar evento, entrada..." oninput="applyApostaFilters()">
+      <select class="filter-select" id="tOp" onchange="applyApostaFilters()"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="tTi" onchange="applyApostaFilters()"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="tBo" onchange="applyApostaFilters()"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="tSt" onchange="applyApostaFilters()"><option value="">Todos status</option><option value="PENDING">Pending</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
+      <input type="date" class="filter-select" id="tDe" onchange="applyApostaFilters()">
+      <input type="date" class="filter-select" id="tAte" onchange="applyApostaFilters()">
+    </div>
+    <div class="loading" id="apostaLoading"><div class="spinner"></div>Carregando...</div>
+    <div class="table-wrap" id="apostaTable" style="display:none">
+      <table>
+        <thead><tr>
+          <th onclick="sortApostas('data_evento')">Data ↕</th>
+          <th>Operador</th>
+          <th>Evento</th>
+          <th>Entrada</th>
+          <th>Tipster</th>
+          <th>Bookie</th>
+          <th onclick="sortApostas('stake_unidades')">Stake ↕</th>
+          <th onclick="sortApostas('odd')">Odd ↕</th>
+          <th>Status</th>
+          <th onclick="sortApostas('lucro_unidades')">Lucro ↕</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="apostaTbody"></tbody>
+      </table>
+    </div>`;
+  await loadApostas();
+}
+
+async function loadApostas() {
+  let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,atualizado_por,atualizado_em&order=data_evento.desc&limit=5000`;
+  apostasData = await sbGet(url);
+  applyApostaFilters();
+  document.getElementById('apostaLoading').style.display = 'none';
+  document.getElementById('apostaTable').style.display = 'block';
+}
+
+function applyApostaFilters() {
+  const search = (document.getElementById('tSearch')?.value||'').toLowerCase();
+  const op  = document.getElementById('tOp')?.value;
+  const ti  = document.getElementById('tTi')?.value;
+  const bo  = document.getElementById('tBo')?.value;
+  const st  = document.getElementById('tSt')?.value;
+  const de  = document.getElementById('tDe')?.value;
+  const ate = document.getElementById('tAte')?.value;
+
+  let filtered = apostasData.filter(a => {
+    if (op  && a.operador_id !== op)  return false;
+    if (ti  && a.tipster_id  !== ti)  return false;
+    if (bo  && a.bookie_id   !== bo)  return false;
+    if (st  && a.status      !== st)  return false;
+    if (de  && a.data_evento < de)    return false;
+    if (ate && a.data_evento > ate)   return false;
+    if (search && !['evento','entrada'].some(f=>(a[f]||'').toLowerCase().includes(search))) return false;
+    return true;
+  });
+
+  filtered.sort((a,b) => {
+    let va = a[sortField]||'', vb = b[sortField]||'';
+    if (['stake_unidades','odd','lucro_unidades'].includes(sortField)) { va=+va; vb=+vb; }
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  renderApostasTable(filtered);
+}
+
+function sortApostas(field) {
+  if (sortField===field) sortAsc=!sortAsc; else { sortField=field; sortAsc=false; }
+  applyApostaFilters();
+}
+
+function renderApostasTable(rows) {
+  const tbody = document.getElementById('apostaTbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(a => {
+    const op  = cache.operadores.find(o=>o.id===a.operador_id)?.nome||'—';
+    const ti  = cache.tipsters.find(t=>t.id===a.tipster_id)?.nome||'—';
+    const bo  = cache.bookies.find(b=>b.id===a.bookie_id)?.nome||'—';
+    const lu  = parseFloat(a.lucro_unidades)||0;
+    const luClass = lu>0?'positive':lu<0?'negative':'neutral';
+    return `<tr>
+      <td class="mono">${fmtDate(a.data_evento)}</td>
+      <td>${op}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis" title="${a.evento||''}">${a.evento||'—'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${a.entrada||''}">${a.entrada||'—'}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis" title="${ti}">${ti}</td>
+      <td>${bo}</td>
+      <td class="mono">${fmtU(a.stake_unidades)}</td>
+      <td class="mono">${parseFloat(a.odd||0).toFixed(2)}</td>
+      <td><span class="status-badge ${statusClass(a.status)}">${a.status}</span></td>
+      <td class="${luClass}">${fmtU(lu)}</td>
+      <td><div style="display:flex;gap:0.3rem">
+        <button class="btn-edit" onclick="editAposta('${a.id}')">✎</button>
+        <button class="btn-edit" onclick="showHistAposta('${a.id}')">📋</button>
+        <button class="btn-danger" onclick="deleteAposta('${a.id}')">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── MODAL APOSTA ───────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('modalApostaTitle').textContent = 'Nova Aposta';
+  document.getElementById('fId').value = '';
+  document.getElementById('fData').value = new Date().toISOString().split('T')[0];
+  ['fOperador','fEsporte','fTipster','fBookie'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['fEvento','fMercado','fEntrada','fStakeReais','fStakeUnidades','fOdd','fResultado'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('fStatus').value = 'PENDING';
+  document.getElementById('fTipo').value = 'Simples';
+  document.getElementById('modalAposta').classList.add('open');
+}
+
+function editAposta(id) {
+  const a = apostasData.find(x=>x.id===id);
+  if (!a) return;
+  document.getElementById('modalApostaTitle').textContent = 'Editar Aposta';
+  document.getElementById('fId').value           = a.id;
+  document.getElementById('fData').value          = a.data_evento||'';
+  document.getElementById('fOperador').value       = a.operador_id||'';
+  document.getElementById('fEsporte').value        = a.esporte_id||'';
+  document.getElementById('fTipster').value        = a.tipster_id||'';
+  document.getElementById('fBookie').value         = a.bookie_id||'';
+  document.getElementById('fEvento').value         = a.evento||'';
+  document.getElementById('fMercado').value        = a.mercado||'';
+  document.getElementById('fEntrada').value        = a.entrada||'';
+  document.getElementById('fStakeReais').value     = a.stake_reais||'';
+  document.getElementById('fStakeUnidades').value  = a.stake_unidades||'';
+  document.getElementById('fOdd').value            = a.odd||'';
+  document.getElementById('fStatus').value         = a.status||'PENDING';
+  document.getElementById('fTipo').value           = a.tipo_aposta||'Simples';
+  document.getElementById('fResultado').value      = a.resultado||'';
+  document.getElementById('modalAposta').classList.add('open');
+}
+
+function calcStakeUnidades() {
+  const sr = parseFloat(document.getElementById('fStakeReais').value)||0;
+  document.getElementById('fStakeUnidades').value = sr > 0 ? sr.toFixed(4) : '';
+}
+
+function calcLucro() {}
+
+async function saveAposta() {
+  const id = document.getElementById('fId').value;
+  const stake = parseFloat(document.getElementById('fStakeReais').value)||0;
+  const odd   = parseFloat(document.getElementById('fOdd').value)||0;
+  const res   = parseFloat(document.getElementById('fResultado').value)||0;
+  const status = document.getElementById('fStatus').value;
+  const lucro  = calcLucroVal(stake, odd, res, status);
+
+  const payload = {
+    data_evento    : document.getElementById('fData').value,
+    operador_id    : document.getElementById('fOperador').value||null,
+    esporte_id     : document.getElementById('fEsporte').value||null,
+    tipster_id     : document.getElementById('fTipster').value||null,
+    bookie_id      : document.getElementById('fBookie').value||null,
+    evento         : document.getElementById('fEvento').value,
+    mercado        : document.getElementById('fMercado').value,
+    entrada        : document.getElementById('fEntrada').value,
+    stake_reais    : stake,
+    stake_unidades : stake,
+    odd, status, resultado: res,
+    tipo_aposta    : document.getElementById('fTipo').value,
+    lucro_reais    : lucro,
+    lucro_unidades : lucro,
+    atualizado_em  : new Date().toISOString(),
+    atualizado_por : currentUser,
+  };
+
+  if (!payload.data_evento) { showToast('Data obrigatória', true); return; }
+
+  try {
+    if (id) {
+      const original = apostasData.find(a=>a.id===id);
+      if (original) {
+        const campos = ['data_evento','evento','entrada','mercado','odd','stake_reais','status','tipo_aposta','resultado'];
+        const hist = campos.filter(f=>String(original[f]||'')!==String(payload[f]||'')).map(f=>({
+          aposta_id:id, campo_alterado:f, valor_anterior:String(original[f]||''),
+          valor_novo:String(payload[f]||''), alterado_por:currentUser
+        }));
+        if (hist.length) await sbPost('historico_apostas', hist);
+      }
+      await sbPatch('apostas', id, payload);
+    } else {
+      await sbPost('apostas', payload);
+    }
+    closeModal('modalAposta');
+    showToast(id ? 'Aposta atualizada!' : 'Aposta registrada!');
+    await loadApostas();
+  } catch(e) {
+    showToast('Erro: '+e.message, true);
+  }
+}
+
+function calcLucroVal(stake, odd, resultado, status) {
+  const s = status.toUpperCase();
+  if (s==='WON')      return parseFloat(((odd-1)*stake).toFixed(4));
+  if (s==='LOST')     return parseFloat((-stake).toFixed(4));
+  if (s==='HALF WON') return parseFloat(((odd-1)*stake/2).toFixed(4));
+  if (s==='HALF LOST')return parseFloat((-stake/2).toFixed(4));
+  if (s==='CASH OUT') return resultado ? parseFloat((resultado-stake).toFixed(4)) : 0;
+  return 0;
+}
+
+async function deleteAposta(id) {
+  if (!confirm('Confirma exclusão desta aposta?')) return;
+  try { await sbDelete('apostas', id); showToast('Aposta removida'); await loadApostas(); }
+  catch(e) { showToast('Erro ao remover', true); }
+}
+
+async function showHistAposta(id) {
+  const r = await sbGet(`historico_apostas?aposta_id=eq.${id}&order=alterado_em.desc&limit=50`);
+  const div = document.getElementById('histContent');
+  div.innerHTML = !r.length
+    ? '<p style="color:var(--muted);font-size:0.85rem;padding:1rem 0">Nenhuma alteração registrada.</p>'
+    : r.map(h=>`<div class="hist-item">
+        <div class="hist-campo">${h.campo_alterado}</div>
+        <div class="hist-valores"><span class="hist-ant">${h.valor_anterior||'—'}</span><span style="color:var(--muted)">→</span><span class="hist-nov">${h.valor_novo||'—'}</span></div>
+        <div class="hist-meta"><span class="hist-user">${h.alterado_por||'?'}</span> · ${new Date(h.alterado_em).toLocaleString('pt-BR')}</div>
+      </div>`).join('');
+  document.getElementById('modalHist').classList.add('open');
+}
+
+// ── CADASTROS ──────────────────────────────────────────────
+async function renderCadastro(tipo) {
+  const config = {
+    tipsters:   { label:'Tipster',   cacheKey:'tipsters',   temStake:true  },
+    bookies:    { label:'Bookie',    cacheKey:'bookies',    temStake:false },
+    operadores: { label:'Operador',  cacheKey:'operadores', temStake:false },
+    esportes:   { label:'Esporte',   cacheKey:'esportes',   temStake:false },
+  };
+  const cfg = config[tipo];
+  if (!cfg) return;
+
+  const items = cache[cfg.cacheKey] || await sbGet(`${tipo}?select=*&order=nome`);
+  cache[cfg.cacheKey] = items;
+
+  const content = document.getElementById('pageContent');
+  content.innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+      <button class="btn-primary" onclick="openCadastroModal('${tipo}', null)">+ Novo ${cfg.label}</button>
+    </div>
+    <div class="crud-table">
+      <table>
+        <thead><tr>
+          <th>Nome</th>
+          ${cfg.temStake ? '<th>Stake atual</th>' : ''}
+          ${'ativo' in (items[0]||{}) ? '<th>Status</th>' : ''}
+          <th></th>
+        </tr></thead>
+        <tbody>
+          ${items.map(item => {
+            const stakeAtual = cfg.temStake ? (cache.stakes.find(s=>s.tipster_id===item.id) ? cache.stakes.find(s=>s.tipster_id===item.id).valor_reais : '—') : '';
+            return `<tr>
+              <td>${item.nome}</td>
+              ${cfg.temStake ? `<td class="mono">${stakeAtual !== '—' ? fmtR(stakeAtual) : '—'} <button class="btn-edit" style="font-size:0.68rem" onclick="openStakesModal('${item.id}','${item.nome}')">histórico</button></td>` : ''}
+              ${'ativo' in item ? `<td><span style="color:${item.ativo?'var(--green)':'var(--muted)'}">${item.ativo?'Ativo':'Inativo'}</span></td>` : ''}
+              <td><div style="display:flex;gap:0.4rem">
+                <button class="btn-edit" onclick="openCadastroModal('${tipo}','${item.id}')">✎</button>
+                <button class="btn-danger" onclick="deleteCadastro('${tipo}','${item.id}')">✕</button>
+              </div></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function openCadastroModal(tipo, id) {
+  const config = { tipsters:'Tipster', bookies:'Bookie', operadores:'Operador', esportes:'Esporte' };
+  const label = config[tipo]||tipo;
+  const item = id ? (cache[tipo]||[]).find(i=>i.id===id) : null;
+  const temAtivo = tipo !== 'esportes';
+  document.getElementById('modalCadastroTitle').textContent = id ? `Editar ${label}` : `Novo ${label}`;
+  document.getElementById('modalCadastroBody').innerHTML = `
+    <input type="hidden" id="cId" value="${id||''}">
+    <input type="hidden" id="cTipo" value="${tipo}">
+    <div class="form-group" style="margin-bottom:1rem">
+      <label>Nome *</label>
+      <input type="text" id="cNome" value="${item?.nome||''}">
+    </div>
+    ${temAtivo ? `<div class="form-group">
+      <label>Status</label>
+      <select id="cAtivo">
+        <option value="true" ${item?.ativo!==false?'selected':''}>Ativo</option>
+        <option value="false" ${item?.ativo===false?'selected':''}>Inativo</option>
+      </select>
+    </div>` : ''}`;
+  document.getElementById('btnSalvarCadastro').onclick = salvarCadastro;
+  document.getElementById('modalCadastro').classList.add('open');
+}
+
+async function salvarCadastro() {
+  const id   = document.getElementById('cId').value;
+  const tipo = document.getElementById('cTipo').value;
+  const nome = document.getElementById('cNome').value.trim();
+  if (!nome) { showToast('Nome obrigatório', true); return; }
+  const ativo = document.getElementById('cAtivo')?.value;
+  const payload = { nome };
+  if (ativo !== undefined) payload.ativo = ativo === 'true';
+  try {
+    if (id) { await sbPatch(tipo, id, payload); }
+    else    { await sbPost(tipo, payload); }
+    closeModal('modalCadastro');
+    showToast('Salvo!');
+    await loadCache();
+    renderCadastro(tipo);
+  } catch(e) { showToast('Erro: '+e.message, true); }
+}
+
+async function deleteCadastro(tipo, id) {
+  if (!confirm('Confirma exclusão?')) return;
+  try { await sbDelete(tipo, id); showToast('Removido'); await loadCache(); renderCadastro(tipo); }
+  catch(e) { showToast('Erro ao remover', true); }
+}
+
+async function openStakesModal(tipsterId, tipsterNome) {
+  document.getElementById('modalStakesTitle').textContent = `Stakes — ${tipsterNome}`;
+  const stakes = cache.stakes.filter(s=>s.tipster_id===tipsterId).sort((a,b)=>b.vigente_a_partir>a.vigente_a_partir?1:-1);
+  document.getElementById('modalStakesBody').innerHTML = `
+    <div style="margin-bottom:1rem">
+      <div class="form-grid" style="margin-bottom:0.75rem">
+        <div class="form-group">
+          <label>Valor (R$)</label>
+          <input type="number" id="sValor" placeholder="0.00" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Vigente a partir de</label>
+          <input type="date" id="sData" value="${new Date().toISOString().split('T')[0]}">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addStake('${tipsterId}')">+ Adicionar</button>
+    </div>
+    <table style="width:100%">
+      <thead><tr><th style="text-align:left;color:var(--muted);font-size:0.68rem;padding:0.5rem">Valor</th><th style="text-align:left;color:var(--muted);font-size:0.68rem;padding:0.5rem">Vigente a partir</th><th></th></tr></thead>
+      <tbody>${stakes.map(s=>`<tr>
+        <td class="mono" style="padding:0.5rem">${fmtR(s.valor_reais)}</td>
+        <td class="mono" style="padding:0.5rem">${fmtDate(s.vigente_a_partir)}</td>
+        <td style="padding:0.5rem"><button class="btn-danger" onclick="deleteStake('${s.id}','${tipsterId}','${tipsterNome}')">✕</button></td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  document.getElementById('modalStakes').classList.add('open');
+}
+
+async function addStake(tipsterId) {
+  const val  = parseFloat(document.getElementById('sValor').value)||0;
+  const data = document.getElementById('sData').value;
+  if (!val || !data) { showToast('Preencha valor e data', true); return; }
+  try {
+    await sbPost('stakes_historico', { tipster_id:tipsterId, valor_reais:val, vigente_a_partir:data, criado_por:currentUser });
+    showToast('Stake adicionada!');
+    cache.stakes = await sbGet('stakes_historico?select=id,tipster_id,valor_reais,vigente_a_partir,criado_por&order=vigente_a_partir.desc');
+    const item = cache.tipsters.find(t=>t.id===tipsterId);
+    if (item) openStakesModal(tipsterId, item.nome);
+  } catch(e) { showToast('Erro', true); }
+}
+
+async function deleteStake(id, tipsterId, tipsterNome) {
+  if (!confirm('Remover esta stake?')) return;
+  try {
+    await sbDelete('stakes_historico', id);
+    cache.stakes = await sbGet('stakes_historico?select=id,tipster_id,valor_reais,vigente_a_partir,criado_por&order=vigente_a_partir.desc');
+    openStakesModal(tipsterId, tipsterNome);
+  } catch(e) { showToast('Erro', true); }
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function fmtU(v) { return `${parseFloat(v||0).toFixed(2)}u`; }
+function fmtR(v) { return `R$ ${parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`; }
+function fmtDate(d) { if(!d) return '—'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+function statusClass(s) {
+  const map = { 'WON':'s-won','LOST':'s-lost','PENDING':'s-pending','VOID':'s-void','HALF WON':'s-halfwon','HALF LOST':'s-halflost','CASH OUT':'s-cashout' };
+  return map[s]||'s-pending';
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showToast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast'+(isError?' error':'')+' show';
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===e.currentTarget) e.target.classList.remove('open'); });
+});
+
+if (currentUser) showApp();
+</script>
+</body>
+</html>
