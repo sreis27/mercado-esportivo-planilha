@@ -110,7 +110,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
 
 /* ── Charts ── */
 .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
-.chart-card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.25rem; }
+.chart-card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.25rem; position:relative; }
 .chart-title { font-family:var(--mono); font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem; }
 .chart-full { grid-column:1/-1; }
 
@@ -513,11 +513,11 @@ function renderDashStats(data) {
       <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${won.length} de ${settled.length}</div></div>
     </div>
     <div class="charts-grid">
-      <div class="chart-card"><div class="chart-title">P/L por Bookie</div><canvas id="chartBookie" height="240"></canvas></div>
-      <div class="chart-card"><div class="chart-title">P/L por Tipster</div><canvas id="chartTipster" height="240"></canvas></div>
-      <div class="chart-card"><div class="chart-title">P/L por Operador</div><canvas id="chartOperador" height="240"></canvas></div>
-      <div class="chart-card"><div class="chart-title">Distribuição de Status</div><canvas id="chartStatus" height="240"></canvas></div>
-      <div class="chart-card chart-full"><div class="chart-title">Evolução Acumulada (unidades)</div><canvas id="chartEvolucao" height="120"></canvas></div>
+      <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;height:280px"><canvas id="chartBookie"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;height:280px"><canvas id="chartTipster"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;height:280px"><canvas id="chartOperador"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Distribuição de Status</div><div style="position:relative;height:280px"><canvas id="chartStatus"></canvas></div></div>
+      <div class="chart-card chart-full"><div class="chart-title">Evolução Acumulada (unidades)</div><div style="position:relative;height:200px"><canvas id="chartEvolucao"></canvas></div></div>
     </div>`;
 
   setTimeout(() => renderCharts(data), 50);
