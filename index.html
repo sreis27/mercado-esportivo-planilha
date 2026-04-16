@@ -456,14 +456,25 @@ async function renderDashboard(savedFilters) {
   if (!document.getElementById('dashFilters')) {
     content.innerHTML = `
       <div class="filters" id="dashFilters">
-        <select class="filter-select" id="dfOp" onchange="updateDashboard()"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
-        <select class="filter-select" id="dfTi" onchange="updateDashboard()"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
-        <select class="filter-select" id="dfBo" onchange="updateDashboard()"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
-        <select class="filter-select" id="dfSt" onchange="updateDashboard()"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
-        <input type="date" class="filter-select" id="dfDe" onchange="updateDashboard()">
-        <input type="date" class="filter-select" id="dfAte" onchange="updateDashboard()">
+        <select class="filter-select" id="dfOp" ><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
+        <select class="filter-select" id="dfTi" ><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
+        <select class="filter-select" id="dfBo" ><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
+        <select class="filter-select" id="dfSt" ><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
+        <input type="date" class="filter-select" id="dfDe" >
+        <input type="date" class="filter-select" id="dfAte" >
+        <button class="btn-filter" onclick="updateDashboard()">Filtrar</button>
       </div>
-      <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
+      
+  // Restaurar filtros globais no dashboard
+  setTimeout(() => {
+    if (gFilters.op)  { const el = document.getElementById('dfOp');  if(el) el.value = gFilters.op; }
+    if (gFilters.ti)  { const el = document.getElementById('dfTi');  if(el) el.value = gFilters.ti; }
+    if (gFilters.bo)  { const el = document.getElementById('dfBo');  if(el) el.value = gFilters.bo; }
+    if (gFilters.st)  { const el = document.getElementById('dfSt');  if(el) el.value = gFilters.st; }
+    if (gFilters.de)  { const el = document.getElementById('dfDe');  if(el) el.value = gFilters.de; }
+    if (gFilters.ate) { const el = document.getElementById('dfAte'); if(el) el.value = gFilters.ate; }
+  }, 0);
+  <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
   }
 
   // Restore saved filter values if provided
@@ -480,6 +491,13 @@ async function renderDashboard(savedFilters) {
 }
 
 async function updateDashboard() {
+  // Salvar filtros no estado global
+  gFilters.op  = document.getElementById('dfOp')?.value  || gFilters.op;
+  gFilters.ti  = document.getElementById('dfTi')?.value  || gFilters.ti;
+  gFilters.bo  = document.getElementById('dfBo')?.value  || gFilters.bo;
+  gFilters.st  = document.getElementById('dfSt')?.value  || gFilters.st;
+  gFilters.de  = document.getElementById('dfDe')?.value  || gFilters.de;
+  gFilters.ate = document.getElementById('dfAte')?.value || gFilters.ate;
   const dashContent = document.getElementById('dashContent');
   if (dashContent) dashContent.innerHTML = '<div class="loading"><div class="spinner"></div>Calculando...</div>';
 
@@ -645,12 +663,13 @@ async function renderApostas() {
   content.innerHTML = `
     <div class="filters">
       <input type="text" class="filter-input" id="tSearch" placeholder="Buscar evento, entrada..." oninput="queryApostas()">
-      <select class="filter-select" id="tOp" onchange="queryApostas()"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="tTi" onchange="queryApostas()"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="tBo" onchange="queryApostas()"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="tSt" onchange="queryApostas()"><option value="">Todos status</option><option value="PENDING">Pending</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
-      <input type="date" class="filter-select" id="tDe" onchange="queryApostas()">
-      <input type="date" class="filter-select" id="tAte" onchange="queryApostas()">
+      <select class="filter-select" id="tOp" ><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="tTi" ><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="tBo" ><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="tSt" ><option value="">Todos status</option><option value="PENDING">Pending</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
+      <input type="date" class="filter-select" id="tDe" >
+      <input type="date" class="filter-select" id="tAte" >
+      <button class="btn-filter" onclick="queryApostas()">Filtrar</button>
     </div>
     <div class="loading" id="apostaLoading"><div class="spinner"></div>Carregando...</div>
     <div class="table-wrap" id="apostaTable" style="display:none">
@@ -677,11 +696,28 @@ async function renderApostas() {
 
 async function loadApostas() {
   await queryApostas();
+  
+  // Restaurar filtros globais
+  setTimeout(() => {
+    if (gFilters.op)  { const el = document.getElementById('tOp');  if(el) el.value = gFilters.op; }
+    if (gFilters.ti)  { const el = document.getElementById('tTi');  if(el) el.value = gFilters.ti; }
+    if (gFilters.bo)  { const el = document.getElementById('tBo');  if(el) el.value = gFilters.bo; }
+    if (gFilters.st)  { const el = document.getElementById('tSt');  if(el) el.value = gFilters.st; }
+    if (gFilters.de)  { const el = document.getElementById('tDe');  if(el) el.value = gFilters.de; }
+    if (gFilters.ate) { const el = document.getElementById('tAte'); if(el) el.value = gFilters.ate; }
+  }, 0);
   document.getElementById('apostaLoading').style.display = 'none';
   document.getElementById('apostaTable').style.display = 'block';
 }
 
 async function queryApostas() {
+  // Salvar filtros no estado global
+  gFilters.op  = document.getElementById('tOp')?.value  || gFilters.op;
+  gFilters.ti  = document.getElementById('tTi')?.value  || gFilters.ti;
+  gFilters.bo  = document.getElementById('tBo')?.value  || gFilters.bo;
+  gFilters.st  = document.getElementById('tSt')?.value  || gFilters.st;
+  gFilters.de  = document.getElementById('tDe')?.value  || gFilters.de;
+  gFilters.ate = document.getElementById('tAte')?.value || gFilters.ate;
   const search = (document.getElementById('tSearch')?.value||'').toLowerCase();
   const op  = document.getElementById('tOp')?.value;
   const ti  = document.getElementById('tTi')?.value;
