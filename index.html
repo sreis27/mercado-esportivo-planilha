@@ -349,6 +349,7 @@ const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const SENHA   = 'officedash';
 
 let currentUser = sessionStorage.getItem('rm_apost_user');
+let gFilters = {};
 let cache = { operadores:[], tipsters:[], bookies:[], esportes:[], stakes:[], tipos_aposta:[], mercados:[], contas:[] };
 let apostasData = [];
 let filtros = { operador:'', tipster:'', bookie:'', status:'', periodo:'', search:'' };
@@ -443,13 +444,8 @@ function showPage(page) {
   document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
   const content = document.getElementById('pageContent');
   content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
-  if (page==='dashboard') {
-    renderDashboard();
-    setTimeout(() => {
-      const dids = {op:'dfOp', ti:'dfTi', bo:'dfBo', st:'dfSt', de:'dfDe', ate:'dfAte'};
-      Object.entries(dids).forEach(([k,id]) => { const e=document.getElementById(id); if(e && gFilters[k]) e.value=gFilters[k]; });
-    }, 100);
-  } else if (page==='apostas') renderApostas();
+  if (page==='dashboard') renderDashboard(gFilters);
+  else if (page==='apostas') renderApostas();
   else renderCadastro(page);
 }
 
@@ -485,9 +481,12 @@ async function renderDashboard(savedFilters) {
 }
 
 async function updateDashboard() {
-  // Salvar filtros do dashboard
-  const dids = {op:'dfOp', ti:'dfTi', bo:'dfBo', st:'dfSt', de:'dfDe', ate:'dfAte'};
-  Object.entries(dids).forEach(([k,id]) => { const e=document.getElementById(id); if(e && e.value!==undefined) gFilters[k]=e.value; });
+  gFilters.op  = document.getElementById('dfOp')?.value  ?? gFilters.op ?? '';
+  gFilters.ti  = document.getElementById('dfTi')?.value  ?? gFilters.ti ?? '';
+  gFilters.bo  = document.getElementById('dfBo')?.value  ?? gFilters.bo ?? '';
+  gFilters.st  = document.getElementById('dfSt')?.value  ?? gFilters.st ?? '';
+  gFilters.de  = document.getElementById('dfDe')?.value  ?? gFilters.de ?? '';
+  gFilters.ate = document.getElementById('dfAte')?.value ?? gFilters.ate ?? '';
   const dashContent = document.getElementById('dashContent');
   if (dashContent) dashContent.innerHTML = '<div class="loading"><div class="spinner"></div>Calculando...</div>';
 
@@ -681,9 +680,8 @@ async function renderApostas() {
       </table>
     </div>`;
   await loadApostas();
-  // Restaurar filtros
-  const rids = {op:'tOp', ti:'tTi', bo:'tBo', st:'tSt', de:'tDe', ate:'tAte'};
-  Object.entries(rids).forEach(([k,id]) => { const e=document.getElementById(id); if(e && gFilters[k]) e.value=gFilters[k]; });
+  const _rk = {op:'tOp',ti:'tTi',bo:'tBo',st:'tSt',de:'tDe',ate:'tAte'};
+  Object.entries(_rk).forEach(([k,id])=>{ const e=document.getElementById(id); if(e&&gFilters[k]) e.value=gFilters[k]; });
 }
 
 async function loadApostas() {
@@ -693,9 +691,12 @@ async function loadApostas() {
 }
 
 async function queryApostas() {
-  // Salvar filtros ativos
-  const ids = {op:'tOp', ti:'tTi', bo:'tBo', st:'tSt', de:'tDe', ate:'tAte'};
-  Object.entries(ids).forEach(([k,id]) => { const e=document.getElementById(id); if(e && e.value!==undefined) gFilters[k]=e.value; });
+  gFilters.op  = document.getElementById('tOp')?.value  ?? gFilters.op ?? '';
+  gFilters.ti  = document.getElementById('tTi')?.value  ?? gFilters.ti ?? '';
+  gFilters.bo  = document.getElementById('tBo')?.value  ?? gFilters.bo ?? '';
+  gFilters.st  = document.getElementById('tSt')?.value  ?? gFilters.st ?? '';
+  gFilters.de  = document.getElementById('tDe')?.value  ?? gFilters.de ?? '';
+  gFilters.ate = document.getElementById('tAte')?.value ?? gFilters.ate ?? '';
   const search = (document.getElementById('tSearch')?.value||'').toLowerCase();
   const op  = document.getElementById('tOp')?.value;
   const ti  = document.getElementById('tTi')?.value;
