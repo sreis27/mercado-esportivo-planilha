@@ -465,15 +465,6 @@ async function renderDashboard(savedFilters) {
         <button class="btn-filter" onclick="updateDashboard()">Filtrar</button>
       </div>
       
-  // Restaurar filtros globais no dashboard
-  setTimeout(() => {
-    if (gFilters.op)  { const el = document.getElementById('dfOp');  if(el) el.value = gFilters.op; }
-    if (gFilters.ti)  { const el = document.getElementById('dfTi');  if(el) el.value = gFilters.ti; }
-    if (gFilters.bo)  { const el = document.getElementById('dfBo');  if(el) el.value = gFilters.bo; }
-    if (gFilters.st)  { const el = document.getElementById('dfSt');  if(el) el.value = gFilters.st; }
-    if (gFilters.de)  { const el = document.getElementById('dfDe');  if(el) el.value = gFilters.de; }
-    if (gFilters.ate) { const el = document.getElementById('dfAte'); if(el) el.value = gFilters.ate; }
-  }, 0);
   <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
   }
 
