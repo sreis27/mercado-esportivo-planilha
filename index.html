@@ -571,6 +571,14 @@ function renderDashStats(data) {
   const roiU    = invU > 0 ? (plU / invU * 100) : 0;
   const roiR    = invR > 0 ? (plR / invR * 100) : 0;
   const acerto  = settled.length > 0 ? (won.length / settled.length * 100) : 0;
+  const pending = data.filter(a => a.status === 'PENDING');
+  const pendInvU = pending.reduce((s,a) => s + (parseFloat(a.stake_unidades)||0), 0);
+  let pendInvR = 0;
+  pending.forEach(a => {
+    const su = parseFloat(a.stake_unidades) || 0;
+    const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
+    pendInvR += su * sv;
+  });
 
   // Odd média ponderada pela stake
   let sumOddStake = 0, sumStake = 0;
@@ -582,10 +590,10 @@ function renderDashStats(data) {
 
   document.getElementById('dashContent').innerHTML = `
     <div class="cards-grid">
-      <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${data.length.toLocaleString('pt-BR')}</div></div>
+      <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${data.length.toLocaleString('pt-BR')}</div><div class="card-sub">${pending.length} pendente${pending.length!==1?'s':''}</div></div>
       <div class="card"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div></div>
       <div class="card"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
-      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div></div>
+      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div><div class="card-sub" style="color:var(--yellow);margin-top:2px">pendente: ${fmtU(pendInvU)} · ${fmtR(pendInvR)}</div></div>
       <div class="card"><div class="card-label">Odd Média ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">ponderada por stake</div></div>
       <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMedia)}</div></div>
       <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${won.length} de ${settled.length}</div></div>
