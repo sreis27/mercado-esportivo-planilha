@@ -839,33 +839,29 @@ function filterContasByBookie() {
     filtered.map(c => `<option value="${c.id}">${c.login}</option>`).join('');
 }
 
-function calcUnidades(stakeReais, tipsterId, dataEvento) {
-  if (!stakeReais) return 0;
-  if (tipsterId && dataEvento) {
-    const stakes = cache.stakes
-      .filter(s => s.tipster_id === tipsterId && s.vigente_a_partir <= dataEvento)
-      .sort((a,b) => b.vigente_a_partir.localeCompare(a.vigente_a_partir));
-    if (stakes.length > 0) return stakeReais / stakes[0].valor_reais;
-  }
-  return stakeReais;
+function getStakeValor(tipsterId, dataEvento) {
+  if (!tipsterId || !dataEvento) return null;
+  const stakes = cache.stakes
+    .filter(s => s.tipster_id === tipsterId && s.vigente_a_partir <= dataEvento)
+    .sort((a,b) => b.vigente_a_partir.localeCompare(a.vigente_a_partir));
+  return stakes.length > 0 ? stakes[0].valor_reais : null;
+}
+function calcUnidades(stakeInput, tipsterId, dataEvento) {
+  return parseFloat(stakeInput) || 0;
+}
+function calcStakeReais(stakeUnidades, tipsterId, dataEvento) {
+  const valor = getStakeValor(tipsterId, dataEvento);
+  return valor ? stakeUnidades * valor : stakeUnidades;
 }
 
 function calcStakeUnidades() {
-  const sr       = parseFloat(document.getElementById('fStakeReais').value)||0;
+  const su = parseFloat(document.getElementById('fStakeReais').value)||0;
   const tipsterId = document.getElementById('fTipster').value;
   const dataEvento = document.getElementById('fData').value;
-  if (!sr) { document.getElementById('fStakeUnidades').value=''; return; }
-  if (tipsterId && dataEvento) {
-    const stakes = cache.stakes
-      .filter(s => s.tipster_id === tipsterId && s.vigente_a_partir <= dataEvento)
-      .sort((a,b) => b.vigente_a_partir.localeCompare(a.vigente_a_partir));
-    if (stakes.length > 0) {
-      const unidades = sr / stakes[0].valor_reais;
-      document.getElementById('fStakeUnidades').value = unidades.toFixed(4);
-      return;
-    }
-  }
-  document.getElementById('fStakeUnidades').value = sr.toFixed(4);
+  if (!su) { document.getElementById('fStakeUnidades').value=''; return; }
+  document.getElementById('fStakeUnidades').value = su.toFixed(4);
+  const valor = getStakeValor(tipsterId, dataEvento);
+  if (valor) document.getElementById('fStakeUnidades').title = 'R$ ' + (su * valor).toFixed(2);
 }
 
 function onStatusChange() {
@@ -888,9 +884,11 @@ async function recalcularStakes() {
     const lote = apostas.slice(i, i + BATCH);
     await Promise.all(lote.map(async a => {
       if (!a.tipster_id || !a.data_evento || !a.stake_reais) return;
-      const su = calcUnidades(parseFloat(a.stake_reais), a.tipster_id, a.data_evento);
+      const su = parseFloat(a.stake_reais) || 0;
+      const sr = calcStakeReais(su, a.tipster_id, a.data_evento);
       const lu = calcLucroVal(su, parseFloat(a.odd)||0, parseFloat(a.resultado)||0, a.status);
-      await sbPatch('apostas', a.id, { stake_unidades: su, lucro_unidades: lu });
+      const lr = calcLucroVal(sr, parseFloat(a.odd)||0, parseFloat(a.resultado)||0, a.status);
+      await sbPatch('apostas', a.id, { stake_unidades: su, stake_reais: sr, lucro_unidades: lu, lucro_reais: lr });
       updated++;
     }));
   }
@@ -917,12 +915,12 @@ async function saveAposta() {
     mercado        : document.getElementById('fMercado').value || '',
     contas_utilizadas: document.getElementById('fConta').value || null,
     entrada        : document.getElementById('fEntrada').value,
-    stake_reais    : stake,
-    stake_unidades : calcUnidades(stake, document.getElementById('fTipster').value, document.getElementById('fData').value),
+    stake_unidades : stake,
+    stake_reais    : calcStakeReais(stake, document.getElementById('fTipster').value, document.getElementById('fData').value),
     odd, status, resultado: res,
     tipo_aposta    : document.getElementById('fTipo').value,
-    lucro_reais    : lucro,
-    lucro_unidades : calcLucroVal(calcUnidades(stake, document.getElementById('fTipster').value, document.getElementById('fData').value), odd, res, status),
+    lucro_unidades : calcLucroVal(stake, odd, res, status),
+    lucro_reais    : calcLucroVal(calcStakeReais(stake, document.getElementById('fTipster').value, document.getElementById('fData').value), odd, res, status),
     atualizado_em  : new Date().toISOString(),
     atualizado_por : currentUser,
   };
