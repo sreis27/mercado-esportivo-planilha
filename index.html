@@ -599,9 +599,11 @@ function renderDashStats(data) {
       <!-- ROW 3: P/L Bookie + P/L Tipster -->
       <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><canvas id="chartBookie" style="max-height:320px"></canvas></div></div>
       <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><canvas id="chartTipster" style="max-height:320px"></canvas></div></div>
-      <!-- ROW 4: P/L Esporte + P/L Mercado + Status -->
+      <!-- ROW 4: P/L Esporte + P/L Mercado -->
       <div class="chart-card"><div class="chart-title">P/L por Esporte</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><canvas id="chartEsporte" style="max-height:260px"></canvas></div></div>
       <div class="chart-card"><div class="chart-title">P/L por Mercado</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><canvas id="chartMercado" style="max-height:260px"></canvas></div></div>
+      <!-- ROW 5: P/L Tipo Aposta + Distribuição de Status -->
+      <div class="chart-card"><div class="chart-title">P/L por Tipo de Aposta</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><canvas id="chartTipo" style="max-height:260px"></canvas></div></div>
       <div class="chart-card"><div class="chart-title">Distribuição de Status</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><canvas id="chartStatus" style="max-height:260px"></canvas></div></div>
     </div>`;
 
@@ -739,6 +741,21 @@ function renderCharts(data) {
     .map(([n,v]) => [n, parseFloat(v.u.toFixed(4)), parseFloat(v.r.toFixed(2))])
     .sort((a,b)=>b[1]-a[1]).slice(0,15);
   makeBar('chartMercado', mercadoEntries);
+
+  // Tipo de Aposta
+  const tipoMap = {};
+  settled.forEach(a => {
+    const t = a.tipo_aposta || 'Outros';
+    if (!tipoMap[t]) tipoMap[t] = { u:0, r:0 };
+    const lu = parseFloat(a.lucro_unidades)||0;
+    const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
+    tipoMap[t].u += lu;
+    tipoMap[t].r += lu * sv;
+  });
+  const tipoEntries = Object.entries(tipoMap)
+    .map(([n,v]) => [n, parseFloat(v.u.toFixed(4)), parseFloat(v.r.toFixed(2))])
+    .sort((a,b)=>b[1]-a[1]);
+  makeBar('chartTipo', tipoEntries);
 
   // Status donut
   const statusCount = {};
