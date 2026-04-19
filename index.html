@@ -75,6 +75,12 @@ nav { flex:1; padding:1rem 0; overflow-y:auto; }
 
 /* ── Filters ── */
 .filters { display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem; align-items:center; }
+.btn-recalc {
+  background: transparent; border: 1px solid var(--accent); color: var(--accent);
+  padding: 0.45rem 1.1rem; border-radius: 10px; font-family: var(--mono);
+  font-size: 0.78rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.btn-recalc:hover { background: var(--accent); color: #fff; }
 .btn-filter {
   background: linear-gradient(135deg, var(--accent), #9b5fff);
   color: #fff; border: none; padding: 0.45rem 1.3rem;
@@ -226,6 +232,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div style="display:flex;gap:0.75rem">
         <button class="btn-primary" id="topbarAddBtn" onclick="openAddModal()" style="display:none">+ Nova Aposta</button>
+      <button class="btn-recalc" id="topbarRecalcBtn" style="display:none" onclick="recalcularStakes()">⟳ Recalcular Stakes</button>
       </div>
     </div>
     <div class="content" id="pageContent"></div>
@@ -448,7 +455,8 @@ function showPage(page) {
   document.querySelectorAll('.nav-item')[navMap[page]]?.classList.add('active');
   const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de Aposta', mercados:'Mercados' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
-  document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
+  document.getElementById('topbarRecalcBtn').style.display = document.getElementById('topbarAddBtn').style.display;
+    document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
   const content = document.getElementById('pageContent');
   content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
   if (page==='dashboard') renderDashboard(gFilters);
@@ -831,6 +839,17 @@ function filterContasByBookie() {
     filtered.map(c => `<option value="${c.id}">${c.login}</option>`).join('');
 }
 
+function calcUnidades(stakeReais, tipsterId, dataEvento) {
+  if (!stakeReais) return 0;
+  if (tipsterId && dataEvento) {
+    const stakes = cache.stakes
+      .filter(s => s.tipster_id === tipsterId && s.vigente_a_partir <= dataEvento)
+      .sort((a,b) => b.vigente_a_partir.localeCompare(a.vigente_a_partir));
+    if (stakes.length > 0) return stakeReais / stakes[0].valor_reais;
+  }
+  return stakeReais;
+}
+
 function calcStakeUnidades() {
   const sr       = parseFloat(document.getElementById('fStakeReais').value)||0;
   const tipsterId = document.getElementById('fTipster').value;
@@ -856,6 +875,30 @@ function onStatusChange() {
   if (st !== 'CASH OUT') { const r = document.getElementById('fResultado'); if(r) r.value=''; }
 }
 
+
+async function recalcularStakes() {
+  if (!confirm('Isso vai recalcular stake_unidades e lucro_unidades de TODAS as apostas com tipster cadastrado. Continuar?')) return;
+  showToast('Recalculando... aguarde');
+
+  const apostas = await sbGet('apostas?select=id,tipster_id,data_evento,stake_reais,odd,status,resultado&limit=50000');
+  let updated = 0;
+  const BATCH = 20;
+
+  for (let i = 0; i < apostas.length; i += BATCH) {
+    const lote = apostas.slice(i, i + BATCH);
+    await Promise.all(lote.map(async a => {
+      if (!a.tipster_id || !a.data_evento || !a.stake_reais) return;
+      const su = calcUnidades(parseFloat(a.stake_reais), a.tipster_id, a.data_evento);
+      const lu = calcLucroVal(su, parseFloat(a.odd)||0, parseFloat(a.resultado)||0, a.status);
+      await sbPatch('apostas', a.id, { stake_unidades: su, lucro_unidades: lu });
+      updated++;
+    }));
+  }
+
+  showToast(`${updated} apostas recalculadas!`);
+  await loadApostas();
+}
+
 async function saveAposta() {
   const id = document.getElementById('fId').value;
   const stake = parseFloat(document.getElementById('fStakeReais').value)||0;
@@ -875,11 +918,11 @@ async function saveAposta() {
     contas_utilizadas: document.getElementById('fConta').value || null,
     entrada        : document.getElementById('fEntrada').value,
     stake_reais    : stake,
-    stake_unidades : stake,
+    stake_unidades : calcUnidades(stake, document.getElementById('fTipster').value, document.getElementById('fData').value),
     odd, status, resultado: res,
     tipo_aposta    : document.getElementById('fTipo').value,
     lucro_reais    : lucro,
-    lucro_unidades : lucro,
+    lucro_unidades : calcLucroVal(calcUnidades(stake, document.getElementById('fTipster').value, document.getElementById('fData').value), odd, res, status),
     atualizado_em  : new Date().toISOString(),
     atualizado_por : currentUser,
   };
