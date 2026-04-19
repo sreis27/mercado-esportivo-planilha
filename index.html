@@ -88,6 +88,8 @@ nav { flex:1; padding:1rem 0; overflow-y:auto; }
   cursor: pointer; transition: opacity 0.2s; white-space: nowrap; letter-spacing: 0.04em;
 }
 .btn-filter:hover { opacity: 0.8; }
+.btn-limpar { background: transparent !important; border: 1px solid var(--muted); color: var(--muted); }
+.btn-limpar:hover { border-color: var(--red); color: var(--red); opacity: 1 !important; }
 
 .newsletter-card { display: flex; flex-direction: column; }
 .newsletter-body { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding: 4px 2px; }
@@ -372,6 +374,8 @@ const SENHA   = 'officedash';
 
 let currentUser = sessionStorage.getItem('rm_apost_user');
 let gFilters = {};
+let evolMode = "month"; // "month" or "day"
+let evolDayMonth = null; // "yyyy-mm" when in day mode
 let cache = { operadores:[], tipsters:[], bookies:[], esportes:[], stakes:[], tipos_aposta:[], mercados:[], contas:[] };
 let apostasData = [];
 let filtros = { operador:'', tipster:'', bookie:'', status:'', periodo:'', search:'' };
@@ -485,7 +489,7 @@ async function renderDashboard(savedFilters) {
         <select class="filter-select" id="dfBo"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
         <select class="filter-select" id="dfSt"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
         <input type="date" class="filter-select" id="dfDe">
-        <input type="date" class="filter-select" id="dfAte"> <button class="btn-filter" onclick="updateDashboard()">Filtrar</button>
+        <input type="date" class="filter-select" id="dfAte"> <button class="btn-filter" onclick="updateDashboard()">Filtrar</button> <button class="btn-filter btn-limpar" onclick="limparFiltrosDashboard()">Limpar</button>
       </div>
       <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
   }
@@ -504,6 +508,11 @@ async function renderDashboard(savedFilters) {
 }
 
 async function updateDashboard() {
+  // Reset evolMode if date range no longer matches a single month
+  if (evolMode === 'day' && evolDayMonth) {
+    const de = document.getElementById('dfDe')?.value || '';
+    if (!de.startsWith(evolDayMonth)) { evolMode = 'month'; evolDayMonth = null; }
+  }
   gFilters.op  = document.getElementById('dfOp')?.value  ?? gFilters.op ?? '';
   gFilters.ti  = document.getElementById('dfTi')?.value  ?? gFilters.ti ?? '';
   gFilters.bo  = document.getElementById('dfBo')?.value  ?? gFilters.bo ?? '';
@@ -599,6 +608,26 @@ function renderDashStats(data) {
   setTimeout(() => renderCharts(data), 50);
 }
 
+
+
+function limparFiltrosApostas() {
+  ['tOp','tTi','tBo','tSt','tDe','tAte'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  gFilters = {};
+  queryApostas();
+}
+
+function limparFiltrosDashboard() {
+  ['dfOp','dfTi','dfBo','dfSt','dfDe','dfAte'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  gFilters = {};
+  evolMode = 'month';
+  evolDayMonth = null;
+  window._evolMeses = null;
+  updateDashboard();
+}
 
 function applyDrillDown(chartId, label) {
   const info = { chartBookie:'dfBo', chartTipster:'dfTi', chartOperador:'dfOp' };
@@ -704,43 +733,94 @@ function renderCharts(data) {
     options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ position:'right', labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } } }
   });
 
-  // Evolução acumulada por mês
-  const byMonth = {};
-  settled.sort((a,b)=>a.data_evento>b.data_evento?1:-1).forEach(a => {
-    const mes = a.data_evento?.substring(0,7);
-    if (!mes) return;
-    if (!byMonth[mes]) byMonth[mes] = 0;
-    byMonth[mes] += parseFloat(a.lucro_unidades)||0;
-  });
-  const meses = Object.keys(byMonth).sort();
-  let acum = 0;
-  const acumVals = meses.map(m => { acum += byMonth[m]; return parseFloat(acum.toFixed(4)); });
-  const mensalVals = meses.map(m => parseFloat(byMonth[m].toFixed(4)));
+  // Evolução acumulada — mensal ou diária
+  let dayMeses = null;
+  let evolLabels, evolMensalVals, evolAcumVals;
+
+  if (evolMode === 'day' && evolDayMonth) {
+    // Daily breakdown for selected month
+    const byDay = {}, byDayR = {};
+    settled.filter(a => a.data_evento?.startsWith(evolDayMonth))
+      .sort((a,b)=>a.data_evento>b.data_evento?1:-1)
+      .forEach(a => {
+        const d = a.data_evento?.substring(0,10);
+        if (!d) return;
+        if (!byDay[d]) { byDay[d] = 0; byDayR[d] = 0; }
+        byDay[d] += parseFloat(a.lucro_unidades)||0;
+        const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
+        byDayR[d] += (parseFloat(a.lucro_unidades)||0) * sv;
+      });
+    dayMeses = Object.keys(byDay).sort();
+    let acumD = 0;
+    evolAcumVals = dayMeses.map(d => { acumD += byDay[d]; return parseFloat(acumD.toFixed(4)); });
+    evolMensalVals = dayMeses.map(d => parseFloat(byDay[d].toFixed(4)));
+    evolLabels = dayMeses.map(d => d.substring(8,10) + '/' + d.substring(5,7));
+    window._evolR = dayMeses.map(d => parseFloat((byDayR[d]||0).toFixed(2)));
+  } else {
+    const byMonth = {}, byMonthR = {};
+    settled.sort((a,b)=>a.data_evento>b.data_evento?1:-1).forEach(a => {
+      const mes = a.data_evento?.substring(0,7);
+      if (!mes) return;
+      if (!byMonth[mes]) { byMonth[mes] = 0; byMonthR[mes] = 0; }
+      byMonth[mes]  += parseFloat(a.lucro_unidades)||0;
+      const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
+      byMonthR[mes] += (parseFloat(a.lucro_unidades)||0) * sv;
+    });
+    const meses = Object.keys(byMonth).sort();
+    let acum = 0;
+    evolAcumVals = meses.map(m => { acum += byMonth[m]; return parseFloat(acum.toFixed(4)); });
+    evolMensalVals = meses.map(m => parseFloat(byMonth[m].toFixed(4)));
+    evolLabels = meses.map(m => { const [y,mo]=m.split('-'); return `${mo}/${y.slice(2)}`; });
+    window._evolMeses = meses;
+    window._evolR = meses.map(m => parseFloat((byMonthR[m]||0).toFixed(2)));
+  }
+  const meses = window._evolMeses || [];
 
   charts['chartEvolucao'] = new Chart(document.getElementById('chartEvolucao'), {
     type:'bar',
     data:{
-      labels: meses.map(m => { const [y,mo]=m.split('-'); return `${mo}/${y.slice(2)}`; }),
+      labels: evolLabels,
       datasets:[
-        { type:'line', label:'Acumulado', data:acumVals, borderColor:'#ffd84d', backgroundColor:'rgba(255,216,77,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#ffd84d', tension:0.3, yAxisID:'y1' },
-        { label:'Mensal', data:mensalVals, backgroundColor: mensalVals.map(v=>v>=0?'rgba(0,212,170,0.6)':'rgba(255,77,106,0.6)'), borderRadius:4, yAxisID:'y' }
+        { type:'line', label: evolMode==='day' ? `Acumulado (${evolDayMonth})` : 'Acumulado', data:evolAcumVals, borderColor:'#ffd84d', backgroundColor:'rgba(255,216,77,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#ffd84d', tension:0.3, yAxisID:'y1' },
+        { label:'Mensal', data:evolMensalVals, backgroundColor: evolMensalVals.map(v=>v>=0?'rgba(0,212,170,0.6)':'rgba(255,77,106,0.6)'), borderRadius:4, yAxisID:'y' }
       ]
     },
     options:{
       responsive:true, maintainAspectRatio:false, animation:false,
       onClick: (evt, elements) => {
         if (!elements.length) return;
-        const mes = meses[elements[0].index]; // yyyy-mm
-        if (!mes) return;
-        const [y,m] = mes.split('-');
-        const de  = `${y}-${m}-01`;
-        const ate = `${y}-${m}-${new Date(y,m,0).getDate()}`;
-        document.getElementById('dfDe').value  = de;
-        document.getElementById('dfAte').value = ate;
-        gFilters.de = de; gFilters.ate = ate;
-        updateDashboard();
+        if (evolMode === 'month') {
+          // Switch to daily view for this month
+          evolDayMonth = meses[elements[0].index];
+          if (!evolDayMonth) return;
+          const [y,m] = evolDayMonth.split('-');
+          const de  = `${y}-${m}-01`;
+          const ate = `${y}-${m}-${new Date(y,m,0).getDate()}`;
+          document.getElementById('dfDe').value  = de;
+          document.getElementById('dfAte').value = ate;
+          gFilters.de = de; gFilters.ate = ate;
+          evolMode = 'day';
+          updateDashboard();
+        } else {
+          // Drill down to specific day
+          const dayLabel = dayMeses ? dayMeses[elements[0].index] : null;
+          if (!dayLabel) return;
+          document.getElementById('dfDe').value  = dayLabel;
+          document.getElementById('dfAte').value = dayLabel;
+          gFilters.de = dayLabel; gFilters.ate = dayLabel;
+          updateDashboard();
+        }
       },
-      plugins:{ legend:{ labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } },
+      plugins:{
+        legend:{ labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } },
+        tooltip:{ callbacks:{
+          afterBody: ctx => {
+            const idx = ctx[0]?.dataIndex;
+            const r = window._evolR?.[idx];
+            return r !== undefined ? [`R$ ${r.toLocaleString('pt-BR',{minimumFractionDigits:2})}`] : [];
+          }
+        }}
+      },
       scales:{
         x:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
         y:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
@@ -761,7 +841,7 @@ async function renderApostas() {
       <select class="filter-select" id="tBo"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
       <select class="filter-select" id="tSt"><option value="">Todos status</option><option value="PENDING">Pending</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
       <input type="date" class="filter-select" id="tDe">
-      <input type="date" class="filter-select" id="tAte"> <button class="btn-filter" onclick="queryApostas()">Filtrar</button>
+      <input type="date" class="filter-select" id="tAte"> <button class="btn-filter" onclick="queryApostas()">Filtrar</button> <button class="btn-filter btn-limpar" onclick="limparFiltrosApostas()">Limpar</button>
     </div>
     <div class="loading" id="apostaLoading"><div class="spinner"></div>Carregando...</div>
     <div class="table-wrap" id="apostaTable" style="display:none">
