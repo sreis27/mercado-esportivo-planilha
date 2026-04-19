@@ -535,10 +535,22 @@ function buildDashFilters() {
 function renderDashStats(data) {
   const settled = data.filter(a => !['PENDING'].includes(a.status));
   const won     = data.filter(a => ['WON','HALF WON'].includes(a.status));
-  const plU     = settled.reduce((s,a) => s + (parseFloat(a.lucro_unidades)||0), 0);
-  const plR     = settled.reduce((s,a) => s + (parseFloat(a.lucro_reais)||0), 0);
-  const invU    = data.reduce((s,a) => s + (parseFloat(a.stake_unidades)||0), 0);
-  const invR    = data.reduce((s,a) => s + (parseFloat(a.stake_reais)||0), 0);
+
+  // Calcular unidades usando stake_unidades (que é o valor correto)
+  // Calcular R$ multiplicando unidades pelo valor da stake do tipster na data
+  const plU  = settled.reduce((s,a) => s + (parseFloat(a.lucro_unidades)||0), 0);
+  const invU = data.reduce((s,a) => s + (parseFloat(a.stake_unidades)||0), 0);
+
+  // Para R$: multiplica pelo valor da stake vigente do tipster
+  let invR = 0, plR = 0;
+  data.forEach(a => {
+    const su = parseFloat(a.stake_unidades) || 0;
+    const lu = parseFloat(a.lucro_unidades) || 0;
+    const valorStake = getStakeValor(a.tipster_id, a.data_evento) || 1;
+    invR += su * valorStake;
+    if (!['PENDING'].includes(a.status)) plR += lu * valorStake;
+  });
+
   const roiU    = invU > 0 ? (plU / invU * 100) : 0;
   const roiR    = invR > 0 ? (plR / invR * 100) : 0;
   const acerto  = settled.length > 0 ? (won.length / settled.length * 100) : 0;
