@@ -88,6 +88,14 @@ nav { flex:1; padding:1rem 0; overflow-y:auto; }
   cursor: pointer; transition: opacity 0.2s; white-space: nowrap; letter-spacing: 0.04em;
 }
 .btn-filter:hover { opacity: 0.8; }
+
+.newsletter-card { display: flex; flex-direction: column; }
+.newsletter-body { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding: 4px 2px; }
+.nl-placeholder { color: var(--muted); font-size: 0.85rem; line-height: 1.6; padding: 20px 10px; text-align: center; font-family: var(--mono); }
+.nl-item { background: var(--s3); border-radius: 8px; padding: 12px 14px; border-left: 3px solid var(--accent2); }
+.nl-item-title { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; font-family: var(--mono); }
+.nl-item-value { font-size: 1rem; font-weight: 600; color: var(--text); }
+
 .filter-select, .filter-input { background:var(--s1); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.9rem; border-radius:8px; font-family:var(--font); font-size:0.82rem; outline:none; cursor:pointer; }
 .filter-input { width:200px; }
 .filter-select:focus, .filter-input:focus { border-color:var(--accent); }
@@ -574,14 +582,40 @@ function renderDashStats(data) {
       <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${won.length} de ${settled.length}</div></div>
     </div>
     <div class="charts-grid">
-      <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><canvas id="chartBookie" style="max-height:280px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><canvas id="chartTipster" style="max-height:280px"></canvas></div></div>
+      <!-- ROW 1: Evolução full width -->
+      <div class="chart-card chart-full"><div class="chart-title">Evolução Acumulada (unidades)</div><div style="position:relative;width:100%;height:220px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:220px"></canvas></div></div>
+      <!-- ROW 2: P/L Operador + Newsletter -->
       <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><canvas id="chartOperador" style="max-height:280px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">Distribuição de Status</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><canvas id="chartStatus" style="max-height:280px"></canvas></div></div>
-      <div class="chart-card chart-full"><div class="chart-title">Evolução Acumulada (unidades)</div><div style="position:relative;width:100%;height:200px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:200px"></canvas></div></div>
+      <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">📊 Em breve: insights automáticos sobre a operação serão exibidos aqui diariamente.</div></div></div>
+      <!-- ROW 3: P/L Bookie + P/L Tipster -->
+      <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><canvas id="chartBookie" style="max-height:320px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><canvas id="chartTipster" style="max-height:320px"></canvas></div></div>
+      <!-- ROW 4: P/L Esporte + P/L Mercado + Status -->
+      <div class="chart-card"><div class="chart-title">P/L por Esporte</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><canvas id="chartEsporte" style="max-height:260px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">P/L por Mercado</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><canvas id="chartMercado" style="max-height:260px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Distribuição de Status</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><canvas id="chartStatus" style="max-height:260px"></canvas></div></div>
     </div>`;
 
   setTimeout(() => renderCharts(data), 50);
+}
+
+
+function applyDrillDown(chartId, label) {
+  const info = { chartBookie:'dfBo', chartTipster:'dfTi', chartOperador:'dfOp' };
+  const selId = info[chartId];
+
+  if (selId) {
+    // Find the matching ID in cache
+    const cacheMap = { dfBo: cache.bookies, dfTi: cache.tipsters, dfOp: cache.operadores };
+    const arr = cacheMap[selId] || [];
+    const item = arr.find(x => x.nome === label);
+    const el = document.getElementById(selId);
+    if (el && item) {
+      el.value = item.id;
+      gFilters[selId.replace('df','').toLowerCase()] = item.id;
+    }
+    updateDashboard();
+  }
 }
 
 function renderCharts(data) {
@@ -612,22 +646,53 @@ function renderCharts(data) {
     return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,15);
   };
 
+  const drillMap = {
+    chartBookie:   { field:'bookie_id',   arr: cache.bookies },
+    chartTipster:  { field:'tipster_id',  arr: cache.tipsters },
+    chartOperador: { field:'operador_id', arr: cache.operadores },
+    chartEsporte:  { field:'esporte_id',  arr: cache.esportes || [] },
+    chartMercado:  { field:'mercado',     arr: null },
+  };
+
   const makeBar = (id, entries, horizontal=true) => {
     const canvas = document.getElementById(id);
     if (!canvas) return;
     const labels = entries.map(e=>e[0]);
     const vals   = entries.map(e=>e[1]);
     const colors = vals.map(v => v>=0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,77,106,0.7)');
+    const opts = chartOpts(horizontal);
+    opts.plugins.tooltip.callbacks.label = ctx => ` ${fmtU(ctx.raw)}`;
+    opts.onClick = (evt, elements) => {
+      if (!elements.length) return;
+      const label = labels[elements[0].index];
+      applyDrillDown(id, label);
+    };
+    opts.plugins.tooltip.callbacks.title = ctx => ctx[0].label;
+    canvas.style.cursor = 'pointer';
     charts[id] = new Chart(canvas, {
       type:'bar',
       data:{ labels, datasets:[{ data:vals, backgroundColor:colors, borderRadius:4 }] },
-      options: chartOpts(horizontal)
+      options: opts
     });
   };
 
   makeBar('chartBookie',   groupBy(settled,'bookie_id',   cache.bookies));
   makeBar('chartTipster',  groupBy(settled,'tipster_id',  cache.tipsters));
   makeBar('chartOperador', groupBy(settled,'operador_id', cache.operadores));
+
+  // Esporte
+  const esporteArr = (cache.esportes||[]);
+  makeBar('chartEsporte', groupBy(settled,'esporte_id', esporteArr));
+
+  // Mercado (text field, not FK)
+  const mercadoMap = {};
+  settled.forEach(a => {
+    const m = a.mercado || 'Outros';
+    if (!mercadoMap[m]) mercadoMap[m] = 0;
+    mercadoMap[m] += parseFloat(a.lucro_unidades)||0;
+  });
+  const mercadoEntries = Object.entries(mercadoMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  makeBar('chartMercado', mercadoEntries);
 
   // Status donut
   const statusCount = {};
@@ -663,6 +728,18 @@ function renderCharts(data) {
     },
     options:{
       responsive:true, maintainAspectRatio:false, animation:false,
+      onClick: (evt, elements) => {
+        if (!elements.length) return;
+        const mes = meses[elements[0].index]; // yyyy-mm
+        if (!mes) return;
+        const [y,m] = mes.split('-');
+        const de  = `${y}-${m}-01`;
+        const ate = `${y}-${m}-${new Date(y,m,0).getDate()}`;
+        document.getElementById('dfDe').value  = de;
+        document.getElementById('dfAte').value = ate;
+        gFilters.de = de; gFilters.ate = ate;
+        updateDashboard();
+      },
       plugins:{ legend:{ labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } },
       scales:{
         x:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
