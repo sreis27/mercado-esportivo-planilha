@@ -455,8 +455,8 @@ function showPage(page) {
   document.querySelectorAll('.nav-item')[navMap[page]]?.classList.add('active');
   const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de Aposta', mercados:'Mercados' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
-  document.getElementById('topbarRecalcBtn').style.display = document.getElementById('topbarAddBtn').style.display;
-    document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
+  document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
+    document.getElementById('topbarRecalcBtn').style.display = page==='apostas' ? 'inline-block' : 'none';
   const content = document.getElementById('pageContent');
   content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
   if (page==='dashboard') renderDashboard(gFilters);
