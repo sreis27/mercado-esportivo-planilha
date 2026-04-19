@@ -655,24 +655,35 @@ function renderCharts(data) {
   const chartOpts = (horizontal=false) => ({
     responsive:true, maintainAspectRatio:false, animation:false,
     indexAxis: horizontal ? 'y' : 'x',
-    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ${fmtU(ctx.raw)}` } } },
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+      label: ctx => ` ${fmtU(ctx.raw)}`,
+      afterLabel: ctx => {
+        const r = ctx.dataset._rVals?.[ctx.dataIndex];
+        return r != null ? ` R$ ${r.toLocaleString('pt-BR',{minimumFractionDigits:2})}` : '';
+      }
+    }}},
     scales:{
       x:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
       y:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} }
     }
   });
 
-  // Helper: group by FK
+  // Helper: group by FK — returns [{name, u, r}]
   const groupBy = (arr, fkField, cacheArr) => {
     const map = {};
     arr.forEach(a => {
       const id   = a[fkField];
-      const item = cacheArr.find(c=>c.id===id);
+      const item = cacheArr ? cacheArr.find(c=>c.id===id) : null;
       const name = item?.nome || 'Outros';
-      if (!map[name]) map[name] = 0;
-      map[name] += parseFloat(a.lucro_unidades)||0;
+      if (!map[name]) map[name] = { u:0, r:0 };
+      const lu = parseFloat(a.lucro_unidades)||0;
+      const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
+      map[name].u += lu;
+      map[name].r += lu * sv;
     });
-    return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,15);
+    return Object.entries(map)
+      .map(([n,v]) => [n, parseFloat(v.u.toFixed(4)), parseFloat(v.r.toFixed(2))])
+      .sort((a,b)=>b[1]-a[1]).slice(0,15);
   };
 
   const drillMap = {
@@ -686,8 +697,9 @@ function renderCharts(data) {
   const makeBar = (id, entries, horizontal=true) => {
     const canvas = document.getElementById(id);
     if (!canvas) return;
-    const labels = entries.map(e=>e[0]);
-    const vals   = entries.map(e=>e[1]);
+    const labels  = entries.map(e=>e[0]);
+    const vals    = entries.map(e=>e[1]);
+    const rVals   = entries.map(e=>e[2] ?? null); // R$ values
     const colors = vals.map(v => v>=0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,77,106,0.7)');
     const opts = chartOpts(horizontal);
     opts.plugins.tooltip.callbacks.label = ctx => ` ${fmtU(ctx.raw)}`;
@@ -700,7 +712,7 @@ function renderCharts(data) {
     canvas.style.cursor = 'pointer';
     charts[id] = new Chart(canvas, {
       type:'bar',
-      data:{ labels, datasets:[{ data:vals, backgroundColor:colors, borderRadius:4 }] },
+      data:{ labels, datasets:[{ data:vals, backgroundColor:colors, borderRadius:4, _rVals:rVals }] },
       options: opts
     });
   };
@@ -717,10 +729,15 @@ function renderCharts(data) {
   const mercadoMap = {};
   settled.forEach(a => {
     const m = a.mercado || 'Outros';
-    if (!mercadoMap[m]) mercadoMap[m] = 0;
-    mercadoMap[m] += parseFloat(a.lucro_unidades)||0;
+    if (!mercadoMap[m]) mercadoMap[m] = { u:0, r:0 };
+    const lu = parseFloat(a.lucro_unidades)||0;
+    const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
+    mercadoMap[m].u += lu;
+    mercadoMap[m].r += lu * sv;
   });
-  const mercadoEntries = Object.entries(mercadoMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  const mercadoEntries = Object.entries(mercadoMap)
+    .map(([n,v]) => [n, parseFloat(v.u.toFixed(4)), parseFloat(v.r.toFixed(2))])
+    .sort((a,b)=>b[1]-a[1]).slice(0,15);
   makeBar('chartMercado', mercadoEntries);
 
   // Status donut
