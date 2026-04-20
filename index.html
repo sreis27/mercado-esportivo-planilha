@@ -1475,9 +1475,10 @@ async function openBriefing(dataRef) {
   } catch(e) { showToast('Erro: '+e.message, true); }
 }
 
-const _origUpdate = updateDashboard;
-updateDashboard = async function() {
-  await _origUpdate.apply(this, arguments);
+// Auto-load briefings after dashboard renders
+const _origRenderDashStats = renderDashStats;
+renderDashStats = function(data) {
+  _origRenderDashStats.apply(this, arguments);
   setTimeout(loadBriefings, 300);
 };
 
