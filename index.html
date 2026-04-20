@@ -1417,7 +1417,7 @@ const BRIEFING_API = 'https://web-production-af071f.up.railway.app';
 
 async function fecharDia() {
   const hoje = new Date().toISOString().slice(0,10);
-  if (!confirm(`Fechar o dia ${hoje.split('-').reverse().join('/')}?\n\nIsso vai gerar o briefing, enviar no Telegram e postar no Twitter.`)) return;
+  if (!confirm(`Fechar o dia ${hoje.split('-').reverse().join('/')}?\n\nIsso vai gerar o briefing, enviar no Telegram e preparar o card do Twitter pra download.`)) return;
   const loader = document.getElementById('fecharDiaLoading');
   const msg = document.getElementById('fecharDiaMsg');
   loader.classList.add('open');
@@ -1426,17 +1426,39 @@ async function fecharDia() {
     const r = await fetch(`${BRIEFING_API}/fechar-dia`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ data_ref: hoje, usuario: currentUser, postar_twitter: true })
+      body: JSON.stringify({ data_ref: hoje, usuario: currentUser, postar_twitter: false })
     });
     const data = await r.json();
     loader.classList.remove('open');
     if (!data.ok) { showToast('Erro: ' + (data.error || 'desconhecido'), true); return; }
     showToast(`Dia fechado! P/L: ${data.dia.plU >= 0 ? '+' : ''}${data.dia.plU.toFixed(1)}u`);
+
+    // Mostrar modal de Twitter com card e texto pra download
+    if (data.twitter_card_base64) {
+      mostrarTwitterCard(data.twitter_card_base64, data.twitter_text, hoje);
+    }
     await loadBriefings();
   } catch(e) {
     loader.classList.remove('open');
     showToast('Erro na conexão: ' + e.message, true);
   }
+}
+
+function mostrarTwitterCard(base64, texto, dataRef) {
+  const modal = document.getElementById('twitterModal');
+  document.getElementById('twitterCardImg').src = 'data:image/png;base64,' + base64;
+  document.getElementById('twitterText').value = texto;
+  document.getElementById('twitterDownloadBtn').onclick = () => {
+    const a = document.createElement('a');
+    a.href = 'data:image/png;base64,' + base64;
+    a.download = `mercado-esportivo-${dataRef}.png`;
+    a.click();
+  };
+  document.getElementById('twitterCopyBtn').onclick = () => {
+    navigator.clipboard.writeText(texto);
+    showToast('Texto copiado!');
+  };
+  modal.classList.add('open');
 }
 
 async function loadBriefings() {
@@ -1497,6 +1519,30 @@ if (currentUser) showApp();
       <button onclick="document.getElementById('briefingModal').classList.remove('open')">Fechar ✕</button>
     </div>
     <div id="briefingContent"></div>
+  </div>
+</div>
+
+
+<!-- Twitter Card Modal -->
+<div class="briefing-modal-overlay" id="twitterModal" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="briefing-modal-content" style="max-width:640px">
+    <div class="briefing-modal-close">
+      <button onclick="document.getElementById('twitterModal').classList.remove('open')">Fechar ✕</button>
+    </div>
+    <div style="padding:24px;color:#e8e8f5">
+      <h2 style="font-size:18px;font-weight:500;margin:0 0 16px;font-family:var(--mono);color:var(--accent2)">🐦 CARD PRO TWITTER</h2>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 16px;line-height:1.5">Baixe a imagem e o texto abaixo, depois poste manualmente no @evvol_bettor.</p>
+
+      <img id="twitterCardImg" style="width:100%;border-radius:8px;margin-bottom:16px;border:1px solid #2a2a45" alt="Card Twitter">
+
+      <label style="display:block;font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Texto sugerido</label>
+      <textarea id="twitterText" readonly style="width:100%;min-height:80px;background:var(--s3);border:1px solid #2a2a45;color:#e8e8f5;border-radius:8px;padding:12px;font-family:var(--mono);font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button id="twitterDownloadBtn" class="btn-filter" style="flex:1">📥 Baixar imagem</button>
+        <button id="twitterCopyBtn" class="btn-filter btn-limpar" style="flex:1">📋 Copiar texto</button>
+      </div>
+    </div>
   </div>
 </div>
 
