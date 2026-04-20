@@ -591,9 +591,9 @@ function renderDashStats(data) {
   document.getElementById('dashContent').innerHTML = `
     <div class="cards-grid">
       <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${data.length.toLocaleString('pt-BR')}</div><div class="card-sub">${pending.length} pendente${pending.length!==1?'s':''}</div></div>
-      <div class="card"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div></div>
+      <div class="card"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div><div class="card-sub">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
       <div class="card"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
-      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div><div class="card-sub" style="color:var(--yellow);margin-top:2px">${fmtR(pendInvR)} pendente</div></div>
+      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div><div class="card-sub">${fmtR(pendInvR)} pendente</div></div>
       <div class="card"><div class="card-label">Odd Média ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">ponderada por stake</div></div>
       <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMedia)}</div></div>
       <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${won.length} de ${settled.length}</div></div>
