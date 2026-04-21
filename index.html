@@ -437,6 +437,7 @@ let cache = { operadores:[], tipsters:[], bookies:[], esportes:[], stakes:[], ti
 let apostasData = [];
 let filtros = { operador:'', tipster:'', bookie:'', status:'', periodo:'', search:'' };
 let sortField = 'data_evento', sortAsc = false;
+let pageSize = 100, currentPage = 1;
 let charts = {};
 
 const hdrs = { 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'return=representation' };
@@ -961,7 +962,8 @@ async function renderApostas() {
         </tr></thead>
         <tbody id="apostaTbody"></tbody>
       </table>
-    </div>`;
+    </div>
+    <div id="apostaPagination"></div>`;
   // Restaurar filtros ANTES de carregar
   const _rk = {op:'tOp',ti:'tTi',bo:'tBo',st:'tSt',de:'tDe',ate:'tAte'};
   Object.entries(_rk).forEach(([k,id])=>{ const e=document.getElementById(id); if(e&&gFilters[k]) e.value=gFilters[k]; });
@@ -1004,6 +1006,7 @@ async function queryApostas() {
       ['evento','entrada'].some(f=>(a[f]||'').toLowerCase().includes(search))
     );
   }
+  currentPage = 1;
   applyApostaFilters();
 }
 
@@ -1017,7 +1020,69 @@ function applyApostaFilters() {
     return 0;
   });
 
-  renderApostasTable(filtered);
+  const total = filtered.length;
+  const ps = pageSize === 'all' ? total : pageSize;
+  const totalPages = ps > 0 ? Math.max(1, Math.ceil(total / ps)) : 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+
+  let pageRows;
+  if (pageSize === 'all' || total === 0) {
+    pageRows = filtered;
+  } else {
+    const start = (currentPage - 1) * pageSize;
+    pageRows = filtered.slice(start, start + pageSize);
+  }
+
+  renderApostasTable(pageRows);
+  renderPaginationControls(total, totalPages);
+}
+
+function renderPaginationControls(total, totalPages) {
+  const container = document.getElementById('apostaPagination');
+  if (!container) return;
+  const ps = pageSize === 'all' ? total : pageSize;
+  const start = total === 0 ? 0 : (currentPage - 1) * ps + 1;
+  const end = Math.min(currentPage * ps, total);
+  const info = total === 0 ? 'Nenhum registro'
+             : pageSize === 'all' ? `${total} registros`
+             : `${start}–${end} de ${total}`;
+  const showNav = pageSize !== 'all' && totalPages > 1;
+  container.innerHTML = `
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;padding:1rem 0 0.5rem 0;border-top:1px solid var(--border);margin-top:0.5rem">
+      <span style="color:var(--muted);font-size:0.82rem">Mostrar:</span>
+      <select class="filter-select" onchange="changePageSize(this.value)" style="width:auto">
+        <option value="10" ${pageSize===10?'selected':''}>10</option>
+        <option value="50" ${pageSize===50?'selected':''}>50</option>
+        <option value="100" ${pageSize===100?'selected':''}>100</option>
+        <option value="500" ${pageSize===500?'selected':''}>500</option>
+        <option value="1000" ${pageSize===1000?'selected':''}>1000</option>
+        <option value="all" ${pageSize==='all'?'selected':''}>Todos</option>
+      </select>
+      <span style="color:var(--muted);font-size:0.82rem">${info}</span>
+      ${showNav ? `
+        <div style="display:flex;gap:0.35rem;margin-left:auto;align-items:center">
+          <button class="btn-filter" onclick="goToPage(1)" ${currentPage===1?'disabled style="opacity:0.4;cursor:not-allowed"':''}>«</button>
+          <button class="btn-filter" onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled style="opacity:0.4;cursor:not-allowed"':''}>‹</button>
+          <span style="color:var(--text);font-size:0.82rem;padding:0 0.5rem">Página ${currentPage} de ${totalPages}</span>
+          <button class="btn-filter" onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?'disabled style="opacity:0.4;cursor:not-allowed"':''}>›</button>
+          <button class="btn-filter" onclick="goToPage(${totalPages})" ${currentPage===totalPages?'disabled style="opacity:0.4;cursor:not-allowed"':''}>»</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function changePageSize(size) {
+  pageSize = size === 'all' ? 'all' : parseInt(size);
+  currentPage = 1;
+  applyApostaFilters();
+}
+
+function goToPage(n) {
+  currentPage = n;
+  applyApostaFilters();
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function sortApostas(field) {
