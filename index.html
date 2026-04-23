@@ -313,7 +313,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       <input type="hidden" id="fId">
       <div class="form-group">
         <label>Data do evento *</label>
-        <input type="date" id="fData" onchange="calcStakeUnidades()">
+        <input type="date" id="fData" onchange="recalcStake()">
       </div>
       <div class="form-group">
         <label>Operador *</label>
@@ -341,7 +341,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       </div>
       <div class="form-group">
         <label>Tipster / Grupo</label>
-        <select id="fTipster" onchange="calcStakeUnidades()"></select>
+        <select id="fTipster" onchange="recalcStake()"></select>
       </div>
       <div class="form-group">
         <label>Bookie</label>
@@ -353,11 +353,11 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       </div>
       <div class="form-group">
         <label>Stake (R$)</label>
-        <input type="number" id="fStakeReais" placeholder="0.00" step="0.01" oninput="calcStakeUnidades()">
+        <input type="number" id="fStakeReais" placeholder="0.00" step="0.01" oninput="calcUnidFromReais()">
       </div>
       <div class="form-group">
         <label>Stake (unidades)</label>
-        <input type="number" id="fStakeUnidades" placeholder="auto" step="0.0001" readonly style="opacity:0.6">
+        <input type="number" id="fStakeUnidades" placeholder="0.0000" step="0.0001" oninput="calcReaisFromUnid()">
       </div>
       <div class="form-group">
         <label>Odd</label>
@@ -1186,14 +1186,38 @@ function calcStakeReais(stakeUnidades, tipsterId, dataEvento) {
   return valor ? stakeUnidades * valor : stakeUnidades;
 }
 
-function calcStakeUnidades() {
-  const su = parseFloat(document.getElementById('fStakeReais').value)||0;
+function calcUnidFromReais() {
+  const reais = parseFloat(document.getElementById('fStakeReais').value);
   const tipsterId = document.getElementById('fTipster').value;
   const dataEvento = document.getElementById('fData').value;
-  if (!su) { document.getElementById('fStakeUnidades').value=''; return; }
-  document.getElementById('fStakeUnidades').value = su.toFixed(4);
+  const unidEl = document.getElementById('fStakeUnidades');
+  if (isNaN(reais) || reais === 0) { return; }
   const valor = getStakeValor(tipsterId, dataEvento);
-  if (valor) document.getElementById('fStakeUnidades').title = 'R$ ' + (su * valor).toFixed(2);
+  if (!valor) { return; }
+  unidEl.value = (reais / valor).toFixed(4);
+}
+
+function calcReaisFromUnid() {
+  const unidades = parseFloat(document.getElementById('fStakeUnidades').value);
+  const tipsterId = document.getElementById('fTipster').value;
+  const dataEvento = document.getElementById('fData').value;
+  const reaisEl = document.getElementById('fStakeReais');
+  if (isNaN(unidades) || unidades === 0) { return; }
+  const valor = getStakeValor(tipsterId, dataEvento);
+  if (!valor) { return; }
+  reaisEl.value = (unidades * valor).toFixed(2);
+}
+
+function recalcStake() {
+  // Chamado quando data ou tipster muda — recalcula o outro campo a partir do que já está preenchido.
+  // Prioriza R$ como fonte primária se ambos estão preenchidos.
+  const reais = parseFloat(document.getElementById('fStakeReais').value);
+  const unidades = parseFloat(document.getElementById('fStakeUnidades').value);
+  if (!isNaN(reais) && reais > 0) {
+    calcUnidFromReais();
+  } else if (!isNaN(unidades) && unidades > 0) {
+    calcReaisFromUnid();
+  }
 }
 
 function onStatusChange() {
@@ -1231,11 +1255,11 @@ async function recalcularStakes() {
 
 async function saveAposta() {
   const id = document.getElementById('fId').value;
-  const stake = parseFloat(document.getElementById('fStakeReais').value)||0;
+  const stakeR = parseFloat(document.getElementById('fStakeReais').value)||0;
+  const stakeU = parseFloat(document.getElementById('fStakeUnidades').value)||0;
   const odd   = parseFloat(document.getElementById('fOdd').value)||0;
   const res   = parseFloat(document.getElementById('fResultado').value)||0;
   const status = document.getElementById('fStatus').value;
-  const lucro  = calcLucroVal(stake, odd, res, status);
 
   const payload = {
     data_evento    : document.getElementById('fData').value,
@@ -1247,12 +1271,12 @@ async function saveAposta() {
     mercado        : document.getElementById('fMercado').value || '',
     contas_utilizadas: document.getElementById('fConta').value || null,
     entrada        : document.getElementById('fEntrada').value,
-    stake_unidades : stake,
-    stake_reais    : calcStakeReais(stake, document.getElementById('fTipster').value, document.getElementById('fData').value),
+    stake_unidades : stakeU || null,
+    stake_reais    : stakeR || null,
     odd, status, resultado: res,
     tipo_aposta    : document.getElementById('fTipo').value,
-    lucro_unidades : calcLucroVal(stake, odd, res, status),
-    lucro_reais    : calcLucroVal(calcStakeReais(stake, document.getElementById('fTipster').value, document.getElementById('fData').value), odd, res, status),
+    lucro_unidades : stakeU ? calcLucroVal(stakeU, odd, res, status) : null,
+    lucro_reais    : stakeR ? calcLucroVal(stakeR, odd, res, status) : null,
     atualizado_em  : new Date().toISOString(),
     atualizado_por : currentUser,
   };
