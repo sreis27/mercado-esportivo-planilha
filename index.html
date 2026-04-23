@@ -641,6 +641,7 @@ function renderDashStats(data) {
   data.forEach(a => { const s = parseFloat(a.stake_unidades)||0; const o = parseFloat(a.odd)||0; sumOddStake += o*s; sumStake += s; });
   const oddMedia = sumStake > 0 ? sumOddStake / sumStake : 0;
   const stakeMedia = data.length > 0 ? invU / data.length : 0;
+  const stakeMediaR = data.length > 0 ? invR / data.length : 0;
 
   const pl_color = plU >= 0 ? 'green' : 'red';
 
@@ -651,7 +652,7 @@ function renderDashStats(data) {
       <div class="card"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
       <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div><div class="card-sub">${fmtR(pendInvR)} pendente</div></div>
       <div class="card"><div class="card-label">Odd Média ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">ponderada por stake</div></div>
-      <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMedia)}</div></div>
+      <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMediaR)}</div></div>
       <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${won.length} de ${settled.length}</div></div>
     </div>
     <div class="charts-grid">
