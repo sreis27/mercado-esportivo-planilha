@@ -299,7 +299,6 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div style="display:flex;gap:0.75rem">
         <button class="btn-primary" id="topbarAddBtn" onclick="openAddModal()" style="display:none">+ Nova Aposta</button>
-      <button class="btn-recalc" id="topbarRecalcBtn" style="display:none" onclick="recalcularStakes()">⟳ Recalcular Stakes</button>
       </div>
     </div>
     <div class="content" id="pageContent"></div>
@@ -526,7 +525,6 @@ function showPage(page) {
   const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de Aposta', mercados:'Mercados' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
   document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
-    document.getElementById('topbarRecalcBtn').style.display = page==='apostas' ? 'inline-block' : 'none';
   const content = document.getElementById('pageContent');
   content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
   if (page==='dashboard') renderDashboard(gFilters);
@@ -547,7 +545,7 @@ async function renderDashboard(savedFilters) {
         <select class="filter-select" id="dfBo"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
         <select class="filter-select" id="dfSt"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
         <input type="date" class="filter-select" id="dfDe">
-        <input type="date" class="filter-select" id="dfAte"> <button class="btn-filter" onclick="updateDashboard()">Filtrar</button> <button class="btn-filter btn-limpar" onclick="limparFiltrosDashboard()">Limpar</button> <button class="btn-filter btn-fechar" onclick="fecharDia()">⚡ Fechar dia</button>
+        <input type="date" class="filter-select" id="dfAte"> <button class="btn-filter" onclick="updateDashboard()">Filtrar</button> <button class="btn-filter btn-limpar" onclick="limparFiltrosDashboard()">Limpar</button> <button class="btn-filter btn-fechar" onclick="abrirModalFecharDia()">⚡ Fechar dia</button>
       </div>
       <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
   }
@@ -1480,9 +1478,16 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
 
 const BRIEFING_API = 'https://web-production-af071f.up.railway.app';
 
-async function fecharDia() {
+function abrirModalFecharDia() {
   const hoje = new Date().toISOString().slice(0,10);
-  if (!confirm(`Fechar o dia ${hoje.split('-').reverse().join('/')}?\n\nIsso vai gerar o briefing, enviar no Telegram e preparar o card do Twitter pra download.`)) return;
+  document.getElementById('fdData').value = hoje;
+  document.getElementById('modalFecharDia').classList.add('open');
+}
+
+async function confirmarFecharDia() {
+  const dataRef = document.getElementById('fdData').value;
+  if (!dataRef) { showToast('Selecione uma data', true); return; }
+  closeModal('modalFecharDia');
   const loader = document.getElementById('fecharDiaLoading');
   const msg = document.getElementById('fecharDiaMsg');
   loader.classList.add('open');
@@ -1491,7 +1496,7 @@ async function fecharDia() {
     const r = await fetch(`${BRIEFING_API}/fechar-dia`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ data_ref: hoje, usuario: currentUser, postar_twitter: false })
+      body: JSON.stringify({ data_ref: dataRef, usuario: currentUser, postar_twitter: false })
     });
     const data = await r.json();
     loader.classList.remove('open');
@@ -1500,7 +1505,7 @@ async function fecharDia() {
 
     // Mostrar modal de Twitter com card e texto pra download
     if (data.twitter_card_base64) {
-      mostrarTwitterCard(data.twitter_card_base64, data.twitter_text, hoje);
+      mostrarTwitterCard(data.twitter_card_base64, data.twitter_text, dataRef);
     }
     await loadBriefings();
   } catch(e) {
@@ -1576,6 +1581,24 @@ renderDashStats = function(data) {
 
 if (currentUser) showApp();
 </script>
+
+<!-- Fechar Dia Modal (escolher data) -->
+<div class="modal-overlay" id="modalFecharDia">
+  <div class="modal" style="max-width:420px">
+    <h2>Fechar Dia</h2>
+    <div style="margin-bottom:1rem;color:var(--muted);font-size:0.82rem;line-height:1.5">
+      Isso vai gerar o briefing, enviar no Telegram e preparar o card do Twitter pra download.
+    </div>
+    <div class="form-group" style="margin-bottom:1rem">
+      <label>Data do dia a fechar *</label>
+      <input type="date" id="fdData">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalFecharDia')">Cancelar</button>
+      <button class="btn-save" onclick="confirmarFecharDia()">Fechar dia</button>
+    </div>
+  </div>
+</div>
 
 <!-- Briefing Modal -->
 <div class="briefing-modal-overlay" id="briefingModal" onclick="if(event.target===this) this.classList.remove('open')">
