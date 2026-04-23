@@ -287,6 +287,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       <div class="nav-item" onclick="showPage('esportes')"><span class="icon">⚽</span><span>Esportes</span></div>
       <div class="nav-item" onclick="showPage('tipos_aposta')"><span class="icon">🎯</span><span>Tipos de Aposta</span></div>
       <div class="nav-item" onclick="showPage('mercados')"><span class="icon">📌</span><span>Mercados</span></div>
+      <div class="nav-item" onclick="showPage('bugs_melhorias')"><span class="icon">🐛</span><span>Bugs / Melhorias</span></div>
     </nav>
     <div class="sidebar-footer">
       <button class="logout-btn" onclick="doLogout()">Sair</button>
@@ -539,15 +540,16 @@ async function sbDelete(table, id) {
 // ── PAGES ──────────────────────────────────────────────────
 function showPage(page) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const navMap = { dashboard:0, apostas:1, tipsters:2, bookies:3, operadores:4, esportes:5, tipos_aposta:6, mercados:7 };
+  const navMap = { dashboard:0, apostas:1, tipsters:2, bookies:3, operadores:4, esportes:5, tipos_aposta:6, mercados:7, bugs_melhorias:8 };
   document.querySelectorAll('.nav-item')[navMap[page]]?.classList.add('active');
-  const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de Aposta', mercados:'Mercados' };
+  const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de Aposta', mercados:'Mercados', bugs_melhorias:'Bugs / Melhorias' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
   document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
   const content = document.getElementById('pageContent');
   content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
   if (page==='dashboard') renderDashboard(gFilters);
   else if (page==='apostas') renderApostas();
+  else if (page==='bugs_melhorias') renderBugsMelhorias();
   else renderCadastro(page);
 }
 
@@ -1456,6 +1458,132 @@ async function showHistAposta(id) {
   document.getElementById('modalHist').classList.add('open');
 }
 
+// ── BUGS / MELHORIAS ───────────────────────────────────────
+async function renderBugsMelhorias() {
+  const content = document.getElementById('pageContent');
+  let items = [];
+  try { items = await sbGet('bugs_melhorias?select=*&order=criado_em.desc'); }
+  catch(e) { content.innerHTML = `<div style="color:var(--red);padding:1rem">Erro: ${e.message}<br><br>Verifique se a tabela <code>bugs_melhorias</code> existe no Supabase.</div>`; return; }
+
+  const statusColor = s => ({
+    'aberto':'#f59e0b', 'em_andamento':'#3b82f6', 'resolvido':'var(--green)', 'descartado':'var(--muted)'
+  })[s] || 'var(--muted)';
+  const statusLabel = s => ({
+    'aberto':'🟠 Aberto', 'em_andamento':'🔵 Em andamento', 'resolvido':'✅ Resolvido', 'descartado':'⚪ Descartado'
+  })[s] || s;
+  const tipoLabel = t => ({ 'bug':'🐛 Bug', 'melhoria':'💡 Melhoria' })[t] || t;
+
+  const aberto = items.filter(i=>i.status==='aberto').length;
+  const andam = items.filter(i=>i.status==='em_andamento').length;
+  const resolv = items.filter(i=>i.status==='resolvido').length;
+
+  content.innerHTML = `
+    <div style="margin-bottom:1rem;display:flex;gap:0.5rem;align-items:center">
+      <button class="btn-filter" onclick="abrirModalBug()" style="background:var(--green);color:#000;border:none">+ Novo</button>
+      <div style="color:var(--muted);font-size:0.85rem;margin-left:auto">
+        Abertos: <b style="color:#f59e0b">${aberto}</b> &nbsp;|&nbsp;
+        Em andamento: <b style="color:#3b82f6">${andam}</b> &nbsp;|&nbsp;
+        Resolvidos: <b style="color:var(--green)">${resolv}</b>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="apostas-table" style="margin:0">
+        <thead><tr>
+          <th style="width:90px">Tipo</th>
+          <th>Título</th>
+          <th style="width:130px">Status</th>
+          <th style="width:110px">Autor</th>
+          <th style="width:110px">Data</th>
+          <th style="width:80px"></th>
+        </tr></thead>
+        <tbody>
+          ${items.map(i => `
+            <tr>
+              <td>${tipoLabel(i.tipo)}</td>
+              <td style="cursor:pointer" onclick="abrirModalBug('${i.id}')"><b>${(i.titulo||'').replace(/</g,'&lt;')}</b>${i.descricao?`<div style="color:var(--muted);font-size:0.78rem;margin-top:2px;max-width:600px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.descricao.replace(/</g,'&lt;')}</div>`:''}</td>
+              <td><span style="color:${statusColor(i.status)}">${statusLabel(i.status)}</span></td>
+              <td style="color:var(--muted);font-size:0.82rem">${i.autor||'-'}</td>
+              <td style="color:var(--muted);font-size:0.82rem">${i.criado_em?new Date(i.criado_em).toLocaleDateString('pt-BR'):'-'}</td>
+              <td><div class="row-actions">
+                <button class="btn-icon" onclick="abrirModalBug('${i.id}')">✏️</button>
+                <button class="btn-icon" onclick="deletarBug('${i.id}')">🗑</button>
+              </div></td>
+            </tr>
+          `).join('') || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Nenhum registro ainda. Clique em "+ Novo" pra começar.</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function abrirModalBug(id) {
+  const isEdit = !!id;
+  document.getElementById('bmId').value = id || '';
+  document.getElementById('bmTituloModal').textContent = isEdit ? 'Editar Registro' : 'Novo Registro';
+
+  if (isEdit) {
+    const item = (cache.bugs_melhorias || []).find(i=>i.id===id);
+    // Se não temos cache, busca
+    if (!item) {
+      sbGet(`bugs_melhorias?id=eq.${id}`).then(r => {
+        if (r[0]) preencherModalBug(r[0]);
+      });
+    } else {
+      preencherModalBug(item);
+    }
+  } else {
+    document.getElementById('bmTipo').value = 'bug';
+    document.getElementById('bmTitulo').value = '';
+    document.getElementById('bmDescricao').value = '';
+    document.getElementById('bmStatus').value = 'aberto';
+  }
+  document.getElementById('modalBug').classList.add('open');
+}
+
+function preencherModalBug(item) {
+  document.getElementById('bmTipo').value = item.tipo || 'bug';
+  document.getElementById('bmTitulo').value = item.titulo || '';
+  document.getElementById('bmDescricao').value = item.descricao || '';
+  document.getElementById('bmStatus').value = item.status || 'aberto';
+}
+
+async function salvarBug() {
+  const id = document.getElementById('bmId').value;
+  const payload = {
+    tipo: document.getElementById('bmTipo').value,
+    titulo: document.getElementById('bmTitulo').value.trim(),
+    descricao: document.getElementById('bmDescricao').value.trim() || null,
+    status: document.getElementById('bmStatus').value,
+  };
+  if (!payload.titulo) { showToast('Título é obrigatório', true); return; }
+
+  try {
+    if (id) {
+      payload.atualizado_em = new Date().toISOString();
+      await sbPatch('bugs_melhorias', id, payload);
+      showToast('Atualizado!');
+    } else {
+      payload.autor = currentUser;
+      payload.criado_em = new Date().toISOString();
+      await sbPost('bugs_melhorias', payload);
+      showToast('Registrado!');
+    }
+    closeModal('modalBug');
+    renderBugsMelhorias();
+  } catch(e) {
+    showToast('Erro: ' + e.message, true);
+  }
+}
+
+async function deletarBug(id) {
+  if (!confirm('Excluir este registro?')) return;
+  try {
+    await sbDelete('bugs_melhorias', id);
+    showToast('Excluído');
+    renderBugsMelhorias();
+  } catch(e) { showToast('Erro: ' + e.message, true); }
+}
+
 // ── CADASTROS ──────────────────────────────────────────────
 async function renderCadastro(tipo) {
   const config = {
@@ -1727,6 +1855,44 @@ renderDashStats = function(data) {
 
 if (currentUser) showApp();
 </script>
+
+<!-- Bugs / Melhorias Modal -->
+<div class="modal-overlay" id="modalBug">
+  <div class="modal">
+    <h2 id="bmTituloModal">Novo Registro</h2>
+    <input type="hidden" id="bmId">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tipo *</label>
+        <select id="bmTipo">
+          <option value="bug">🐛 Bug</option>
+          <option value="melhoria">💡 Melhoria</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="bmStatus">
+          <option value="aberto">🟠 Aberto</option>
+          <option value="em_andamento">🔵 Em andamento</option>
+          <option value="resolvido">✅ Resolvido</option>
+          <option value="descartado">⚪ Descartado</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Título *</label>
+        <input type="text" id="bmTitulo" maxlength="200" placeholder="Resumo curto">
+      </div>
+      <div class="form-group full">
+        <label>Descrição</label>
+        <textarea id="bmDescricao" rows="5" style="width:100%;resize:vertical" placeholder="Detalhes, passos pra reproduzir, comportamento esperado..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalBug')">Cancelar</button>
+      <button class="btn-save" onclick="salvarBug()">Salvar</button>
+    </div>
+  </div>
+</div>
 
 <!-- Alterar em massa Modal -->
 <div class="modal-overlay" id="modalAlterar">
