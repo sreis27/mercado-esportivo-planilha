@@ -381,11 +381,11 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
         <input type="number" id="fResultado" placeholder="0.00" step="0.01">
       </div>
     </div>
-    <div id="fLucroDisplay" style="display:none;margin-top:1rem;padding:0.9rem 1rem;background:rgba(0,212,170,0.10);border:1px solid rgba(0,212,170,0.35);border-radius:8px;color:#00d4aa;font-family:var(--mono);font-size:1.05rem;text-align:center">
-      <span style="font-size:0.72rem;letter-spacing:1px;opacity:0.8">TO WIN </span>
-      <span id="fLucroVal" style="font-weight:600"></span>
-    </div>
-    <div class="modal-footer">
+    <div class="modal-footer" style="display:flex;align-items:center;gap:0.75rem">
+      <div id="fLucroDisplay" style="display:none;flex:1;padding:0.6rem 0.9rem;background:rgba(0,212,170,0.10);border:1px solid rgba(0,212,170,0.35);border-radius:8px;color:#00d4aa;font-family:var(--mono);font-size:0.95rem;text-align:center;line-height:1.2">
+        <span style="font-size:0.65rem;letter-spacing:1px;opacity:0.8">TO WIN </span>
+        <span id="fLucroVal" style="font-weight:600"></span>
+      </div>
       <button class="btn-outline" onclick="closeModal('modalAposta')">Cancelar</button>
       <button class="btn-save" onclick="saveAposta()">Salvar</button>
     </div>
@@ -1384,8 +1384,11 @@ function atualizarLucroDisplay() {
 
   let txt = '';
   if (stakeR > 0) txt += `R$ ${lucroR.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-  if (stakeU > 0) txt += (txt ? ' · ' : '') + `${lucroU.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}u`;
-  val.textContent = txt;
+  if (stakeU > 0) {
+    const uStr = `${lucroU.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}u`;
+    txt += txt ? ` <span style="font-size:0.78em;opacity:0.7">(${uStr})</span>` : uStr;
+  }
+  val.innerHTML = txt;
   display.style.display = 'block';
 }
 
