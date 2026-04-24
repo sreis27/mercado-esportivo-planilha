@@ -362,7 +362,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       </div>
       <div class="form-group">
         <label>Odd</label>
-        <input type="number" id="fOdd" placeholder="0.00" step="0.01">
+        <input type="number" id="fOdd" placeholder="0.00" step="0.01" oninput="atualizarLucroDisplay()">
       </div>
       <div class="form-group">
         <label>Status</label>
@@ -380,6 +380,10 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
         <label>Retorno bruto (Cash Out)</label>
         <input type="number" id="fResultado" placeholder="0.00" step="0.01">
       </div>
+    </div>
+    <div id="fLucroDisplay" style="display:none;margin-top:1rem;padding:0.9rem 1rem;background:rgba(0,212,170,0.10);border:1px solid rgba(0,212,170,0.35);border-radius:8px;color:#00d4aa;font-family:var(--mono);font-size:1.05rem;text-align:center">
+      <span style="font-size:0.72rem;letter-spacing:1px;opacity:0.8">TO WIN </span>
+      <span id="fLucroVal" style="font-weight:600"></span>
     </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modalAposta')">Cancelar</button>
@@ -600,7 +604,7 @@ async function updateDashboard() {
   if (dashContent) dashContent.innerHTML = '<div class="loading"><div class="spinner"></div>Calculando...</div>';
 
   const filters = buildDashFilters();
-  let url = `apostas?select=id,data_evento,stake_reais,stake_unidades,odd,status,lucro_reais,lucro_unidades,operador_id,tipster_id,bookie_id`;
+  let url = `apostas?select=id,data_evento,stake_reais,stake_unidades,odd,status,lucro_reais,lucro_unidades,operador_id,tipster_id,bookie_id,esporte_id,mercado,tipo_aposta`;
   url += '&limit=50000';
   if (filters.length) url += '&' + filters.join('&');
 
@@ -1251,6 +1255,7 @@ function openAddModal() {
   ['fEvento','fMercado','fEntrada','fStakeReais','fStakeUnidades','fOdd','fResultado'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('fStatus').value = 'PENDING';
   document.getElementById('fTipo').value = 'Simples';
+  atualizarLucroDisplay();
   document.getElementById('modalAposta').classList.add('open');
 }
 
@@ -1314,10 +1319,11 @@ function calcUnidFromReais() {
   const tipsterId = document.getElementById('fTipster').value;
   const dataEvento = document.getElementById('fData').value;
   const unidEl = document.getElementById('fStakeUnidades');
-  if (isNaN(reais) || reais === 0) { return; }
+  if (isNaN(reais) || reais === 0) { atualizarLucroDisplay(); return; }
   const valor = getStakeValor(tipsterId, dataEvento);
-  if (!valor) { return; }
+  if (!valor) { atualizarLucroDisplay(); return; }
   unidEl.value = (reais / valor).toFixed(4);
+  atualizarLucroDisplay();
 }
 
 function calcReaisFromUnid() {
@@ -1325,10 +1331,11 @@ function calcReaisFromUnid() {
   const tipsterId = document.getElementById('fTipster').value;
   const dataEvento = document.getElementById('fData').value;
   const reaisEl = document.getElementById('fStakeReais');
-  if (isNaN(unidades) || unidades === 0) { return; }
+  if (isNaN(unidades) || unidades === 0) { atualizarLucroDisplay(); return; }
   const valor = getStakeValor(tipsterId, dataEvento);
-  if (!valor) { return; }
+  if (!valor) { atualizarLucroDisplay(); return; }
   reaisEl.value = (unidades * valor).toFixed(2);
+  atualizarLucroDisplay();
 }
 
 function recalcStake() {
@@ -1348,6 +1355,38 @@ function onStatusChange() {
   const group = document.getElementById('fResultadoGroup');
   if (group) group.style.display = st === 'CASH OUT' ? 'block' : 'none';
   if (st !== 'CASH OUT') { const r = document.getElementById('fResultado'); if(r) r.value=''; }
+  atualizarLucroDisplay();
+}
+
+function atualizarLucroDisplay() {
+  const display = document.getElementById('fLucroDisplay');
+  const val = document.getElementById('fLucroVal');
+  if (!display || !val) return;
+
+  const st = document.getElementById('fStatus').value;
+  if (st !== 'WON' && st !== 'HALF WON') {
+    display.style.display = 'none';
+    return;
+  }
+
+  const odd = parseFloat(document.getElementById('fOdd').value) || 0;
+  const stakeR = parseFloat(document.getElementById('fStakeReais').value) || 0;
+  const stakeU = parseFloat(document.getElementById('fStakeUnidades').value) || 0;
+
+  if (!odd || (!stakeR && !stakeU)) {
+    display.style.display = 'none';
+    return;
+  }
+
+  const mult = st === 'HALF WON' ? 0.5 : 1;
+  const lucroR = (odd - 1) * stakeR * mult;
+  const lucroU = (odd - 1) * stakeU * mult;
+
+  let txt = '';
+  if (stakeR > 0) txt += `R$ ${lucroR.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+  if (stakeU > 0) txt += (txt ? ' · ' : '') + `${lucroU.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}u`;
+  val.textContent = txt;
+  display.style.display = 'block';
 }
 
 
