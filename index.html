@@ -798,17 +798,26 @@ function renderCharts(data) {
     const rVals   = entries.map(e=>e[2] ?? null); // R$ values
     const colors = vals.map(v => v>=0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,77,106,0.7)');
 
-    // Altura dinâmica: 28px por barra horizontal + 40px de padding/eixos. Mínimo herdado do container.
-    if (horizontal && entries.length > 0) {
-      const altura = Math.max(220, entries.length * 28 + 40);
+    // Só vira scrollável quando tem MUITAS entradas. Pequenos ficam compactos como antes.
+    const LIMITE_SCROLL = 12;
+    if (horizontal && entries.length > LIMITE_SCROLL) {
+      const altura = entries.length * 24 + 40;
       canvas.style.height = altura + 'px';
       canvas.style.maxHeight = altura + 'px';
-      // Faz o container pai virar scrollável
       const parent = canvas.parentElement;
       if (parent) {
-        parent.style.height = '320px';
+        // Mantém a altura original do parent (320/280/260px conforme card) e ativa scroll
         parent.style.overflowY = 'auto';
         parent.style.overflowX = 'hidden';
+      }
+    } else {
+      // Reset caso o gráfico tenha sido grande antes (ex: trocou filtro)
+      canvas.style.height = '';
+      canvas.style.maxHeight = '';
+      const parent = canvas.parentElement;
+      if (parent) {
+        parent.style.overflowY = '';
+        parent.style.overflowX = '';
       }
     }
 
