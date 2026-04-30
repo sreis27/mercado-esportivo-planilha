@@ -155,6 +155,15 @@ nav { flex:1; padding:1rem 0; overflow-y:auto; }
 .nl-item-title { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; font-family: var(--mono); }
 .nl-item-value { font-size: 1rem; font-weight: 600; color: var(--text); }
 
+.insights-frase { color: var(--text); font-size: 0.95rem; line-height: 1.5; padding: 4px 2px 14px; font-weight: 500; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.insights-bullet { display: flex; gap: 12px; align-items: flex-start; padding: 8px 6px; border-radius: 6px; }
+.insights-bullet:hover { background: rgba(108,99,255,0.04); }
+.insights-bullet-emoji { font-size: 1.2rem; line-height: 1.2; flex-shrink: 0; width: 24px; text-align: center; }
+.insights-bullet-text { color: var(--text); font-size: 0.85rem; line-height: 1.5; }
+.insights-erro { color: var(--red); font-size: 0.78rem; padding: 12px; font-family: var(--mono); }
+.insights-loading { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.82rem; padding: 16px; font-family: var(--mono); }
+.insights-loading-spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+
 .filter-select, .filter-input { background:var(--s1); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.9rem; border-radius:8px; font-family:var(--font); font-size:0.82rem; outline:none; cursor:pointer; }
 .filter-input { width:200px; }
 .filter-select:focus, .filter-input:focus { border-color:var(--accent); }
@@ -441,6 +450,7 @@ let currentUser = sessionStorage.getItem('rm_apost_user');
 let gFilters = {};
 let evolMode = "month"; // "month" or "day"
 let evolDayMonth = null; // "yyyy-mm" when in day mode
+let evolUnit = "u"; // "u" (unidades) or "r" (reais)
 let cache = { operadores:[], tipsters:[], bookies:[], esportes:[], stakes:[], tipos_aposta:[], mercados:[], contas:[] };
 let apostasData = [];
 let filtros = { operador:'', tipster:'', bookie:'', status:'', periodo:'', search:'' };
@@ -572,6 +582,8 @@ async function renderDashboard(savedFilters) {
         <select class="filter-select" id="dfOp"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
         <select class="filter-select" id="dfTi"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
         <select class="filter-select" id="dfBo"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
+        <select class="filter-select" id="dfEs"><option value="">Todos esportes</option>${(cache.esportes||[]).map(e=>`<option value="${e.id}">${e.nome}</option>`).join('')}</select>
+        <select class="filter-select" id="dfMe"><option value="">Todos mercados</option></select>
         <select class="filter-select" id="dfSt"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
         <input type="date" class="filter-select" id="dfDe">
         <input type="date" class="filter-select" id="dfAte"> <button class="btn-filter" onclick="updateDashboard()">Filtrar</button> <button class="btn-filter btn-limpar" onclick="limparFiltrosDashboard()">Limpar</button> <button class="btn-filter btn-fechar" onclick="abrirModalFecharDia()">⚡ Fechar dia</button>
@@ -584,9 +596,21 @@ async function renderDashboard(savedFilters) {
     if (savedFilters.op)  document.getElementById('dfOp').value  = savedFilters.op;
     if (savedFilters.ti)  document.getElementById('dfTi').value  = savedFilters.ti;
     if (savedFilters.bo)  document.getElementById('dfBo').value  = savedFilters.bo;
+    if (savedFilters.es)  document.getElementById('dfEs').value  = savedFilters.es;
+    if (savedFilters.me)  document.getElementById('dfMe').value  = savedFilters.me;
     if (savedFilters.st)  document.getElementById('dfSt').value  = savedFilters.st;
     if (savedFilters.de)  document.getElementById('dfDe').value  = savedFilters.de;
     if (savedFilters.ate) document.getElementById('dfAte').value = savedFilters.ate;
+  }
+
+  // Popular dropdown de mercado a partir do cache (mercado é text livre, mas mostro os cadastrados)
+  const dfMe = document.getElementById('dfMe');
+  if (dfMe && dfMe.options.length === 1 && cache.mercados) {
+    cache.mercados.filter(m => m.ativo !== false).forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.nome; opt.textContent = m.nome;
+      dfMe.appendChild(opt);
+    });
   }
 
   await updateDashboard();
@@ -601,6 +625,8 @@ async function updateDashboard() {
   gFilters.op  = document.getElementById('dfOp')?.value  ?? gFilters.op ?? '';
   gFilters.ti  = document.getElementById('dfTi')?.value  ?? gFilters.ti ?? '';
   gFilters.bo  = document.getElementById('dfBo')?.value  ?? gFilters.bo ?? '';
+  gFilters.es  = document.getElementById('dfEs')?.value  ?? gFilters.es ?? '';
+  gFilters.me  = document.getElementById('dfMe')?.value  ?? gFilters.me ?? '';
   gFilters.st  = document.getElementById('dfSt')?.value  ?? gFilters.st ?? '';
   gFilters.de  = document.getElementById('dfDe')?.value  ?? gFilters.de ?? '';
   gFilters.ate = document.getElementById('dfAte')?.value ?? gFilters.ate ?? '';
@@ -615,6 +641,7 @@ async function updateDashboard() {
   const data = await sbGet(url);
   renderDashStats(data);
   renderDashCharts(data);
+  loadInsights();
 }
 
 function buildDashFilters() {
@@ -622,12 +649,16 @@ function buildDashFilters() {
   const op  = document.getElementById('dfOp')?.value;
   const ti  = document.getElementById('dfTi')?.value;
   const bo  = document.getElementById('dfBo')?.value;
+  const es  = document.getElementById('dfEs')?.value;
+  const me  = document.getElementById('dfMe')?.value;
   const st  = document.getElementById('dfSt')?.value;
   const de  = document.getElementById('dfDe')?.value;
   const ate = document.getElementById('dfAte')?.value;
   if (op)  f.push(`operador_id=eq.${op}`);
   if (ti)  f.push(`tipster_id=eq.${ti}`);
   if (bo)  f.push(`bookie_id=eq.${bo}`);
+  if (es)  f.push(`esporte_id=eq.${es}`);
+  if (me)  f.push(`mercado=eq.${encodeURIComponent(me)}`);
   if (st)  f.push(`status=eq.${st}`);
   if (de)  f.push(`data_evento=gte.${de}`);
   if (ate) f.push(`data_evento=lte.${ate}`);
@@ -686,10 +717,10 @@ function renderDashStats(data) {
     </div>
     <div class="charts-grid">
       <!-- ROW 1: Evolução full width -->
-      <div class="chart-card chart-full"><div class="chart-title">Evolução Acumulada (unidades)</div><div style="position:relative;width:100%;height:220px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:220px"></canvas></div></div>
+      <div class="chart-card chart-full"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button></div></div><div style="position:relative;width:100%;height:220px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:220px"></canvas></div></div>
       <!-- ROW 2: P/L Operador + Newsletter -->
       <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartOperador"></canvas></div></div></div></div>
-      <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">📊 Em breve: insights automáticos sobre a operação serão exibidos aqui diariamente.</div></div></div>
+      <div class="chart-card newsletter-card" id="insightsCard"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>✨ Insights do período</span><span id="insightsStatus" style="font-size:0.7rem;color:var(--muted);font-family:var(--mono)"></span></div><div class="newsletter-body" id="insightsBody"><div class="nl-placeholder">Carregando insights...</div></div></div>
       <!-- ROW 3: P/L Bookie + P/L Tipster -->
       <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartBookie"></canvas></div></div></div></div>
       <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartTipster"></canvas></div></div></div></div>
@@ -714,8 +745,112 @@ function limparFiltrosApostas() {
   queryApostas();
 }
 
+function setEvolUnit(unit) {
+  evolUnit = unit;
+  const btnU = document.getElementById('evolBtnU');
+  const btnR = document.getElementById('evolBtnR');
+  if (btnU && btnR) {
+    btnU.style.background = unit === 'u' ? 'var(--accent)' : 'transparent';
+    btnU.style.color = unit === 'u' ? '#fff' : 'var(--muted)';
+    btnR.style.background = unit === 'r' ? 'var(--accent)' : 'transparent';
+    btnR.style.color = unit === 'r' ? '#fff' : 'var(--muted)';
+  }
+  // Re-renderiza só o gráfico (sem refazer query)
+  updateDashboard();
+}
+
+// ── INSIGHTS via Haiku 4.5 (Railway proxy) ─────────────────────
+const INSIGHTS_PROXY_URL = 'https://web-production-af071f.up.railway.app/insights';
+const INSIGHTS_CACHE_TTL = 10 * 60 * 1000; // 10 min
+
+function _getInsightsFiltrosHash() {
+  return JSON.stringify({
+    op: gFilters.op || '', ti: gFilters.ti || '', bo: gFilters.bo || '',
+    es: gFilters.es || '', me: gFilters.me || '', st: gFilters.st || '',
+    de: gFilters.de || '', ate: gFilters.ate || '',
+  });
+}
+
+async function loadInsights() {
+  const body = document.getElementById('insightsBody');
+  const status = document.getElementById('insightsStatus');
+  if (!body) return;
+
+  const filtros = {
+    operador_id: gFilters.op || null,
+    tipster_id: gFilters.ti || null,
+    bookie_id: gFilters.bo || null,
+    esporte_id: gFilters.es || null,
+    mercado: gFilters.me || null,
+    status: gFilters.st || null,
+    data_de: gFilters.de || null,
+    data_ate: gFilters.ate || null,
+  };
+
+  // Cache local 10 min — se mesma combinação já foi consultada, usa cache
+  const hash = _getInsightsFiltrosHash();
+  try {
+    const cached = JSON.parse(localStorage.getItem('insights_cache_' + hash) || 'null');
+    if (cached && (Date.now() - cached.ts) < INSIGHTS_CACHE_TTL) {
+      _renderInsights(cached.data);
+      if (status) status.textContent = 'cache';
+      return;
+    }
+  } catch(e) {}
+
+  // Fetch
+  body.innerHTML = '<div class="insights-loading"><div class="insights-loading-spinner"></div>Gerando insights...</div>';
+  if (status) status.textContent = '';
+
+  try {
+    const r = await fetch(INSIGHTS_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filtros }),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Erro desconhecido');
+
+    // Cache
+    try {
+      localStorage.setItem('insights_cache_' + hash, JSON.stringify({ ts: Date.now(), data }));
+    } catch(e) {}
+
+    _renderInsights(data);
+    if (status) status.textContent = '';
+  } catch(e) {
+    body.innerHTML = `<div class="insights-erro">Erro ao gerar insights: ${e.message}</div>`;
+  }
+}
+
+function _renderInsights(data) {
+  const body = document.getElementById('insightsBody');
+  if (!body) return;
+
+  if (data.volume_insuficiente) {
+    body.innerHTML = '<div class="nl-placeholder">📭 Volume insuficiente neste recorte para gerar insights relevantes. Filtre um período com mais entradas.</div>';
+    return;
+  }
+
+  const frase = data.frase_contexto || '';
+  const bullets = data.insights || [];
+
+  if (!frase && !bullets.length) {
+    body.innerHTML = '<div class="nl-placeholder">Sem dados para análise.</div>';
+    return;
+  }
+
+  let html = '';
+  if (frase) html += `<div class="insights-frase">${frase.replace(/</g,'&lt;')}</div>`;
+  for (const b of bullets) {
+    html += `<div class="insights-bullet"><span class="insights-bullet-emoji">${b.emoji || '•'}</span><span class="insights-bullet-text">${(b.texto||'').replace(/</g,'&lt;')}</span></div>`;
+  }
+  body.innerHTML = html;
+}
+
 function limparFiltrosDashboard() {
-  ['dfOp','dfTi','dfBo','dfSt','dfDe','dfAte'].forEach(id => {
+  ['dfOp','dfTi','dfBo','dfEs','dfMe','dfSt','dfDe','dfAte'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value='';
   });
   gFilters = {};
@@ -726,18 +861,33 @@ function limparFiltrosDashboard() {
 }
 
 function applyDrillDown(chartId, label) {
-  const info = { chartBookie:'dfBo', chartTipster:'dfTi', chartOperador:'dfOp' };
+  const info = { chartBookie:'dfBo', chartTipster:'dfTi', chartOperador:'dfOp', chartEsporte:'dfEs' };
   const selId = info[chartId];
 
   if (selId) {
     // Find the matching ID in cache
-    const cacheMap = { dfBo: cache.bookies, dfTi: cache.tipsters, dfOp: cache.operadores };
+    const cacheMap = { dfBo: cache.bookies, dfTi: cache.tipsters, dfOp: cache.operadores, dfEs: cache.esportes };
     const arr = cacheMap[selId] || [];
     const item = arr.find(x => x.nome === label);
     const el = document.getElementById(selId);
     if (el && item) {
       el.value = item.id;
       gFilters[selId.replace('df','').toLowerCase()] = item.id;
+    }
+    updateDashboard();
+  } else if (chartId === 'chartMercado') {
+    // Mercado é text livre, não FK — set value direto pelo nome
+    const el = document.getElementById('dfMe');
+    if (el) {
+      // Garante que a opção existe (caso o mercado não esteja cadastrado)
+      let opt = Array.from(el.options).find(o => o.value === label);
+      if (!opt) {
+        opt = document.createElement('option');
+        opt.value = label; opt.textContent = label;
+        el.appendChild(opt);
+      }
+      el.value = label;
+      gFilters.me = label;
     }
     updateDashboard();
   }
@@ -873,6 +1023,7 @@ function renderCharts(data) {
   // Evolução acumulada — mensal ou diária
   let dayMeses = null;
   let evolLabels, evolMensalVals, evolAcumVals;
+  let evolMensalValsR, evolAcumValsR; // versões em reais
 
   if (evolMode === 'day' && evolDayMonth) {
     // Daily breakdown for selected month
@@ -888,11 +1039,14 @@ function renderCharts(data) {
         byDayR[d] += (parseFloat(a.lucro_unidades)||0) * sv;
       });
     dayMeses = Object.keys(byDay).sort();
-    let acumD = 0;
+    let acumD = 0, acumDR = 0;
     evolAcumVals = dayMeses.map(d => { acumD += byDay[d]; return parseFloat(acumD.toFixed(4)); });
+    evolAcumValsR = dayMeses.map(d => { acumDR += byDayR[d]; return parseFloat(acumDR.toFixed(2)); });
     evolMensalVals = dayMeses.map(d => parseFloat(byDay[d].toFixed(4)));
+    evolMensalValsR = dayMeses.map(d => parseFloat((byDayR[d]||0).toFixed(2)));
     evolLabels = dayMeses.map(d => d.substring(8,10) + '/' + d.substring(5,7));
-    window._evolR = dayMeses.map(d => parseFloat((byDayR[d]||0).toFixed(2)));
+    window._evolR = evolMensalValsR;
+    window._evolU = evolMensalVals;
   } else {
     const byMonth = {}, byMonthR = {};
     settled.sort((a,b)=>a.data_evento>b.data_evento?1:-1).forEach(a => {
@@ -904,22 +1058,34 @@ function renderCharts(data) {
       byMonthR[mes] += (parseFloat(a.lucro_unidades)||0) * sv;
     });
     const meses = Object.keys(byMonth).sort();
-    let acum = 0;
+    let acum = 0, acumR = 0;
     evolAcumVals = meses.map(m => { acum += byMonth[m]; return parseFloat(acum.toFixed(4)); });
+    evolAcumValsR = meses.map(m => { acumR += byMonthR[m]; return parseFloat(acumR.toFixed(2)); });
     evolMensalVals = meses.map(m => parseFloat(byMonth[m].toFixed(4)));
+    evolMensalValsR = meses.map(m => parseFloat((byMonthR[m]||0).toFixed(2)));
     evolLabels = meses.map(m => { const [y,mo]=m.split('-'); return `${mo}/${y.slice(2)}`; });
     window._evolMeses = meses;
-    window._evolR = meses.map(m => parseFloat((byMonthR[m]||0).toFixed(2)));
+    window._evolR = evolMensalValsR;
+    window._evolU = evolMensalVals;
   }
   const meses = window._evolMeses || [];
+
+  // Aplicar toggle Unidades/Reais
+  const isReais = evolUnit === 'r';
+  const dispMensal = isReais ? evolMensalValsR : evolMensalVals;
+  const dispAcum = isReais ? evolAcumValsR : evolAcumVals;
+  const labelMensal = isReais ? 'Mensal (R$)' : 'Mensal (u)';
+  const labelAcum = isReais
+    ? (evolMode==='day' ? `Acumulado R$ (${evolDayMonth})` : 'Acumulado R$')
+    : (evolMode==='day' ? `Acumulado (${evolDayMonth})` : 'Acumulado');
 
   charts['chartEvolucao'] = new Chart(document.getElementById('chartEvolucao'), {
     type:'bar',
     data:{
       labels: evolLabels,
       datasets:[
-        { type:'line', label: evolMode==='day' ? `Acumulado (${evolDayMonth})` : 'Acumulado', data:evolAcumVals, borderColor:'#ffd84d', backgroundColor:'rgba(255,216,77,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#ffd84d', tension:0.3, yAxisID:'y1' },
-        { label:'Mensal', data:evolMensalVals, backgroundColor: evolMensalVals.map(v=>v>=0?'rgba(0,212,170,0.6)':'rgba(255,77,106,0.6)'), borderRadius:4, yAxisID:'y' }
+        { type:'line', label: labelAcum, data:dispAcum, borderColor:'#ffd84d', backgroundColor:'rgba(255,216,77,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#ffd84d', tension:0.3, yAxisID:'y1' },
+        { label: labelMensal, data:dispMensal, backgroundColor: dispMensal.map(v=>v>=0?'rgba(0,212,170,0.6)':'rgba(255,77,106,0.6)'), borderRadius:4, yAxisID:'y' }
       ]
     },
     options:{
@@ -953,8 +1119,13 @@ function renderCharts(data) {
         tooltip:{ callbacks:{
           afterBody: ctx => {
             const idx = ctx[0]?.dataIndex;
-            const r = window._evolR?.[idx];
-            return r !== undefined ? [`R$ ${r.toLocaleString('pt-BR',{minimumFractionDigits:2})}`] : [];
+            if (isReais) {
+              const u = window._evolU?.[idx];
+              return u !== undefined ? [`${u.toLocaleString('pt-BR',{minimumFractionDigits:2})} u`] : [];
+            } else {
+              const r = window._evolR?.[idx];
+              return r !== undefined ? [`R$ ${r.toLocaleString('pt-BR',{minimumFractionDigits:2})}`] : [];
+            }
           }
         }}
       },
@@ -1495,6 +1666,22 @@ function calcLucroVal(stake, odd, resultado, status) {
 }
 
 async function deleteAposta(id) {
+  // Se a aposta clicada está dentro do conjunto selecionado E há mais de uma marcada → deleta tudo
+  if (selectedApostas.has(id) && selectedApostas.size > 1) {
+    const n = selectedApostas.size;
+    if (!confirm(`Excluir as ${n} apostas selecionadas? Esta ação é irreversível.`)) return;
+    const ids = Array.from(selectedApostas);
+    let ok = 0, fail = 0;
+    for (const aid of ids) {
+      try { await sbDelete('apostas', aid); ok++; }
+      catch(e) { fail++; }
+    }
+    selectedApostas.clear();
+    showToast(fail ? `${ok} excluídas, ${fail} falharam` : `${ok} apostas excluídas`, fail > 0);
+    await loadApostas();
+    return;
+  }
+  // Caso normal — exclusão individual
   if (!confirm('Confirma exclusão desta aposta?')) return;
   try { await sbDelete('apostas', id); showToast('Aposta removida'); await loadApostas(); }
   catch(e) { showToast('Erro ao remover', true); }
@@ -1519,6 +1706,7 @@ async function renderBugsMelhorias() {
   let items = [];
   try { items = await sbGet('bugs_melhorias?select=*&order=criado_em.desc'); }
   catch(e) { content.innerHTML = `<div style="color:var(--red);padding:1rem">Erro: ${e.message}<br><br>Verifique se a tabela <code>bugs_melhorias</code> existe no Supabase.</div>`; return; }
+  cache.bugs_melhorias = items;
 
   const statusColor = s => ({
     'aberto':'#f59e0b', 'em_andamento':'#3b82f6', 'resolvido':'var(--green)', 'descartado':'var(--muted)'
@@ -1528,13 +1716,43 @@ async function renderBugsMelhorias() {
   })[s] || s;
   const tipoLabel = t => ({ 'bug':'🐛 Bug', 'melhoria':'💡 Melhoria' })[t] || t;
 
+  // Categorias únicas dos registros existentes (pra popular o filtro)
+  const cats = [...new Set(items.map(i => i.categoria).filter(Boolean))].sort();
+  const filtroCatAtual = window._bmFiltroCat || '';
+  const filtroStatusAtual = window._bmFiltroStatus || '';
+  const filtroTipoAtual = window._bmFiltroTipo || '';
+
+  // Aplica filtros atuais
+  const filtrados = items.filter(i => {
+    if (filtroCatAtual && i.categoria !== filtroCatAtual) return false;
+    if (filtroStatusAtual && i.status !== filtroStatusAtual) return false;
+    if (filtroTipoAtual && i.tipo !== filtroTipoAtual) return false;
+    return true;
+  });
+
   const aberto = items.filter(i=>i.status==='aberto').length;
   const andam = items.filter(i=>i.status==='em_andamento').length;
   const resolv = items.filter(i=>i.status==='resolvido').length;
 
   content.innerHTML = `
-    <div style="margin-bottom:1rem;display:flex;gap:0.5rem;align-items:center">
+    <div style="margin-bottom:1rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
       <button class="btn-filter" onclick="abrirModalBug()" style="background:var(--green);color:#000;border:none">+ Novo</button>
+      <select class="filter-select" id="bmFiltroTipo" onchange="window._bmFiltroTipo=this.value;renderBugsMelhorias()">
+        <option value="">Todos tipos</option>
+        <option value="bug" ${filtroTipoAtual==='bug'?'selected':''}>🐛 Bug</option>
+        <option value="melhoria" ${filtroTipoAtual==='melhoria'?'selected':''}>💡 Melhoria</option>
+      </select>
+      <select class="filter-select" id="bmFiltroStatus" onchange="window._bmFiltroStatus=this.value;renderBugsMelhorias()">
+        <option value="">Todos status</option>
+        <option value="aberto" ${filtroStatusAtual==='aberto'?'selected':''}>🟠 Aberto</option>
+        <option value="em_andamento" ${filtroStatusAtual==='em_andamento'?'selected':''}>🔵 Em andamento</option>
+        <option value="resolvido" ${filtroStatusAtual==='resolvido'?'selected':''}>✅ Resolvido</option>
+        <option value="descartado" ${filtroStatusAtual==='descartado'?'selected':''}>⚪ Descartado</option>
+      </select>
+      <select class="filter-select" id="bmFiltroCat" onchange="window._bmFiltroCat=this.value;renderBugsMelhorias()">
+        <option value="">Todas categorias</option>
+        ${cats.map(c => `<option value="${c.replace(/"/g,'&quot;')}" ${filtroCatAtual===c?'selected':''}>${c.replace(/</g,'&lt;')}</option>`).join('')}
+      </select>
       <div style="color:var(--muted);font-size:0.85rem;margin-left:auto">
         Abertos: <b style="color:#f59e0b">${aberto}</b> &nbsp;|&nbsp;
         Em andamento: <b style="color:#3b82f6">${andam}</b> &nbsp;|&nbsp;
@@ -1545,6 +1763,7 @@ async function renderBugsMelhorias() {
       <table class="apostas-table" style="margin:0">
         <thead><tr>
           <th style="width:90px">Tipo</th>
+          <th style="width:140px">Categoria</th>
           <th>Título</th>
           <th style="width:130px">Status</th>
           <th style="width:110px">Autor</th>
@@ -1552,9 +1771,10 @@ async function renderBugsMelhorias() {
           <th style="width:80px"></th>
         </tr></thead>
         <tbody>
-          ${items.map(i => `
+          ${filtrados.map(i => `
             <tr>
               <td>${tipoLabel(i.tipo)}</td>
+              <td style="color:var(--muted);font-size:0.82rem">${(i.categoria||'-').replace(/</g,'&lt;')}</td>
               <td style="cursor:pointer" onclick="abrirModalBug('${i.id}')"><b>${(i.titulo||'').replace(/</g,'&lt;')}</b>${i.descricao?`<div style="color:var(--muted);font-size:0.78rem;margin-top:2px;max-width:600px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.descricao.replace(/</g,'&lt;')}</div>`:''}</td>
               <td><span style="color:${statusColor(i.status)}">${statusLabel(i.status)}</span></td>
               <td style="color:var(--muted);font-size:0.82rem">${i.autor||'-'}</td>
@@ -1564,7 +1784,7 @@ async function renderBugsMelhorias() {
                 <button class="btn-icon" onclick="deletarBug('${i.id}')">🗑</button>
               </div></td>
             </tr>
-          `).join('') || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Nenhum registro ainda. Clique em "+ Novo" pra começar.</td></tr>'}
+          `).join('') || '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Nenhum registro encontrado.</td></tr>'}
         </tbody>
       </table>
     </div>
@@ -1576,9 +1796,13 @@ function abrirModalBug(id) {
   document.getElementById('bmId').value = id || '';
   document.getElementById('bmTituloModal').textContent = isEdit ? 'Editar Registro' : 'Novo Registro';
 
+  // Popula sugestões de categoria com base no que já existe
+  const cats = [...new Set((cache.bugs_melhorias || []).map(i => i.categoria).filter(Boolean))].sort();
+  const dl = document.getElementById('bmCategoriaSugest');
+  if (dl) dl.innerHTML = cats.map(c => `<option value="${c.replace(/"/g,'&quot;')}">`).join('');
+
   if (isEdit) {
     const item = (cache.bugs_melhorias || []).find(i=>i.id===id);
-    // Se não temos cache, busca
     if (!item) {
       sbGet(`bugs_melhorias?id=eq.${id}`).then(r => {
         if (r[0]) preencherModalBug(r[0]);
@@ -1591,6 +1815,7 @@ function abrirModalBug(id) {
     document.getElementById('bmTitulo').value = '';
     document.getElementById('bmDescricao').value = '';
     document.getElementById('bmStatus').value = 'aberto';
+    document.getElementById('bmCategoria').value = '';
   }
   document.getElementById('modalBug').classList.add('open');
 }
@@ -1600,6 +1825,7 @@ function preencherModalBug(item) {
   document.getElementById('bmTitulo').value = item.titulo || '';
   document.getElementById('bmDescricao').value = item.descricao || '';
   document.getElementById('bmStatus').value = item.status || 'aberto';
+  document.getElementById('bmCategoria').value = item.categoria || '';
 }
 
 async function salvarBug() {
@@ -1609,6 +1835,7 @@ async function salvarBug() {
     titulo: document.getElementById('bmTitulo').value.trim(),
     descricao: document.getElementById('bmDescricao').value.trim() || null,
     status: document.getElementById('bmStatus').value,
+    categoria: document.getElementById('bmCategoria').value.trim() || null,
   };
   if (!payload.titulo) { showToast('Título é obrigatório', true); return; }
 
@@ -1932,6 +2159,11 @@ if (currentUser) showApp();
           <option value="resolvido">✅ Resolvido</option>
           <option value="descartado">⚪ Descartado</option>
         </select>
+      </div>
+      <div class="form-group full">
+        <label>Categoria</label>
+        <input type="text" id="bmCategoria" maxlength="100" placeholder="Ex: dash de registros, bot, dash de contas..." list="bmCategoriaSugest">
+        <datalist id="bmCategoriaSugest"></datalist>
       </div>
       <div class="form-group full">
         <label>Título *</label>
