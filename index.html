@@ -582,11 +582,11 @@ async function renderDashboard(savedFilters) {
         <select class="filter-select" id="dfOp"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
         <select class="filter-select" id="dfTi"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
         <select class="filter-select" id="dfBo"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
-        <select class="filter-select" id="dfEs"><option value="">Todos esportes</option>${(cache.esportes||[]).map(e=>`<option value="${e.id}">${e.nome}</option>`).join('')}</select>
-        <select class="filter-select" id="dfMe"><option value="">Todos mercados</option></select>
         <select class="filter-select" id="dfSt"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
         <input type="date" class="filter-select" id="dfDe">
         <input type="date" class="filter-select" id="dfAte"> <button class="btn-filter" onclick="updateDashboard()">Filtrar</button> <button class="btn-filter btn-limpar" onclick="limparFiltrosDashboard()">Limpar</button> <button class="btn-filter btn-fechar" onclick="abrirModalFecharDia()">⚡ Fechar dia</button>
+        <input type="hidden" id="dfEs">
+        <input type="hidden" id="dfMe">
       </div>
       <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
   }
@@ -601,16 +601,6 @@ async function renderDashboard(savedFilters) {
     if (savedFilters.st)  document.getElementById('dfSt').value  = savedFilters.st;
     if (savedFilters.de)  document.getElementById('dfDe').value  = savedFilters.de;
     if (savedFilters.ate) document.getElementById('dfAte').value = savedFilters.ate;
-  }
-
-  // Popular dropdown de mercado a partir do cache (mercado é text livre, mas mostro os cadastrados)
-  const dfMe = document.getElementById('dfMe');
-  if (dfMe && dfMe.options.length === 1 && cache.mercados) {
-    cache.mercados.filter(m => m.ativo !== false).forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m.nome; opt.textContent = m.nome;
-      dfMe.appendChild(opt);
-    });
   }
 
   await updateDashboard();
@@ -641,7 +631,6 @@ async function updateDashboard() {
   const data = await sbGet(url);
   renderDashStats(data);
   renderDashCharts(data);
-  loadInsights();
 }
 
 function buildDashFilters() {
@@ -720,7 +709,7 @@ function renderDashStats(data) {
       <div class="chart-card chart-full"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button></div></div><div style="position:relative;width:100%;height:220px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:220px"></canvas></div></div>
       <!-- ROW 2: P/L Operador + Newsletter -->
       <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartOperador"></canvas></div></div></div></div>
-      <div class="chart-card newsletter-card" id="insightsCard"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>✨ Insights do período</span><span id="insightsStatus" style="font-size:0.7rem;color:var(--muted);font-family:var(--mono)"></span></div><div class="newsletter-body" id="insightsBody"><div class="nl-placeholder">Carregando insights...</div></div></div>
+      <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">📊 Em breve: insights automáticos sobre a operação serão exibidos aqui diariamente.</div></div></div>
       <!-- ROW 3: P/L Bookie + P/L Tipster -->
       <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartBookie"></canvas></div></div></div></div>
       <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartTipster"></canvas></div></div></div></div>
@@ -757,96 +746,6 @@ function setEvolUnit(unit) {
   }
   // Re-renderiza só o gráfico (sem refazer query)
   updateDashboard();
-}
-
-// ── INSIGHTS via Haiku 4.5 (Railway proxy) ─────────────────────
-const INSIGHTS_PROXY_URL = 'https://web-production-af071f.up.railway.app/insights';
-const INSIGHTS_CACHE_TTL = 10 * 60 * 1000; // 10 min
-
-function _getInsightsFiltrosHash() {
-  return JSON.stringify({
-    op: gFilters.op || '', ti: gFilters.ti || '', bo: gFilters.bo || '',
-    es: gFilters.es || '', me: gFilters.me || '', st: gFilters.st || '',
-    de: gFilters.de || '', ate: gFilters.ate || '',
-  });
-}
-
-async function loadInsights() {
-  const body = document.getElementById('insightsBody');
-  const status = document.getElementById('insightsStatus');
-  if (!body) return;
-
-  const filtros = {
-    operador_id: gFilters.op || null,
-    tipster_id: gFilters.ti || null,
-    bookie_id: gFilters.bo || null,
-    esporte_id: gFilters.es || null,
-    mercado: gFilters.me || null,
-    status: gFilters.st || null,
-    data_de: gFilters.de || null,
-    data_ate: gFilters.ate || null,
-  };
-
-  // Cache local 10 min — se mesma combinação já foi consultada, usa cache
-  const hash = _getInsightsFiltrosHash();
-  try {
-    const cached = JSON.parse(localStorage.getItem('insights_cache_' + hash) || 'null');
-    if (cached && (Date.now() - cached.ts) < INSIGHTS_CACHE_TTL) {
-      _renderInsights(cached.data);
-      if (status) status.textContent = 'cache';
-      return;
-    }
-  } catch(e) {}
-
-  // Fetch
-  body.innerHTML = '<div class="insights-loading"><div class="insights-loading-spinner"></div>Gerando insights...</div>';
-  if (status) status.textContent = '';
-
-  try {
-    const r = await fetch(INSIGHTS_PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filtros }),
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    if (!data.ok) throw new Error(data.error || 'Erro desconhecido');
-
-    // Cache
-    try {
-      localStorage.setItem('insights_cache_' + hash, JSON.stringify({ ts: Date.now(), data }));
-    } catch(e) {}
-
-    _renderInsights(data);
-    if (status) status.textContent = '';
-  } catch(e) {
-    body.innerHTML = `<div class="insights-erro">Erro ao gerar insights: ${e.message}</div>`;
-  }
-}
-
-function _renderInsights(data) {
-  const body = document.getElementById('insightsBody');
-  if (!body) return;
-
-  if (data.volume_insuficiente) {
-    body.innerHTML = '<div class="nl-placeholder">📭 Volume insuficiente neste recorte para gerar insights relevantes. Filtre um período com mais entradas.</div>';
-    return;
-  }
-
-  const frase = data.frase_contexto || '';
-  const bullets = data.insights || [];
-
-  if (!frase && !bullets.length) {
-    body.innerHTML = '<div class="nl-placeholder">Sem dados para análise.</div>';
-    return;
-  }
-
-  let html = '';
-  if (frase) html += `<div class="insights-frase">${frase.replace(/</g,'&lt;')}</div>`;
-  for (const b of bullets) {
-    html += `<div class="insights-bullet"><span class="insights-bullet-emoji">${b.emoji || '•'}</span><span class="insights-bullet-text">${(b.texto||'').replace(/</g,'&lt;')}</span></div>`;
-  }
-  body.innerHTML = html;
 }
 
 function limparFiltrosDashboard() {
@@ -2091,7 +1990,7 @@ async function loadBriefings() {
   const body = document.getElementById('newsletterBody');
   if (!body) return;
   try {
-    const rows = await sbGet('briefings?select=data_ref,frase_twitter,metricas_json,criado_em&order=data_ref.desc&limit=10');
+    const rows = await sbGet('briefings?select=data_ref,frase_twitter,metricas_json,criado_em&order=data_ref.desc&limit=3');
     if (!rows.length) {
       body.innerHTML = '<div class="nl-placeholder">Nenhum briefing ainda. Clique em <b>Fechar dia</b> quando não houver mais entradas pendentes.</div>';
       return;
