@@ -230,6 +230,31 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
 .rank-val.neg { color:var(--red); }
 .rank-empty { color:var(--muted); font-family:var(--mono); font-size:0.78rem; padding:18px 10px; text-align:center; }
 
+/* ── Destaques: painel de métricas ── */
+.dst-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:10px; }
+.dst-cell { background:var(--s3); border-radius:8px; padding:10px 12px; border-left:3px solid var(--accent2); }
+.dst-label { font-size:10px; color:var(--muted); font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:4px; }
+.dst-val { font-family:var(--mono); font-size:15px; font-weight:500; color:var(--text); }
+.dst-val.pos { color:var(--green); }
+.dst-val.neg { color:var(--red); }
+.dst-sub { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:2px; }
+.dst-sub.pos { color:var(--green); opacity:0.85; }
+.dst-sub.neg { color:var(--red); opacity:0.85; }
+.dst-tops { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.dst-top-block { background:var(--s3); border-radius:8px; padding:10px 12px; border-left:3px solid var(--accent); }
+.dst-top-title { font-size:10px; color:var(--muted); font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px; }
+.dst-rank-row { display:flex; align-items:center; gap:6px; padding:3px 0; font-size:12px; }
+.dst-rank-pos { width:18px; flex-shrink:0; text-align:center; }
+.dst-rank-name { flex:1; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dst-rank-val { font-family:var(--mono); font-weight:500; flex-shrink:0; font-size:11.5px; }
+.dst-rank-val.pos { color:var(--green); }
+.dst-rank-val.neg { color:var(--red); }
+.dst-empty { color:var(--muted); font-size:11px; padding:4px 0; }
+.dst-briefings { font-size:11px; color:var(--muted); padding-top:8px; border-top:1px solid var(--border); font-family:var(--mono); margin-top:auto; }
+.dst-brf-label { opacity:0.7; }
+.dst-brf-link { color:var(--accent2); cursor:pointer; margin:0 2px; }
+.dst-brf-link:hover { color:var(--text); text-decoration:underline; }
+
 /* ── Modal ── */
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; align-items:center; justify-content:center; }
 .modal-overlay.open { display:flex; }
@@ -733,7 +758,7 @@ function renderDashStats(data) {
       <div class="chart-card chart-full"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button></div></div><div style="position:relative;width:100%;height:220px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:220px"></canvas></div></div>
       <!-- ROW 2: P/L Operador + Newsletter -->
       <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartOperador"></canvas></div></div></div></div>
-      <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">📊 Em breve: insights automáticos sobre a operação serão exibidos aqui diariamente.</div></div></div>
+      <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">Calculando…</div></div></div>
       <!-- ROW 3: P/L Bookie + P/L Tipster -->
       <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartBookie"></canvas></div></div></div></div>
       <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartTipster"></canvas></div></div></div></div>
@@ -2110,31 +2135,96 @@ function mostrarTwitterCard(base64, texto, dataRef) {
   modal.classList.add('open');
 }
 
-async function loadBriefings() {
+function renderDestaques(data) {
   const body = document.getElementById('newsletterBody');
   if (!body) return;
-  try {
-    const rows = await sbGet('briefings?select=data_ref,frase_twitter,metricas_json,criado_em&order=data_ref.desc&limit=3');
-    if (!rows.length) {
-      body.innerHTML = '<div class="nl-placeholder">Nenhum briefing ainda. Clique em <b>Fechar dia</b> quando não houver mais entradas pendentes.</div>';
-      return;
-    }
-    body.innerHTML = rows.map(r => {
-      const dia = r.metricas_json?.dia || {};
-      const plU = parseFloat(dia.plU || 0);
-      const cls = plU >= 0 ? 'pos' : 'neg';
-      const sign = plU >= 0 ? '+' : '';
-      const d = r.data_ref.split('-').reverse().join('/');
-      return `<div class="nl-item" onclick="openBriefing('${r.data_ref}')">
-        <div class="nl-item-date">${d}</div>
-        <div class="nl-item-pl ${cls}">${sign}${plU.toFixed(1)}u · ${dia.entradas||0} entradas</div>
-        <div class="nl-item-frase">"${(r.frase_twitter||'').replace(/"/g,'&quot;')}"</div>
-        <div class="nl-item-footer">Clique para ver o briefing completo</div>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    body.innerHTML = `<div class="nl-placeholder">Erro ao carregar briefings: ${e.message}</div>`;
+
+  if (!data || !data.length) {
+    body.innerHTML = '<div class="nl-placeholder">Sem apostas no filtro atual.</div>';
+    return;
   }
+
+  // Agregados (mesmo cálculo do renderDashStats)
+  const settled = data.filter(a => !['PENDING'].includes(a.status));
+  const plU  = settled.reduce((s,a) => s + (parseFloat(a.lucro_unidades)||0), 0);
+  const invU = data.reduce((s,a) => s + (parseFloat(a.stake_unidades)||0), 0);
+  let plR = 0, invR = 0;
+  data.forEach(a => {
+    const su = parseFloat(a.stake_unidades)||0;
+    const lu = parseFloat(a.lucro_unidades)||0;
+    const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
+    invR += su * sv;
+    if (!['PENDING'].includes(a.status)) plR += lu * sv;
+  });
+  const roiU = invU > 0 ? (plU / invU * 100) : 0;
+  const roiR = invR > 0 ? (plR / invR * 100) : 0;
+
+  // Top 3 por unidades e por financeiro (reusa calcRankingGrupos do Ranking)
+  const grupos = calcRankingGrupos(data, null);
+  const topU = [...grupos].sort((a,b)=>b.plU-a.plU).slice(0,3);
+  const topR = [...grupos].sort((a,b)=>b.plR-a.plR).slice(0,3);
+
+  const medals = ['🥇','🥈','🥉'];
+  const plCls  = plU >= 0 ? 'pos' : 'neg';
+  const sg = v => v >= 0 ? '+' : '';
+
+  const topItem = (g, i, valStr, valCls) => `
+    <div class="dst-rank-row">
+      <span class="dst-rank-pos">${medals[i]}</span>
+      <span class="dst-rank-name" title="${g.nome}">${g.nome}</span>
+      <span class="dst-rank-val ${valCls}">${valStr}</span>
+    </div>`;
+
+  body.innerHTML = `
+    <div class="dst-grid">
+      <div class="dst-cell">
+        <div class="dst-label">Entradas</div>
+        <div class="dst-val">${data.length.toLocaleString('pt-BR')}</div>
+      </div>
+      <div class="dst-cell">
+        <div class="dst-label">Investido</div>
+        <div class="dst-val">${fmtU(invU)}</div>
+        <div class="dst-sub">${fmtR(invR)}</div>
+      </div>
+      <div class="dst-cell">
+        <div class="dst-label">P/L</div>
+        <div class="dst-val ${plCls}">${sg(plU)}${fmtU(plU)}</div>
+        <div class="dst-sub ${plCls}">${sg(plR)}${fmtR(plR)}</div>
+      </div>
+      <div class="dst-cell">
+        <div class="dst-label">ROI</div>
+        <div class="dst-val ${plCls}">${sg(roiU)}${roiU.toFixed(2)}%<span style="opacity:0.55"> u</span></div>
+        <div class="dst-sub ${plCls}">${sg(roiR)}${roiR.toFixed(2)}% R$</div>
+      </div>
+    </div>
+    <div class="dst-tops">
+      <div class="dst-top-block">
+        <div class="dst-top-title">Top 3 — Unidades</div>
+        ${topU.length ? topU.map((g,i)=>topItem(g,i,`${sg(g.plU)}${fmtU(g.plU)}`, g.plU>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
+      </div>
+      <div class="dst-top-block">
+        <div class="dst-top-title">Top 3 — Financeiro</div>
+        ${topR.length ? topR.map((g,i)=>topItem(g,i,`${sg(g.plR)}${fmtR(g.plR)}`, g.plR>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
+      </div>
+    </div>
+    <div class="dst-briefings" id="dstBriefings"></div>
+  `;
+
+  loadDstBriefings();
+}
+
+async function loadDstBriefings() {
+  const el = document.getElementById('dstBriefings');
+  if (!el) return;
+  try {
+    const rows = await sbGet('briefings?select=data_ref&order=data_ref.desc&limit=5');
+    if (!rows.length) { el.innerHTML = ''; return; }
+    const links = rows.map(r => {
+      const [y,m,d] = r.data_ref.split('-');
+      return `<span class="dst-brf-link" onclick="openBriefing('${r.data_ref}')">${d}/${m}</span>`;
+    }).join(' · ');
+    el.innerHTML = `<span class="dst-brf-label">📅 Briefings anteriores:</span> ${links}`;
+  } catch (e) { el.innerHTML = ''; }
 }
 
 async function openBriefing(dataRef) {
@@ -2146,11 +2236,11 @@ async function openBriefing(dataRef) {
   } catch(e) { showToast('Erro: '+e.message, true); }
 }
 
-// Auto-load briefings after dashboard renders
+// Hook: renderiza painel de métricas sempre que o dashboard recalcula
 const _origRenderDashStats = renderDashStats;
 renderDashStats = function(data) {
   _origRenderDashStats.apply(this, arguments);
-  setTimeout(loadBriefings, 300);
+  renderDestaques(data);
 };
 
 (function() {
