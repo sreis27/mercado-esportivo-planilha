@@ -586,8 +586,20 @@ function populateFormSelects() {
 }
 
 async function sbGet(path) {
-  const r = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: hdrs });
-  return r.ok ? r.json() : [];
+  // Paginação por Range: puxa em blocos até pegar tudo (remove o teto de 50k/10k).
+  const PAGE = 50000;
+  let from = 0, all = [];
+  while (true) {
+    const h = Object.assign({}, hdrs, { 'Range-Unit': 'items', 'Range': `${from}-${from + PAGE - 1}` });
+    const r = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: h });
+    if (!r.ok) break;
+    const chunk = await r.json();
+    if (!Array.isArray(chunk)) return chunk;
+    all = all.concat(chunk);
+    if (chunk.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
 }
 async function sbPost(table, data) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method:'POST', headers:hdrs, body:JSON.stringify(data) });
@@ -674,7 +686,7 @@ async function updateDashboard() {
 
   const filters = buildDashFilters();
   let url = `apostas?select=id,data_evento,stake_reais,stake_unidades,odd,status,lucro_reais,lucro_unidades,operador_id,tipster_id,bookie_id,esporte_id,mercado,tipo_aposta`;
-  url += '&limit=50000';
+  url += '&order=data_evento.asc';
   if (filters.length) url += '&' + filters.join('&');
 
   const data = await sbGet(url);
@@ -1152,7 +1164,7 @@ async function queryApostas() {
   const de  = document.getElementById('tDe')?.value;
   const ate = document.getElementById('tAte')?.value;
 
-  let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,contas_utilizadas,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,atualizado_por,atualizado_em&order=data_evento.desc&limit=10000`;
+  let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,contas_utilizadas,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,atualizado_por,atualizado_em&order=data_evento.desc`;
   if (op)  url += `&operador_id=eq.${op}`;
   if (ti)  url += `&tipster_id=eq.${ti}`;
   if (bo)  url += `&bookie_id=eq.${bo}`;
@@ -1529,7 +1541,7 @@ async function recalcularStakes() {
   if (!confirm('Isso vai recalcular stake_unidades e lucro_unidades de TODAS as apostas com tipster cadastrado. Continuar?')) return;
   showToast('Recalculando... aguarde');
 
-  const apostas = await sbGet('apostas?select=id,tipster_id,data_evento,stake_reais,odd,status,resultado&limit=50000');
+  const apostas = await sbGet('apostas?select=id,tipster_id,data_evento,stake_reais,odd,status,resultado');
   let updated = 0;
   const BATCH = 20;
 
@@ -1968,7 +1980,7 @@ async function renderRankingGrupos() {
   c.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
   if (!cache.tipsters.length) await loadCache();
   if (!window._rankApostas) {
-    window._rankApostas = await sbGet('apostas?select=data_evento,stake_unidades,lucro_unidades,status,tipster_id&limit=50000');
+    window._rankApostas = await sbGet('apostas?select=data_evento,stake_unidades,lucro_unidades,status,tipster_id');
   }
   c.innerHTML = rankingShell();
   drawRanking();
