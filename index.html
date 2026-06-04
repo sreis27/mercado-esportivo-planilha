@@ -601,6 +601,15 @@ async function sbGet(path) {
   }
   return all;
 }
+
+async function sbRpc(fn, params) {
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(params || {})
+  });
+  return r.ok ? r.json() : null;
+}
 async function sbPost(table, data) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method:'POST', headers:hdrs, body:JSON.stringify(data) });
   if (!r.ok) throw new Error(await r.text());
@@ -684,14 +693,20 @@ async function updateDashboard() {
   const dashContent = document.getElementById('dashContent');
   if (dashContent) dashContent.innerHTML = '<div class="loading"><div class="spinner"></div>Calculando...</div>';
 
-  const filters = buildDashFilters();
-  let url = `apostas?select=id,data_evento,stake_reais,stake_unidades,odd,status,lucro_reais,lucro_unidades,operador_id,tipster_id,bookie_id,esporte_id,mercado,tipo_aposta`;
-  url += '&order=data_evento.asc';
-  if (filters.length) url += '&' + filters.join('&');
-
-  const data = await sbGet(url);
-  renderDashStats(data);
-  renderDashCharts(data);
+  const p = {
+    p_op:   gFilters.op  || null,
+    p_ti:   gFilters.ti  || null,
+    p_bo:   gFilters.bo  || null,
+    p_es:   gFilters.es  || null,
+    p_me:   gFilters.me  || null,
+    p_st:   gFilters.st  || null,
+    p_de:   gFilters.de  || null,
+    p_ate:  gFilters.ate || null,
+    p_gran: (evolMode === 'day') ? 'day' : 'month'
+  };
+  const d = await sbRpc('dashboard_stats', p);
+  window._dash = d || {};
+  renderDashStats(window._dash);
 }
 
 function buildDashFilters() {
@@ -715,55 +730,36 @@ function buildDashFilters() {
   return f;
 }
 
-function renderDashStats(data) {
-  const settled = data.filter(a => !['PENDING'].includes(a.status));
-  const won     = data.filter(a => ['WON','HALF WON'].includes(a.status));
-
-  // Calcular unidades usando stake_unidades (que é o valor correto)
-  // Calcular R$ multiplicando unidades pelo valor da stake do tipster na data
-  const plU  = settled.reduce((s,a) => s + (parseFloat(a.lucro_unidades)||0), 0);
-  const invU = data.reduce((s,a) => s + (parseFloat(a.stake_unidades)||0), 0);
-
-  // Para R$: multiplica pelo valor da stake vigente do tipster
-  let invR = 0, plR = 0;
-  data.forEach(a => {
-    const su = parseFloat(a.stake_unidades) || 0;
-    const lu = parseFloat(a.lucro_unidades) || 0;
-    const valorStake = getStakeValor(a.tipster_id, a.data_evento) || 1;
-    invR += su * valorStake;
-    if (!['PENDING'].includes(a.status)) plR += lu * valorStake;
-  });
-
+function renderDashStats(d) {
+  const c = (d && d.cards) || {};
+  const entradas  = +c.entradas  || 0;
+  const pendentes = +c.pendentes || 0;
+  const wonN      = +c.won       || 0;
+  const settledN  = +c.settled   || 0;
+  const plU  = +c.plU  || 0;
+  const plR  = +c.plR  || 0;
+  const invU = +c.invU || 0;
+  const invR = +c.invR || 0;
+  const pendInvU = +c.pendInvU || 0;
+  const pendInvR = +c.pendInvR || 0;
   const roiU    = invU > 0 ? (plU / invU * 100) : 0;
   const roiR    = invR > 0 ? (plR / invR * 100) : 0;
-  const acerto  = settled.length > 0 ? (won.length / settled.length * 100) : 0;
-  const pending = data.filter(a => a.status === 'PENDING');
-  const pendInvU = pending.reduce((s,a) => s + (parseFloat(a.stake_unidades)||0), 0);
-  let pendInvR = 0;
-  pending.forEach(a => {
-    const su = parseFloat(a.stake_unidades) || 0;
-    const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
-    pendInvR += su * sv;
-  });
-
-  // Odd média ponderada pela stake
-  let sumOddStake = 0, sumStake = 0;
-  data.forEach(a => { const s = parseFloat(a.stake_unidades)||0; const o = parseFloat(a.odd)||0; sumOddStake += o*s; sumStake += s; });
-  const oddMedia = sumStake > 0 ? sumOddStake / sumStake : 0;
-  const stakeMedia = data.length > 0 ? invU / data.length : 0;
-  const stakeMediaR = data.length > 0 ? invR / data.length : 0;
+  const acerto  = settledN > 0 ? (wonN / settledN * 100) : 0;
+  const oddMedia = (+c.sumStake > 0) ? (+c.sumOddStake / +c.sumStake) : 0;
+  const stakeMedia  = entradas > 0 ? invU / entradas : 0;
+  const stakeMediaR = entradas > 0 ? invR / entradas : 0;
 
   const pl_color = plU >= 0 ? 'green' : 'red';
 
   document.getElementById('dashContent').innerHTML = `
     <div class="cards-grid">
-      <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${data.length.toLocaleString('pt-BR')}</div><div class="card-sub">${pending.length} pendente${pending.length!==1?'s':''}</div></div>
+      <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${entradas.toLocaleString('pt-BR')}</div><div class="card-sub">${pendentes} pendente${pendentes!==1?'s':''}</div></div>
       <div class="card"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div><div class="card-sub">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
       <div class="card"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
       <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div><div class="card-sub">${fmtR(pendInvR)} pendente</div></div>
       <div class="card"><div class="card-label">Odd Média ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">ponderada por stake</div></div>
       <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMediaR)}</div></div>
-      <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${won.length} de ${settled.length}</div></div>
+      <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${wonN} de ${settledN}</div></div>
     </div>
     <div class="charts-grid">
       <!-- ROW 1: Evolução full width -->
@@ -782,7 +778,7 @@ function renderDashStats(data) {
       <div class="chart-card"><div class="chart-title">Distribuição de Status</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><canvas id="chartStatus" style="max-height:260px"></canvas></div></div>
     </div>`;
 
-  setTimeout(() => renderCharts(data), 50);
+  setTimeout(() => renderCharts(d), 50);
 }
 
 
@@ -805,8 +801,8 @@ function setEvolUnit(unit) {
     btnR.style.background = unit === 'r' ? 'var(--accent)' : 'transparent';
     btnR.style.color = unit === 'r' ? '#fff' : 'var(--muted)';
   }
-  // Re-renderiza só o gráfico (sem refazer query)
-  updateDashboard();
+  // Re-renderiza só o gráfico (usa o resultado já em memória, sem refazer a função)
+  if (window._dash) renderCharts(window._dash); else updateDashboard();
 }
 
 function limparFiltrosDashboard() {
@@ -853,8 +849,8 @@ function applyDrillDown(chartId, label) {
   }
 }
 
-function renderCharts(data) {
-  const settled = data.filter(a => !['PENDING'].includes(a.status));
+function renderCharts(d) {
+  const toEntries = a => (a||[]).map(x => [x.nome, +x.u, +x.r]);
   Object.values(charts).forEach(c => c.destroy());
   charts = {};
 
@@ -873,24 +869,6 @@ function renderCharts(data) {
       y:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} }
     }
   });
-
-  // Helper: group by FK — returns [{name, u, r}]
-  const groupBy = (arr, fkField, cacheArr) => {
-    const map = {};
-    arr.forEach(a => {
-      const id   = a[fkField];
-      const item = cacheArr ? cacheArr.find(c=>c.id===id) : null;
-      const name = item?.nome || 'Outros';
-      if (!map[name]) map[name] = { u:0, r:0 };
-      const lu = parseFloat(a.lucro_unidades)||0;
-      const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
-      map[name].u += lu;
-      map[name].r += lu * sv;
-    });
-    return Object.entries(map)
-      .map(([n,v]) => [n, parseFloat(v.u.toFixed(4)), parseFloat(v.r.toFixed(2))])
-      .sort((a,b)=>b[1]-a[1]);
-  };
 
   const drillMap = {
     chartBookie:   { field:'bookie_id',   arr: cache.bookies },
@@ -932,47 +910,16 @@ function renderCharts(data) {
     });
   };
 
-  makeBar('chartBookie',   groupBy(settled,'bookie_id',   cache.bookies));
-  makeBar('chartTipster',  groupBy(settled,'tipster_id',  cache.tipsters));
-  makeBar('chartOperador', groupBy(settled,'operador_id', cache.operadores));
-
-  // Esporte
-  const esporteArr = (cache.esportes||[]);
-  makeBar('chartEsporte', groupBy(settled,'esporte_id', esporteArr));
-
-  // Mercado (text field, not FK)
-  const mercadoMap = {};
-  settled.forEach(a => {
-    const m = a.mercado || 'Outros';
-    if (!mercadoMap[m]) mercadoMap[m] = { u:0, r:0 };
-    const lu = parseFloat(a.lucro_unidades)||0;
-    const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
-    mercadoMap[m].u += lu;
-    mercadoMap[m].r += lu * sv;
-  });
-  const mercadoEntries = Object.entries(mercadoMap)
-    .map(([n,v]) => [n, parseFloat(v.u.toFixed(4)), parseFloat(v.r.toFixed(2))])
-    .sort((a,b)=>b[1]-a[1]).slice(0,15);
-  makeBar('chartMercado', mercadoEntries);
-
-  // Tipo de Aposta
-  const tipoMap = {};
-  settled.forEach(a => {
-    const t = a.tipo_aposta || 'Outros';
-    if (!tipoMap[t]) tipoMap[t] = { u:0, r:0 };
-    const lu = parseFloat(a.lucro_unidades)||0;
-    const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
-    tipoMap[t].u += lu;
-    tipoMap[t].r += lu * sv;
-  });
-  const tipoEntries = Object.entries(tipoMap)
-    .map(([n,v]) => [n, parseFloat(v.u.toFixed(4)), parseFloat(v.r.toFixed(2))])
-    .sort((a,b)=>b[1]-a[1]);
-  makeBar('chartTipo', tipoEntries);
+  makeBar('chartBookie',   toEntries(d.por_bookie));
+  makeBar('chartTipster',  toEntries(d.por_tipster));
+  makeBar('chartOperador', toEntries(d.por_operador));
+  makeBar('chartEsporte',  toEntries(d.por_esporte));
+  makeBar('chartMercado',  toEntries(d.por_mercado));
+  makeBar('chartTipo',     toEntries(d.por_tipo));
 
   // Status donut
   const statusCount = {};
-  data.forEach(a => { statusCount[a.status] = (statusCount[a.status]||0)+1; });
+  (d.status||[]).forEach(s => { statusCount[s.status] = +s.n; });
   const sColors = { WON:'rgba(0,212,170,0.8)', LOST:'rgba(255,77,106,0.8)', PENDING:'rgba(108,99,255,0.8)', VOID:'rgba(107,107,144,0.6)', 'HALF WON':'rgba(0,212,170,0.4)', 'HALF LOST':'rgba(255,77,106,0.4)', 'CASH OUT':'rgba(255,216,77,0.7)' };
   charts['chartStatus'] = new Chart(document.getElementById('chartStatus'), {
     type:'doughnut',
@@ -980,55 +927,22 @@ function renderCharts(data) {
     options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ position:'right', labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } } }
   });
 
-  // Evolução acumulada — mensal ou diária
-  let dayMeses = null;
-  let evolLabels, evolMensalVals, evolAcumVals;
-  let evolMensalValsR, evolAcumValsR; // versões em reais
-
-  if (evolMode === 'day' && evolDayMonth) {
-    // Daily breakdown for selected month
-    const byDay = {}, byDayR = {};
-    settled.filter(a => a.data_evento?.startsWith(evolDayMonth))
-      .sort((a,b)=>a.data_evento>b.data_evento?1:-1)
-      .forEach(a => {
-        const d = a.data_evento?.substring(0,10);
-        if (!d) return;
-        if (!byDay[d]) { byDay[d] = 0; byDayR[d] = 0; }
-        byDay[d] += parseFloat(a.lucro_unidades)||0;
-        const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
-        byDayR[d] += (parseFloat(a.lucro_unidades)||0) * sv;
-      });
-    dayMeses = Object.keys(byDay).sort();
-    let acumD = 0, acumDR = 0;
-    evolAcumVals = dayMeses.map(d => { acumD += byDay[d]; return parseFloat(acumD.toFixed(4)); });
-    evolAcumValsR = dayMeses.map(d => { acumDR += byDayR[d]; return parseFloat(acumDR.toFixed(2)); });
-    evolMensalVals = dayMeses.map(d => parseFloat(byDay[d].toFixed(4)));
-    evolMensalValsR = dayMeses.map(d => parseFloat((byDayR[d]||0).toFixed(2)));
-    evolLabels = dayMeses.map(d => d.substring(8,10) + '/' + d.substring(5,7));
-    window._evolR = evolMensalValsR;
-    window._evolU = evolMensalVals;
-  } else {
-    const byMonth = {}, byMonthR = {};
-    settled.sort((a,b)=>a.data_evento>b.data_evento?1:-1).forEach(a => {
-      const mes = a.data_evento?.substring(0,7);
-      if (!mes) return;
-      if (!byMonth[mes]) { byMonth[mes] = 0; byMonthR[mes] = 0; }
-      byMonth[mes]  += parseFloat(a.lucro_unidades)||0;
-      const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
-      byMonthR[mes] += (parseFloat(a.lucro_unidades)||0) * sv;
-    });
-    const meses = Object.keys(byMonth).sort();
-    let acum = 0, acumR = 0;
-    evolAcumVals = meses.map(m => { acum += byMonth[m]; return parseFloat(acum.toFixed(4)); });
-    evolAcumValsR = meses.map(m => { acumR += byMonthR[m]; return parseFloat(acumR.toFixed(2)); });
-    evolMensalVals = meses.map(m => parseFloat(byMonth[m].toFixed(4)));
-    evolMensalValsR = meses.map(m => parseFloat((byMonthR[m]||0).toFixed(2)));
-    evolLabels = meses.map(m => { const [y,mo]=m.split('-'); return `${mo}/${y.slice(2)}`; });
-    window._evolMeses = meses;
-    window._evolR = evolMensalValsR;
-    window._evolU = evolMensalVals;
-  }
-  const meses = window._evolMeses || [];
+  // Evolução acumulada — vem pronta da função (mensal ou diária, conforme p_gran)
+  const evol = (d.evolucao || []);
+  const meses = evol.map(x => x.mes);
+  const evolMensalVals  = evol.map(x => +x.u);
+  const evolMensalValsR = evol.map(x => +x.r);
+  let _ac = 0, _acR = 0;
+  const evolAcumVals  = evolMensalVals.map(v => { _ac  += v; return parseFloat(_ac.toFixed(4)); });
+  const evolAcumValsR = evolMensalValsR.map(v => { _acR += v; return parseFloat(_acR.toFixed(2)); });
+  const isDay = (evolMode === 'day');
+  const evolLabels = meses.map(m => isDay
+    ? `${m.substring(8,10)}/${m.substring(5,7)}`
+    : `${m.split('-')[1]}/${m.split('-')[0].slice(2)}`);
+  const dayMeses = isDay ? meses : null;
+  window._evolMeses = meses;
+  window._evolR = evolMensalValsR;
+  window._evolU = evolMensalVals;
 
   // Aplicar toggle Unidades/Reais
   const isReais = evolUnit === 'r';
@@ -2147,32 +2061,25 @@ function mostrarTwitterCard(base64, texto, dataRef) {
   modal.classList.add('open');
 }
 
-function renderDestaques(data) {
+function renderDestaques(d) {
   const body = document.getElementById('newsletterBody');
   if (!body) return;
 
-  if (!data || !data.length) {
+  const c = (d && d.cards) || {};
+  if (!c.entradas) {
     body.innerHTML = '<div class="nl-placeholder">Sem apostas no filtro atual.</div>';
     return;
   }
 
-  // Agregados (mesmo cálculo do renderDashStats)
-  const settled = data.filter(a => !['PENDING'].includes(a.status));
-  const plU  = settled.reduce((s,a) => s + (parseFloat(a.lucro_unidades)||0), 0);
-  const invU = data.reduce((s,a) => s + (parseFloat(a.stake_unidades)||0), 0);
-  let plR = 0, invR = 0;
-  data.forEach(a => {
-    const su = parseFloat(a.stake_unidades)||0;
-    const lu = parseFloat(a.lucro_unidades)||0;
-    const sv = getStakeValor(a.tipster_id, a.data_evento) || 1;
-    invR += su * sv;
-    if (!['PENDING'].includes(a.status)) plR += lu * sv;
-  });
+  const plU  = +c.plU  || 0;
+  const plR  = +c.plR  || 0;
+  const invU = +c.invU || 0;
+  const invR = +c.invR || 0;
   const roiU = invU > 0 ? (plU / invU * 100) : 0;
   const roiR = invR > 0 ? (plR / invR * 100) : 0;
 
-  // Top 3 por unidades e por financeiro (reusa calcRankingGrupos do Ranking)
-  const grupos = calcRankingGrupos(data, null);
+  // Top 3 por unidades e por financeiro (ranking por tipster, já vindo da função)
+  const grupos = (d.por_tipster || []).map(x => ({ nome: x.nome, plU: +x.u, plR: +x.r }));
   const topU = [...grupos].sort((a,b)=>b.plU-a.plU).slice(0,3);
   const topR = [...grupos].sort((a,b)=>b.plR-a.plR).slice(0,3);
 
@@ -2191,7 +2098,7 @@ function renderDestaques(data) {
     <div class="dst-grid">
       <div class="dst-cell">
         <div class="dst-label">Entradas</div>
-        <div class="dst-val">${data.length.toLocaleString('pt-BR')}</div>
+        <div class="dst-val">${(+c.entradas||0).toLocaleString('pt-BR')}</div>
       </div>
       <div class="dst-cell">
         <div class="dst-label">Investido</div>
