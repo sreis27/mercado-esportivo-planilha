@@ -776,6 +776,8 @@ function renderDashStats(d) {
       <!-- ROW 1: Evolução full width -->
       <div class="chart-card chart-full"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button></div></div><div style="position:relative;width:100%;height:220px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:220px"></canvas></div></div>
       <div class="chart-card chart-full"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Drawdown (Underwater)</span><span id="ddResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:150px;overflow:hidden"><canvas id="chartDD" style="max-height:150px"></canvas></div></div>
+      <div class="chart-card chart-full"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>ROI Móvel — 30d / 90d (u)</span><span id="roiMovelResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:170px;overflow:hidden"><canvas id="chartRoiMovel" style="max-height:170px"></canvas></div></div>
+      <div class="chart-card chart-full"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>ROI por Faixa de Odd</span><span id="roiOddResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:190px;overflow:hidden"><canvas id="chartRoiOdd" style="max-height:190px"></canvas></div></div>
       <!-- ROW 2: P/L Operador + Newsletter -->
       <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartOperador"></canvas></div></div></div></div>
       <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">Calculando…</div></div></div>
@@ -854,6 +856,94 @@ function renderDDChart(d) {
       scales: {
         x: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, maxTicksLimit: 14, maxRotation: 0 }, grid: { color:'rgba(42,42,69,0.35)' } },
         y: { max: 0, ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9} }, grid: { color:'rgba(42,42,69,0.5)' } }
+      }
+    }
+  });
+}
+
+// ROI de janela móvel (30/90d, % em unidades) — o medidor de força ATUAL do edge.
+// Filtrado por tipster, é o detector de fonte morrendo: 90d cruzando zero e não voltando.
+function renderRoiMovel(d) {
+  const canvas = document.getElementById('chartRoiMovel');
+  if (!canvas) return;
+  const rm = d.roi_movel || [];
+  const labels = rm.map(p => `${p.d.substring(8,10)}/${p.d.substring(5,7)}/${p.d.substring(2,4)}`);
+  const s30 = rm.map(p => p.r30 === null ? null : +p.r30);
+  const s90 = rm.map(p => p.r90 === null ? null : +p.r90);
+
+  const resumoEl = document.getElementById('roiMovelResumo');
+  if (resumoEl && rm.length) {
+    const last30 = s30[s30.length-1], last90 = s90[s90.length-1];
+    const f = v => v === null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+    resumoEl.textContent = `30d: ${f(last30)} · 90d: ${f(last90)}`;
+  } else if (resumoEl) resumoEl.textContent = '';
+
+  charts['chartRoiMovel'] = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: '30d', data: s30, borderColor: 'rgba(108,99,255,0.85)', borderWidth: 1.2, pointRadius: 0, pointHitRadius: 6, tension: 0.15 },
+        { label: '90d', data: s90, borderColor: '#ffd84d', borderWidth: 2.2, pointRadius: 0, pointHitRadius: 6, tension: 0.15 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: {
+        legend: { labels: { color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw === null ? '—' : (+ctx.raw).toFixed(2) + '%'}` } }
+      },
+      scales: {
+        x: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, maxTicksLimit: 14, maxRotation: 0 }, grid: { color:'rgba(42,42,69,0.35)' } },
+        y: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, callback: v => v + '%' },
+             grid: { color: ctx => ctx.tick && ctx.tick.value === 0 ? 'rgba(232,232,245,0.35)' : 'rgba(42,42,69,0.5)' } }
+      }
+    }
+  });
+}
+
+// ROI por faixa de odd — onde o edge mora. Respeita toggle Unidades/Reais.
+function renderRoiOdd(d) {
+  const canvas = document.getElementById('chartRoiOdd');
+  if (!canvas) return;
+  const fx = d.roi_por_odd || [];
+  const isReais = evolUnit === 'r';
+  const vals = fx.map(p => isReais ? +p.r : +p.u);
+  const labels = fx.map(p => p.faixa);
+
+  const resumoEl = document.getElementById('roiOddResumo');
+  if (resumoEl && fx.length) {
+    let bi = 0; vals.forEach((v,i) => { if (v > vals[bi]) bi = i; });
+    resumoEl.textContent = `Melhor: ${labels[bi]} (${vals[bi] >= 0 ? '+' : ''}${vals[bi].toFixed(1)}%)`;
+  } else if (resumoEl) resumoEl.textContent = '';
+
+  charts['chartRoiOdd'] = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: isReais ? 'ROI % (R$)' : 'ROI % (u)',
+        data: vals,
+        backgroundColor: vals.map(v => v >= 0 ? 'rgba(0,212,170,0.65)' : 'rgba(255,77,106,0.65)'),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          label: ctx => `ROI: ${(+ctx.raw).toFixed(2)}%`,
+          afterBody: ctx => {
+            const p = fx[ctx[0]?.dataIndex];
+            return p ? [`${(+p.n).toLocaleString('pt-BR')} apostas`, `${(+p.invU).toLocaleString('pt-BR')}u investidas`] : [];
+          }
+        } }
+      },
+      scales: {
+        x: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:10} }, grid: { display:false } },
+        y: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, callback: v => v + '%' },
+             grid: { color: ctx => ctx.tick && ctx.tick.value === 0 ? 'rgba(232,232,245,0.35)' : 'rgba(42,42,69,0.5)' } }
       }
     }
   });
@@ -982,6 +1072,8 @@ function renderCharts(d) {
   makeBar('chartTipster',  toEntries(d.por_tipster));
   makeBar('chartOperador', toEntries(d.por_operador));
   renderDDChart(d);
+  renderRoiMovel(d);
+  renderRoiOdd(d);
   makeBar('chartEsporte',  toEntries(d.por_esporte));
   makeBar('chartMercado',  toEntries(d.por_mercado));
   makeBar('chartTipo',     toEntries(d.por_tipo));
