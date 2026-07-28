@@ -588,7 +588,7 @@ function populateFormSelects() {
 async function sbGetPage(path, from, to) {
   // Uma página só + contagem exata do conjunto filtrado (Content-Range: "0-49/93883")
   const h = Object.assign({}, hdrs, { 'Range-Unit': 'items', 'Range': `${from}-${to}`, 'Prefer': 'count=exact' });
-  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { headers: h });
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: h });
   if (!r.ok && r.status !== 206) throw new Error(await r.text());
   const rows = await r.json();
   const cr = r.headers.get('content-range') || '';
@@ -1256,7 +1256,16 @@ async function queryApostas() {
 
   if (pageSize === 'all') pageSize = 1000;
   const from = (currentPage - 1) * pageSize;
-  const { rows, total } = await sbGetPage(url, from, from + pageSize - 1);
+  let rows, total;
+  try {
+    ({ rows, total } = await sbGetPage(url, from, from + pageSize - 1));
+  } catch (e) {
+    console.error('Erro ao buscar apostas:', e);
+    const loading = document.getElementById('apostaLoading');
+    const alvo = loading ? loading.parentElement : document.getElementById('apostasTableWrap');
+    if (alvo) alvo.innerHTML = '<div class="loading" style="color:var(--red)">Erro ao carregar apostas. Recarregue a página ou tente novamente.</div>';
+    return;
+  }
   apostasData = rows;
   apostasTotal = total;
 
