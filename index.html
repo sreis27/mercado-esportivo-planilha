@@ -63,7 +63,16 @@ nav { flex:1; padding:1rem 0; overflow-y:auto; }
 
 /* ── Cards ── */
 .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.5rem; }
-.card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.2rem 1.4rem; }
+.card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.2rem 1.4rem; transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.card:hover { transform:translateY(-2px); border-color:#3a3a5c; }
+/* Hierarquia: P/L é o placar da operação; ROI vem logo atrás */
+.card.hero { border-width:1px; }
+.card.hero .card-value { font-size:1.75rem; font-weight:600; }
+.card.hero.pos { border-color:rgba(0,212,170,.45); box-shadow:0 0 22px rgba(0,212,170,.07), inset 0 0 18px rgba(0,212,170,.04); }
+.card.hero.pos:hover { border-color:rgba(0,212,170,.7); box-shadow:0 0 26px rgba(0,212,170,.12); }
+.card.hero.neg { border-color:rgba(255,77,106,.45); box-shadow:0 0 22px rgba(255,77,106,.07), inset 0 0 18px rgba(255,77,106,.04); }
+.card.hero.neg:hover { border-color:rgba(255,77,106,.7); box-shadow:0 0 26px rgba(255,77,106,.12); }
+.card.co .card-value { font-size:1.55rem; font-weight:550; }
 .card-label { font-family:var(--mono); font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem; }
 .card-value { font-family:var(--mono); font-size:1.4rem; font-weight:500; }
 .card-value.green { color:var(--green); }
@@ -231,15 +240,6 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
 .rank-empty { color:var(--muted); font-family:var(--mono); font-size:0.78rem; padding:18px 10px; text-align:center; }
 
 /* ── Destaques: painel de métricas ── */
-.dst-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:10px; }
-.dst-cell { background:var(--s3); border-radius:8px; padding:10px 12px; border-left:3px solid var(--accent2); }
-.dst-label { font-size:10px; color:var(--muted); font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:4px; }
-.dst-val { font-family:var(--mono); font-size:15px; font-weight:500; color:var(--text); }
-.dst-val.pos { color:var(--green); }
-.dst-val.neg { color:var(--red); }
-.dst-sub { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:2px; }
-.dst-sub.pos { color:var(--green); opacity:0.85; }
-.dst-sub.neg { color:var(--red); opacity:0.85; }
 .dst-tops { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
 .dst-top-block { background:var(--s3); border-radius:8px; padding:10px 12px; border-left:3px solid var(--accent); }
 .dst-top-title { font-size:10px; color:var(--muted); font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px; }
@@ -765,8 +765,8 @@ function renderDashStats(d) {
   document.getElementById('dashContent').innerHTML = `
     <div class="cards-grid">
       <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${entradas.toLocaleString('pt-BR')}</div><div class="card-sub">${pendentes} pendente${pendentes!==1?'s':''}</div></div>
-      <div class="card"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div><div class="card-sub">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
-      <div class="card"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
+      <div class="card hero ${plU >= 0 ? 'pos' : 'neg'}"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div><div class="card-sub">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
+      <div class="card co"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
       <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div><div class="card-sub">${fmtR(pendInvR)} pendente</div></div>
       <div class="card"><div class="card-label">Odd Média ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">ponderada por stake</div></div>
       <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMediaR)}</div></div>
@@ -2035,20 +2035,12 @@ function renderDestaques(d) {
     return;
   }
 
-  const plU  = +c.plU  || 0;
-  const plR  = +c.plR  || 0;
-  const invU = +c.invU || 0;
-  const invR = +c.invR || 0;
-  const roiU = invU > 0 ? (plU / invU * 100) : 0;
-  const roiR = invR > 0 ? (plR / invR * 100) : 0;
-
   // Top 3 por unidades e por financeiro (ranking por tipster, já vindo da função)
   const grupos = (d.por_tipster || []).map(x => ({ nome: x.nome, plU: +x.u, plR: +x.r }));
   const topU = [...grupos].sort((a,b)=>b.plU-a.plU).slice(0,3);
   const topR = [...grupos].sort((a,b)=>b.plR-a.plR).slice(0,3);
 
   const medals = ['🥇','🥈','🥉'];
-  const plCls  = plU >= 0 ? 'pos' : 'neg';
   const sg = v => v >= 0 ? '+' : '';
 
   const topItem = (g, i, valStr, valCls) => `
@@ -2059,27 +2051,6 @@ function renderDestaques(d) {
     </div>`;
 
   body.innerHTML = `
-    <div class="dst-grid">
-      <div class="dst-cell">
-        <div class="dst-label">Entradas</div>
-        <div class="dst-val">${(+c.entradas||0).toLocaleString('pt-BR')}</div>
-      </div>
-      <div class="dst-cell">
-        <div class="dst-label">Investido</div>
-        <div class="dst-val">${fmtU(invU)}</div>
-        <div class="dst-sub">${fmtR(invR)}</div>
-      </div>
-      <div class="dst-cell">
-        <div class="dst-label">P/L</div>
-        <div class="dst-val ${plCls}">${sg(plU)}${fmtU(plU)}</div>
-        <div class="dst-sub ${plCls}">${sg(plR)}${fmtR(plR)}</div>
-      </div>
-      <div class="dst-cell">
-        <div class="dst-label">ROI</div>
-        <div class="dst-val ${plCls}">${sg(roiU)}${roiU.toFixed(2)}%<span style="opacity:0.55"> u</span></div>
-        <div class="dst-sub ${plCls}">${sg(roiR)}${roiR.toFixed(2)}% R$</div>
-      </div>
-    </div>
     <div class="dst-tops">
       <div class="dst-top-block">
         <div class="dst-top-title">Top 3 — Unidades</div>
