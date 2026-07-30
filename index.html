@@ -459,7 +459,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
 
 <div class="modal-overlay" id="modalVerAposta">
   <div class="modal" style="max-width:520px">
-    <div class="modal-header"><h3>Aposta</h3><button class="modal-close" onclick="fecharVerAposta()">×</button></div>
+    <div class="modal-header"><h3>Aposta</h3><button onclick="fecharVerAposta()" style="background:none;border:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 4px">×</button></div>
     <div class="modal-body" id="verApostaBody" style="font-family:var(--mono);font-size:12.5px"></div>
     <div class="modal-footer"><button class="btn-filter" onclick="fecharVerAposta()">Fechar</button></div>
   </div>
@@ -992,25 +992,27 @@ async function verAposta(id) {
     const a = rows[0];
     if (!a) { body.innerHTML = 'Aposta não encontrada.'; return; }
     const nome = (arr, id_) => (arr || []).find(x => x.id === id_)?.nome || '—';
+    const escv = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const d = a.data_evento ? `${a.data_evento.substring(8,10)}/${a.data_evento.substring(5,7)}/${a.data_evento.substring(0,4)}` : '—';
     const lu = a.lucro_unidades !== null ? parseFloat(a.lucro_unidades) : null;
     const luCls = lu === null ? '' : (lu >= 0 ? 'style="color:var(--green)"' : 'style="color:var(--red)"');
     const row = (label, val) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">${label}</span><span style="text-align:right">${val}</span></div>`;
     body.innerHTML =
       row('Data', d) +
-      row('Evento', esc(a.evento || '—')) +
-      row('Entrada', esc(a.entrada || '—')) +
-      row('Mercado', esc(a.mercado || '—')) +
-      row('Tipster', esc(nome(cache.tipsters, a.tipster_id))) +
-      row('Bookie', esc(nome(cache.bookies, a.bookie_id))) +
-      row('Operador', esc(nome(cache.operadores, a.operador_id))) +
-      row('Contas', esc(a.contas_utilizadas || '—')) +
+      row('Evento', escv(a.evento || '—')) +
+      row('Entrada', escv(a.entrada || '—')) +
+      row('Mercado', escv(a.mercado || '—')) +
+      row('Tipster', escv(nome(cache.tipsters, a.tipster_id))) +
+      row('Bookie', escv(nome(cache.bookies, a.bookie_id))) +
+      row('Operador', escv(nome(cache.operadores, a.operador_id))) +
+      row('Contas', escv(a.contas_utilizadas || '—')) +
       row('Odd', a.odd ?? '—') +
       row('Stake', `${a.stake_unidades ?? '—'}u · ${a.stake_reais != null ? 'R$ ' + parseFloat(a.stake_reais).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '—'}`) +
-      row('Status', esc(a.status || '—')) +
-      row('Resultado', esc(a.resultado || '—')) +
+      row('Status', escv(a.status || '—')) +
+      row('Resultado', escv(a.resultado || '—')) +
       `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0"><span style="color:var(--muted)">Lucro</span><span ${luCls}>${lu !== null ? (lu>=0?'+':'')+lu.toFixed(2)+'u' : '—'}${a.lucro_reais != null ? ' · R$ ' + parseFloat(a.lucro_reais).toLocaleString('pt-BR',{minimumFractionDigits:2}) : ''}</span></div>`;
   } catch (e) {
+    console.error('verAposta:', e);
     body.innerHTML = 'Erro ao carregar a aposta.';
   }
 }
