@@ -301,6 +301,8 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
   .charts-grid { grid-template-columns:1fr; }
   .form-grid { grid-template-columns:1fr; }
 }
+.dst-rank-row.clicavel { cursor:pointer; border-radius:6px; transition:background .15s; }
+.dst-rank-row.clicavel:hover { background:rgba(108,99,255,0.08); }
 </style>
 </head>
 <body>
@@ -454,6 +456,14 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
 </div>
 
 <!-- Modal Histórico -->
+
+<div class="modal-overlay" id="modalVerAposta">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h3>Aposta</h3><button class="modal-close" onclick="fecharVerAposta()">×</button></div>
+    <div class="modal-body" id="verApostaBody" style="font-family:var(--mono);font-size:12.5px"></div>
+    <div class="modal-footer"><button class="btn-filter" onclick="fecharVerAposta()">Fechar</button></div>
+  </div>
+</div>
 <div class="modal-overlay" id="modalHist">
   <div class="modal">
     <h2>Histórico de Alterações</h2>
@@ -947,6 +957,65 @@ function renderRoiOdd(d) {
       }
     }
   });
+}
+
+// ── Navegação a partir dos Destaques ────────────────────────────
+// Leva os filtros atuais do dashboard e abre a aba Apostas naquele dia
+function irParaDia(d) {
+  if (!d) return;
+  gFilters.op = document.getElementById('dfOp')?.value || '';
+  gFilters.ti = document.getElementById('dfTi')?.value || '';
+  gFilters.bo = document.getElementById('dfBo')?.value || '';
+  gFilters.st = document.getElementById('dfSt')?.value || '';
+  gFilters.de = d; gFilters.ate = d;
+  showPage('apostas');
+}
+
+// Filtra o dashboard inteiro num tipster (clique nos Top/Piores 3)
+function filtrarTipsterDash(nome) {
+  const t = (cache.tipsters || []).find(x => x.nome === nome);
+  if (!t) return;
+  const sel = document.getElementById('dfTi');
+  if (sel) { sel.value = t.id; updateDashboard(); }
+}
+
+// Modal read-only da aposta (recordes) — só a "foto", sem edição
+async function verAposta(id) {
+  if (!id) return;
+  const body = document.getElementById('verApostaBody');
+  const ov = document.getElementById('modalVerAposta');
+  if (!body || !ov) return;
+  body.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  ov.classList.add('active');
+  try {
+    const rows = await sbGet(`apostas?id=eq.${id}&select=*`);
+    const a = rows[0];
+    if (!a) { body.innerHTML = 'Aposta não encontrada.'; return; }
+    const nome = (arr, id_) => (arr || []).find(x => x.id === id_)?.nome || '—';
+    const d = a.data_evento ? `${a.data_evento.substring(8,10)}/${a.data_evento.substring(5,7)}/${a.data_evento.substring(0,4)}` : '—';
+    const lu = a.lucro_unidades !== null ? parseFloat(a.lucro_unidades) : null;
+    const luCls = lu === null ? '' : (lu >= 0 ? 'style="color:var(--green)"' : 'style="color:var(--red)"');
+    const row = (label, val) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">${label}</span><span style="text-align:right">${val}</span></div>`;
+    body.innerHTML =
+      row('Data', d) +
+      row('Evento', esc(a.evento || '—')) +
+      row('Entrada', esc(a.entrada || '—')) +
+      row('Mercado', esc(a.mercado || '—')) +
+      row('Tipster', esc(nome(cache.tipsters, a.tipster_id))) +
+      row('Bookie', esc(nome(cache.bookies, a.bookie_id))) +
+      row('Operador', esc(nome(cache.operadores, a.operador_id))) +
+      row('Contas', esc(a.contas_utilizadas || '—')) +
+      row('Odd', a.odd ?? '—') +
+      row('Stake', `${a.stake_unidades ?? '—'}u · ${a.stake_reais != null ? 'R$ ' + parseFloat(a.stake_reais).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '—'}`) +
+      row('Status', esc(a.status || '—')) +
+      row('Resultado', esc(a.resultado || '—')) +
+      `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0"><span style="color:var(--muted)">Lucro</span><span ${luCls}>${lu !== null ? (lu>=0?'+':'')+lu.toFixed(2)+'u' : '—'}${a.lucro_reais != null ? ' · R$ ' + parseFloat(a.lucro_reais).toLocaleString('pt-BR',{minimumFractionDigits:2}) : ''}</span></div>`;
+  } catch (e) {
+    body.innerHTML = 'Erro ao carregar a aposta.';
+  }
+}
+function fecharVerAposta() {
+  document.getElementById('modalVerAposta')?.classList.remove('active');
 }
 
 function setEvolUnit(unit) {
@@ -2202,13 +2271,14 @@ function renderDestaques(d) {
   const medals = ['🥇','🥈','🥉'];
   const sg = v => v >= 0 ? '+' : '';
 
-  const rankItem = (icon, nome, valStr, valCls, titulo) => `
-    <div class="dst-rank-row">
+  const rankItem = (icon, nome, valStr, valCls, titulo, onclick) => `
+    <div class="dst-rank-row${onclick ? ' clicavel' : ''}"${onclick ? ` onclick="${onclick}"` : ''}>
       <span class="dst-rank-pos">${icon}</span>
       <span class="dst-rank-name" title="${titulo || nome}">${nome}</span>
       <span class="dst-rank-val ${valCls}">${valStr}</span>
     </div>`;
-  const topItem = (g, i, valStr, valCls) => rankItem(medals[i], g.nome, valStr, valCls);
+  const topItem = (g, i, valStr, valCls) => rankItem(medals[i], g.nome, valStr, valCls, null,
+    `filtrarTipsterDash('${(g.nome||'').replace(/'/g,"\\'")}')`);
 
   // Piores 3 — só negativos (o espelho de gestão dos tops)
   const worstU = [...grupos].filter(g => g.plU < 0).sort((a,b)=>a.plU-b.plU).slice(0,3);
@@ -2217,10 +2287,10 @@ function renderDestaques(d) {
   const rec = d.recordes || {};
   const fmtD = s => s ? `${s.substring(8,10)}/${s.substring(5,7)}/${s.substring(2,4)}` : '';
   const recRows = [];
-  if (rec.melhor_dia) recRows.push(rankItem('📈', `Melhor dia · ${fmtD(rec.melhor_dia.d)}`, `+${fmtU(+rec.melhor_dia.u)}`, 'pos'));
-  if (rec.pior_dia)   recRows.push(rankItem('📉', `Pior dia · ${fmtD(rec.pior_dia.d)}`, `${fmtU(+rec.pior_dia.u)}`, 'neg'));
-  if (rec.maior_green && rec.maior_green.u !== null) recRows.push(rankItem('🎯', `Maior green · ${rec.maior_green.tipster || '—'}`, `+${fmtU(+rec.maior_green.u)}`, 'pos', `${rec.maior_green.evento} — ${fmtD(rec.maior_green.d)}`));
-  if (rec.maior_red && rec.maior_red.u !== null)     recRows.push(rankItem('💥', `Maior red · ${rec.maior_red.tipster || '—'}`, `${fmtU(+rec.maior_red.u)}`, 'neg', `${rec.maior_red.evento} — ${fmtD(rec.maior_red.d)}`));
+  if (rec.melhor_dia) recRows.push(rankItem('📈', `Melhor dia · ${fmtD(rec.melhor_dia.d)}`, `+${fmtU(+rec.melhor_dia.u)}`, 'pos', 'Abrir as apostas deste dia', `irParaDia('${rec.melhor_dia.d}')`));
+  if (rec.pior_dia)   recRows.push(rankItem('📉', `Pior dia · ${fmtD(rec.pior_dia.d)}`, `${fmtU(+rec.pior_dia.u)}`, 'neg', 'Abrir as apostas deste dia', `irParaDia('${rec.pior_dia.d}')`));
+  if (rec.maior_green && rec.maior_green.u !== null) recRows.push(rankItem('🎯', `Maior green · ${rec.maior_green.tipster || '—'}`, `+${fmtU(+rec.maior_green.u)}`, 'pos', `${rec.maior_green.evento} — ${fmtD(rec.maior_green.d)}`, `verAposta('${rec.maior_green.id || ''}')`));
+  if (rec.maior_red && rec.maior_red.u !== null)     recRows.push(rankItem('💥', `Maior red · ${rec.maior_red.tipster || '—'}`, `${fmtU(+rec.maior_red.u)}`, 'neg', `${rec.maior_red.evento} — ${fmtD(rec.maior_red.d)}`, `verAposta('${rec.maior_red.id || ''}')`));
 
   body.innerHTML = `
     <div class="dst-tops">
@@ -2234,7 +2304,7 @@ function renderDestaques(d) {
       </div>
       <div class="dst-top-block">
         <div class="dst-top-title">Piores 3 — Unidades</div>
-        ${worstU.length ? worstU.map(g=>rankItem('🔻', g.nome, `${fmtU(g.plU)}`, 'neg')).join('') : '<div class="dst-empty">Nenhum tipster negativo no filtro</div>'}
+        ${worstU.length ? worstU.map(g=>rankItem('🔻', g.nome, `${fmtU(g.plU)}`, 'neg', null, `filtrarTipsterDash('${(g.nome||'').replace(/'/g,"\\'")}')`)).join('') : '<div class="dst-empty">Nenhum tipster negativo no filtro</div>'}
       </div>
       <div class="dst-top-block">
         <div class="dst-top-title">Recordes do período</div>
