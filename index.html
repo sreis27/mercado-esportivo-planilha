@@ -986,7 +986,7 @@ async function verAposta(id) {
   const ov = document.getElementById('modalVerAposta');
   if (!body || !ov) return;
   body.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-  ov.classList.add('active');
+  ov.classList.add('open');
   try {
     const rows = await sbGet(`apostas?id=eq.${id}&select=*`);
     const a = rows[0];
@@ -1015,7 +1015,7 @@ async function verAposta(id) {
   }
 }
 function fecharVerAposta() {
-  document.getElementById('modalVerAposta')?.classList.remove('active');
+  document.getElementById('modalVerAposta')?.classList.remove('open');
 }
 
 function setEvolUnit(unit) {
