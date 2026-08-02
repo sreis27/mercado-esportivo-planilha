@@ -785,7 +785,7 @@ function renderDashStats(d) {
     <div class="charts-grid">
       <!-- ROW 1: Evolução full width -->
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Drawdown</span><span id="ddResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartDD" style="max-height:210px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Drawdown</span><span id="ddResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="ddBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="ddBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartDD" style="max-height:210px"></canvas></div></div>
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>ROI Móvel 30/90d (u)</span><span id="roiMovelResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRoiMovel" style="max-height:210px"></canvas></div></div>
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>ROI por Faixa de Odd</span><span id="roiOddResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRoiOdd" style="max-height:210px"></canvas></div></div>
       <!-- ROW 2: P/L Operador + Newsletter -->
@@ -1033,12 +1033,13 @@ function setEvolUnit(unit) {
   evolUnit = unit;
   const btnU = document.getElementById('evolBtnU');
   const btnR = document.getElementById('evolBtnR');
-  if (btnU && btnR) {
-    btnU.style.background = unit === 'u' ? 'var(--accent)' : 'transparent';
-    btnU.style.color = unit === 'u' ? '#fff' : 'var(--muted)';
-    btnR.style.background = unit === 'r' ? 'var(--accent)' : 'transparent';
-    btnR.style.color = unit === 'r' ? '#fff' : 'var(--muted)';
-  }
+  [[btnU, 'u'], [btnR, 'r'],
+   [document.getElementById('ddBtnU'), 'u'],
+   [document.getElementById('ddBtnR'), 'r']].forEach(([b, w]) => {
+    if (!b) return;
+    b.style.background = unit === w ? 'var(--accent)' : 'transparent';
+    b.style.color = unit === w ? '#fff' : 'var(--muted)';
+  });
   // Re-renderiza só o gráfico (usa o resultado já em memória, sem refazer a função)
   if (window._dash) renderCharts(window._dash); else updateDashboard();
 }
