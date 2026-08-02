@@ -824,6 +824,7 @@ function renderDDChart(d) {
   const isReais = evolUnit === 'r';
   const vals = dd.map(p => isReais ? +p.r : +p.u);
   const labels = dd.map(p => `${p.d.substring(8,10)}/${p.d.substring(5,7)}/${p.d.substring(2,4)}`);
+  const picos = dd.map(p => isReais ? +(p.pr ?? 0) : +(p.p ?? 0));
 
   // Resumo: máximo, atual e há quantos dias sem novo pico
   const resumoEl = document.getElementById('ddResumo');
@@ -836,7 +837,6 @@ function renderDDChart(d) {
     const fmt = v => isReais
       ? 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})
       : v.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'u';
-    const picos = dd.map(p => isReais ? +(p.pr ?? 0) : +(p.p ?? 0));
     const pct = (v, i) => {
       const pk = picos[i];
       return (pk > 0 && v < 0) ? ` (${(v / pk * 100).toFixed(1)}%)` : '';
