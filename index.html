@@ -786,7 +786,7 @@ function renderDashStats(d) {
       <!-- ROW 1: Evolução full width -->
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:210px"></canvas></div></div>
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Drawdown</span><span id="ddResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="ddBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="ddBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartDD" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>ROI Móvel 30/90d (u)</span><span id="roiMovelResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRoiMovel" style="max-height:210px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Recuperação</span><span id="runupResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRunup" style="max-height:210px"></canvas></div></div>
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>ROI por Faixa de Odd</span><span id="roiOddResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRoiOdd" style="max-height:210px"></canvas></div></div>
       <!-- ROW 2: P/L Operador + Newsletter -->
       <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartOperador"></canvas></div></div></div></div>
@@ -880,42 +880,57 @@ function renderDDChart(d) {
   });
 }
 
-// ROI de janela móvel (30/90d, % em unidades) — o medidor de força ATUAL do edge.
-// Filtrado por tipster, é o detector de fonte morrendo: 90d cruzando zero e não voltando.
-function renderRoiMovel(d) {
-  const canvas = document.getElementById('chartRoiMovel');
+// Recuperação (run-up): espelho do drawdown — dentro de cada ciclo
+// pico→vale, quanto o acumulado já subiu desde o fundo. Zera no pico e
+// no fundo; cada torre é uma escalada. Respeita filtros e o toggle u/R$.
+function renderRunup(d) {
+  const canvas = document.getElementById('chartRunup');
   if (!canvas) return;
-  const rm = d.roi_movel || [];
-  const labels = rm.map(p => `${p.d.substring(8,10)}/${p.d.substring(5,7)}/${p.d.substring(2,4)}`);
-  const s30 = rm.map(p => p.r30 === null ? null : +p.r30);
-  const s90 = rm.map(p => p.r90 === null ? null : +p.r90);
+  const ru = d.runup || [];
+  const isReais = evolUnit === 'r';
+  const vals = ru.map(p => isReais ? +p.r : +p.u);
+  const labels = ru.map(p => `${p.d.substring(8,10)}/${p.d.substring(5,7)}/${p.d.substring(2,4)}`);
 
-  const resumoEl = document.getElementById('roiMovelResumo');
-  if (resumoEl && rm.length) {
-    const last30 = s30[s30.length-1], last90 = s90[s90.length-1];
-    const f = v => v === null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
-    resumoEl.textContent = `30d: ${f(last30)} · 90d: ${f(last90)}`;
+  const resumoEl = document.getElementById('runupResumo');
+  if (ru.length) {
+    let maxV = 0;
+    vals.forEach(v => { if (v > maxV) maxV = v; });
+    const atual = vals[vals.length - 1];
+    let diasSubindo = 0;
+    for (let i = vals.length - 1; i >= 0 && vals[i] > 0; i--) diasSubindo++;
+    const fmt = v => isReais
+      ? 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})
+      : v.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'u';
+    if (resumoEl) resumoEl.textContent =
+      `Máx +${fmt(maxV)} · Atual +${fmt(atual)}` +
+      (diasSubindo > 0 ? ` · ${diasSubindo}d em recuperação` : ' · no fundo/pico');
   } else if (resumoEl) resumoEl.textContent = '';
 
-  charts['chartRoiMovel'] = new Chart(canvas, {
+  charts['chartRunup'] = new Chart(canvas, {
     type: 'line',
     data: {
       labels,
-      datasets: [
-        { label: '30d', data: s30, borderColor: 'rgba(108,99,255,0.85)', borderWidth: 1.2, pointRadius: 0, pointHitRadius: 6, tension: 0.15 },
-        { label: '90d', data: s90, borderColor: '#ffd84d', borderWidth: 2.2, pointRadius: 0, pointHitRadius: 6, tension: 0.15 }
-      ]
+      datasets: [{
+        label: isReais ? 'Recuperação (R$)' : 'Recuperação (u)',
+        data: vals,
+        borderColor: 'rgba(61,220,151,0.9)',
+        backgroundColor: 'rgba(61,220,151,0.20)',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        pointHitRadius: 6,
+        fill: 'origin',
+        tension: 0.1
+      }]
     },
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
       plugins: {
-        legend: { labels: { color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw === null ? '—' : (+ctx.raw).toFixed(2) + '%'}` } }
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => '+' + (isReais ? 'R$ ' : '') + (+ctx.raw).toLocaleString('pt-BR', {minimumFractionDigits:2}) + (isReais ? '' : ' u') } }
       },
       scales: {
         x: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, maxTicksLimit: 8, maxRotation: 0 }, grid: { color:'rgba(42,42,69,0.35)' } },
-        y: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, callback: v => v + '%' },
-             grid: { color: ctx => ctx.tick && ctx.tick.value === 0 ? 'rgba(232,232,245,0.35)' : 'rgba(42,42,69,0.5)' } }
+        y: { min: 0, ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9} }, grid: { color:'rgba(42,42,69,0.5)' } }
       }
     }
   });
@@ -1153,7 +1168,7 @@ function renderCharts(d) {
   makeBar('chartTipster',  toEntries(d.por_tipster));
   makeBar('chartOperador', toEntries(d.por_operador));
   renderDDChart(d);
-  renderRoiMovel(d);
+  renderRunup(d);
   renderRoiOdd(d);
   makeBar('chartEsporte',  toEntries(d.por_esporte));
   makeBar('chartMercado',  toEntries(d.por_mercado));
