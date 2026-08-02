@@ -836,8 +836,13 @@ function renderDDChart(d) {
     const fmt = v => isReais
       ? 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})
       : v.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'u';
+    const picos = dd.map(p => isReais ? +(p.pr ?? 0) : +(p.p ?? 0));
+    const pct = (v, i) => {
+      const pk = picos[i];
+      return (pk > 0 && v < 0) ? ` (${(v / pk * 100).toFixed(1)}%)` : '';
+    };
     if (resumoEl) resumoEl.textContent =
-      `Máx ${fmt(minV)} · Atual ${fmt(atual)}` +
+      `Máx ${fmt(minV)}${pct(minV, minI)} · Atual ${fmt(atual)}${pct(atual, vals.length - 1)}` +
       (diasSemPico > 0 ? ` · ${diasSemPico}d s/ pico` : ' · no pico');
   } else if (resumoEl) resumoEl.textContent = '';
 
@@ -861,7 +866,11 @@ function renderDDChart(d) {
       responsive: true, maintainAspectRatio: false, animation: false,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: ctx => (isReais ? 'R$ ' : '') + (+ctx.raw).toLocaleString('pt-BR', {minimumFractionDigits:2}) + (isReais ? '' : ' u') } }
+        tooltip: { callbacks: { label: ctx => {
+          const base = (isReais ? 'R$ ' : '') + (+ctx.raw).toLocaleString('pt-BR', {minimumFractionDigits:2}) + (isReais ? '' : ' u');
+          const pk = picos[ctx.dataIndex];
+          return (pk > 0 && +ctx.raw < 0) ? `${base} · ${(+ctx.raw / pk * 100).toFixed(1)}% do pico` : base;
+        } } }
       },
       scales: {
         x: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, maxTicksLimit: 8, maxRotation: 0 }, grid: { color:'rgba(42,42,69,0.35)' } },
