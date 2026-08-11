@@ -766,7 +766,7 @@ function renderDashStats(d) {
   const roiU    = invU > 0 ? (plU / invU * 100) : 0;
   const roiR    = invR > 0 ? (plR / invR * 100) : 0;
   const acerto  = settledN > 0 ? (wonN / settledN * 100) : 0;
-  const oddMedia = (+c.sumStake > 0) ? (+c.sumOddStake / +c.sumStake) : 0;
+  const oddMedia = +c.oddMed || 0;  // mediana ponderada por stake (a odd onde cruza metade do dinheiro)
   const stakeMedia  = entradas > 0 ? invU / entradas : 0;
   const stakeMediaR = entradas > 0 ? invR / entradas : 0;
 
@@ -778,7 +778,7 @@ function renderDashStats(d) {
       <div class="card hero ${plU >= 0 ? 'pos' : 'neg'}"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div><div class="card-sub">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
       <div class="card co"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
       <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div><div class="card-sub">${fmtR(pendInvR)} pendente</div></div>
-      <div class="card"><div class="card-label">Odd Média ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">ponderada por stake</div></div>
+      <div class="card" title="Mediana ponderada por stake: a odd abaixo da qual está metade do dinheiro investido no filtro. Imune a bilhetes lotéricos de stake pequena."><div class="card-label">Odd Típica ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">mediana ponderada por stake</div></div>
       <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMediaR)}</div></div>
       <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${wonN} de ${settledN}</div></div>
     </div>
