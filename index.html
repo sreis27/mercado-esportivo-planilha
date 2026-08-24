@@ -671,7 +671,7 @@ async function renderDashboard(savedFilters) {
     content.innerHTML = `
       <div class="filters" id="dashFilters">
         <select class="filter-select" id="dfOp"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
-        <select class="filter-select" id="dfTi"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
+        <select class="filter-select" id="dfTi"><option value="">Todos tipsters</option><option value="00000000-0000-0000-0000-000000000000">— Sem tipster —</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
         <select class="filter-select" id="dfBo"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
         <select class="filter-select" id="dfSt"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
         <input type="date" class="filter-select" id="dfDe">
@@ -741,7 +741,8 @@ function buildDashFilters() {
   const de  = document.getElementById('dfDe')?.value;
   const ate = document.getElementById('dfAte')?.value;
   if (op)  f.push(`operador_id=eq.${op}`);
-  if (ti)  f.push(`tipster_id=eq.${ti}`);
+  if (ti === '00000000-0000-0000-0000-000000000000') f.push('tipster_id=is.null');
+  else if (ti) f.push(`tipster_id=eq.${ti}`);
   if (bo)  f.push(`bookie_id=eq.${bo}`);
   if (es)  f.push(`esporte_id=eq.${es}`);
   if (me)  f.push(`mercado=eq.${encodeURIComponent(me)}`);
@@ -1278,7 +1279,7 @@ async function renderApostas() {
     <div class="filters">
       <input type="text" class="filter-input" id="tSearch" placeholder="Buscar evento, entrada...">
       <select class="filter-select" id="tOp"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="tTi"><option value="">Todos tipsters</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
+      <select class="filter-select" id="tTi"><option value="">Todos tipsters</option><option value="00000000-0000-0000-0000-000000000000">— Sem tipster —</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
       <select class="filter-select" id="tBo"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
       <select class="filter-select" id="tSt"><option value="">Todos status</option><option value="PENDING">Pending</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
       <input type="date" class="filter-select" id="tDe">
@@ -1339,7 +1340,8 @@ async function queryApostas() {
 
   let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,contas_utilizadas,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,atualizado_por,atualizado_em&order=data_evento.desc`;
   if (op)  url += `&operador_id=eq.${op}`;
-  if (ti)  url += `&tipster_id=eq.${ti}`;
+  if (ti === '00000000-0000-0000-0000-000000000000') url += '&tipster_id=is.null';
+  else if (ti) url += `&tipster_id=eq.${ti}`;
   if (bo)  url += `&bookie_id=eq.${bo}`;
   if (st)  url += `&status=eq.${st}`;
   if (de)  url += `&data_evento=gte.${de}`;
