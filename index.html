@@ -786,9 +786,9 @@ function renderDashStats(d) {
     <div class="charts-grid">
       <!-- ROW 1: Evolução full width -->
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Drawdown</span><span id="ddResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="ddBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="ddBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartDD" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Run-Up</span><span id="runupResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="ruBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="ruBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRunup" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>ROI por Faixa de Odd</span><span id="roiOddResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRoiOdd" style="max-height:210px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Ritmo do Mês</span><span id="ritmoResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="rtBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="rtBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRitmo" style="max-height:210px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Corrida dos Tipsters</span><span id="corridaResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="coBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="coBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartCorrida" style="max-height:210px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Calendário de Calor</span><span id="calorResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="caBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="caBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div id="calorGrid" style="width:100%;height:210px;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center"></div></div>
       <!-- ROW 2: P/L Operador + Newsletter -->
       <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartOperador"></canvas></div></div></div></div>
       <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">Calculando…</div></div></div>
@@ -818,170 +818,152 @@ function limparFiltrosApostas() {
 
 // Underwater: distância do acumulado ao pico histórico, dia a dia (série da RPC).
 // Respeita todos os filtros globais — filtrado por tipster vira o raio-x de saúde dele.
-function renderDDChart(d) {
-  const canvas = document.getElementById('chartDD');
+const MES_ABREV = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function mesLabel(ym) { if (!ym) return ''; const [y, m] = ym.split('-'); return MES_ABREV[+m - 1] + '/' + y.slice(2); }
+
+function renderRitmo(d) {
+  const canvas = document.getElementById('chartRitmo');
   if (!canvas) return;
-  const dd = d.dd || [];
+  const rt = d.ritmo || {}; const dias = rt.dias || [];
   const isReais = evolUnit === 'r';
-  const vals = dd.map(p => isReais ? +p.r : +p.u);
-  const labels = dd.map(p => `${p.d.substring(8,10)}/${p.d.substring(5,7)}/${p.d.substring(2,4)}`);
-  const picos = dd.map(p => isReais ? +(p.pr ?? 0) : +(p.p ?? 0));
+  const pick = (p, u, r) => { const v = isReais ? p[r] : p[u]; return v === null || v === undefined ? null : +v; };
+  const labels = dias.map(p => p.d);
+  const atual   = dias.map(p => pick(p, 'au', 'ar'));
+  const media   = dias.map(p => pick(p, 'mu', 'mr'));
+  const recorde = dias.map(p => pick(p, 'ru', 'rr'));
+  const fmt = v => isReais ? 'R$ ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
 
-  // Resumo: máximo, atual e há quantos dias sem novo pico
-  const resumoEl = document.getElementById('ddResumo');
-  if (dd.length) {
-    let minV = 0, minI = -1;
-    vals.forEach((v,i) => { if (v < minV) { minV = v; minI = i; } });
-    const atual = vals[vals.length - 1];
-    let diasSemPico = 0;
-    for (let i = vals.length - 1; i >= 0 && vals[i] < 0; i--) diasSemPico++;
-    const fmt = v => isReais
-      ? 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})
-      : v.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'u';
-    const pct = (v, i) => {
-      const pk = picos[i];
-      return (pk > 0 && v < 0) ? ` (${(v / pk * 100).toFixed(1)}%)` : '';
-    };
-    if (resumoEl) resumoEl.textContent =
-      `Máx ${fmt(minV)}${pct(minV, minI)} · Atual ${fmt(atual)}${pct(atual, vals.length - 1)}` +
-      (diasSemPico > 0 ? ` · ${diasSemPico}d s/ pico` : ' · no pico');
-  } else if (resumoEl) resumoEl.textContent = '';
+  const resumoEl = document.getElementById('ritmoResumo');
+  if (resumoEl) {
+    let li = -1; atual.forEach((v, i) => { if (v !== null) li = i; });
+    if (li >= 0 && media[li] !== null) {
+      const dif = atual[li] - media[li];
+      resumoEl.textContent = `${mesLabel(rt.foco)}: vs média ${dif >= 0 ? '+' : ''}${fmt(dif)} · recorde ${mesLabel(rt.recorde_mes)}`;
+    } else resumoEl.textContent = '';
+  }
 
-  charts['chartDD'] = new Chart(canvas, {
+  charts['chartRitmo'] = new Chart(canvas, {
     type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: isReais ? 'Drawdown (R$)' : 'Drawdown (u)',
-        data: vals,
-        borderColor: 'rgba(255,77,106,0.9)',
-        backgroundColor: 'rgba(255,77,106,0.22)',
-        borderWidth: 1.5,
-        pointRadius: 0,
-        pointHitRadius: 6,
-        fill: 'origin',
-        tension: 0.1
-      }]
-    },
+    data: { labels, datasets: [
+      { label: 'Atual', data: atual, borderColor: '#7c76ff', backgroundColor: 'rgba(124,118,255,0.10)',
+        borderWidth: 2.5, pointRadius: 0, tension: 0.2, fill: true, spanGaps: false },
+      { label: 'Média', data: media, borderColor: '#6b6b90', borderDash: [5, 4],
+        borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: false },
+      { label: 'Recorde ' + mesLabel(rt.recorde_mes), data: recorde, borderColor: 'rgba(0,212,170,0.75)', borderDash: [5, 4],
+        borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: false }
+    ]},
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => {
-          const base = (isReais ? 'R$ ' : '') + (+ctx.raw).toLocaleString('pt-BR', {minimumFractionDigits:2}) + (isReais ? '' : ' u');
-          const pk = picos[ctx.dataIndex];
-          return (pk > 0 && +ctx.raw < 0) ? `${base} · ${(+ctx.raw / pk * 100).toFixed(1)}% do pico` : base;
-        } } }
-      },
-      scales: {
-        x: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, maxTicksLimit: 8, maxRotation: 0 }, grid: { color:'rgba(42,42,69,0.35)' } },
-        y: { max: 0, ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9} }, grid: { color:'rgba(42,42,69,0.5)' } }
-      }
-    }
-  });
-}
-
-// Recuperação (run-up): espelho do drawdown — dentro de cada ciclo
-// pico→vale, quanto o acumulado já subiu desde o fundo. Zera no pico e
-// no fundo; cada torre é uma escalada. Respeita filtros e o toggle u/R$.
-function renderRunup(d) {
-  const canvas = document.getElementById('chartRunup');
-  if (!canvas) return;
-  const ru = d.runup || [];
-  const isReais = evolUnit === 'r';
-  const vals = ru.map(p => isReais ? +p.r : +p.u);
-  const labels = ru.map(p => `${p.d.substring(8,10)}/${p.d.substring(5,7)}/${p.d.substring(2,4)}`);
-
-  const resumoEl = document.getElementById('runupResumo');
-  if (ru.length) {
-    let maxV = 0;
-    vals.forEach(v => { if (v > maxV) maxV = v; });
-    const atual = vals[vals.length - 1];
-    let diasSubindo = 0;
-    for (let i = vals.length - 1; i >= 0 && vals[i] > 0; i--) diasSubindo++;
-    const fmt = v => isReais
-      ? 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})
-      : v.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'u';
-    if (resumoEl) resumoEl.textContent =
-      `Máx +${fmt(maxV)} · Atual +${fmt(atual)}` +
-      (diasSubindo > 0 ? ` · ${diasSubindo}d em recuperação` : ' · no fundo/pico');
-  } else if (resumoEl) resumoEl.textContent = '';
-
-  charts['chartRunup'] = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: isReais ? 'Run-Up (R$)' : 'Run-Up (u)',
-        data: vals,
-        borderColor: 'rgba(61,220,151,0.9)',
-        backgroundColor: 'rgba(61,220,151,0.20)',
-        borderWidth: 1.5,
-        pointRadius: 0,
-        pointHitRadius: 6,
-        fill: 'origin',
-        tension: 0.1
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, animation: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => '+' + (isReais ? 'R$ ' : '') + (+ctx.raw).toLocaleString('pt-BR', {minimumFractionDigits:2}) + (isReais ? '' : ' u') } }
-      },
-      scales: {
-        x: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, maxTicksLimit: 8, maxRotation: 0 }, grid: { color:'rgba(42,42,69,0.35)' } },
-        y: { min: 0, ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9} }, grid: { color:'rgba(42,42,69,0.5)' } }
-      }
-    }
-  });
-}
-
-// ROI por faixa de odd — onde o edge mora. Respeita toggle Unidades/Reais.
-function renderRoiOdd(d) {
-  const canvas = document.getElementById('chartRoiOdd');
-  if (!canvas) return;
-  const fx = d.roi_por_odd || [];
-  const isReais = evolUnit === 'r';
-  const vals = fx.map(p => isReais ? +p.r : +p.u);
-  const labels = fx.map(p => p.faixa);
-
-  const resumoEl = document.getElementById('roiOddResumo');
-  if (resumoEl && fx.length) {
-    let bi = 0; vals.forEach((v,i) => { if (v > vals[bi]) bi = i; });
-    resumoEl.textContent = `Melhor: ${labels[bi]} (${vals[bi] >= 0 ? '+' : ''}${vals[bi].toFixed(1)}%)`;
-  } else if (resumoEl) resumoEl.textContent = '';
-
-  charts['chartRoiOdd'] = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: isReais ? 'ROI % (R$)' : 'ROI % (u)',
-        data: vals,
-        backgroundColor: vals.map(v => v >= 0 ? 'rgba(0,212,170,0.65)' : 'rgba(255,77,106,0.65)'),
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, animation: false,
-      plugins: {
-        legend: { display: false },
+        legend: { display: true, position: 'bottom', labels: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9}, boxWidth: 14, boxHeight: 2 } },
         tooltip: { callbacks: {
-          label: ctx => `ROI: ${(+ctx.raw).toFixed(2)}%`,
-          afterBody: ctx => {
-            const p = fx[ctx[0]?.dataIndex];
-            return p ? [`${(+p.n).toLocaleString('pt-BR')} apostas`, `${(+p.invU).toLocaleString('pt-BR')}u investidas`] : [];
-          }
+          title: ctx => 'Dia ' + ctx[0].label,
+          label: ctx => ctx.raw === null ? null : `${ctx.dataset.label}: ${ctx.raw >= 0 ? '+' : ''}${fmt(ctx.raw)}`
         } }
       },
       scales: {
-        x: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:10} }, grid: { display:false } },
-        y: { ticks: { color:'#6b6b90', font:{family:'JetBrains Mono',size:9}, callback: v => v + '%' },
+        x: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9}, maxTicksLimit: 16 }, grid: { display: false } },
+        y: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9},
+               callback: v => isReais ? 'R$' + (v/1000).toFixed(0) + 'k' : v + 'u' },
              grid: { color: ctx => ctx.tick && ctx.tick.value === 0 ? 'rgba(232,232,245,0.35)' : 'rgba(42,42,69,0.5)' } }
       }
     }
   });
+}
+
+const CORRIDA_CORES = ['#00d4aa', '#7c76ff', '#ffb020', '#ff4d6a', '#4da3ff'];
+function renderCorrida(d) {
+  const canvas = document.getElementById('chartCorrida');
+  if (!canvas) return;
+  const co = d.corrida || {}; const series = co.series || [];
+  const isReais = evolUnit === 'r';
+  const gran = co.gran || 'month';
+  if (!series.length) { charts['chartCorrida'] = new Chart(canvas, {type:'line', data:{labels:[],datasets:[]}, options:{responsive:true,maintainAspectRatio:false}}); return; }
+  const labels = (series[0].pts || []).map(p => {
+    const dt = p.d.slice(0, 10);
+    return gran === 'month' ? mesLabel(dt.slice(0, 7)) : dt.slice(8, 10) + '/' + dt.slice(5, 7);
+  });
+  const fmt = v => isReais ? 'R$ ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
+
+  const resumoEl = document.getElementById('corridaResumo');
+  if (resumoEl) {
+    const vLast = s => { const pts = s.pts || []; const p = pts[pts.length - 1]; return p ? (isReais ? +p.r : +p.u) : 0; };
+    const lider = series.reduce((a, b) => vLast(b) > vLast(a) ? b : a, series[0]);
+    const v = vLast(lider);
+    resumoEl.textContent = `Líder: ${lider.nome} ${v >= 0 ? '+' : ''}${fmt(v)}`;
+  }
+
+  charts['chartCorrida'] = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets: series.map((s, i) => ({
+      label: s.nome, data: (s.pts || []).map(p => isReais ? +p.r : +p.u),
+      borderColor: CORRIDA_CORES[i % CORRIDA_CORES.length], borderWidth: 2, pointRadius: 0, tension: 0.2, fill: false
+    })) },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { color: '#8b8bb0', font: {family: 'JetBrains Mono', size: 9}, boxWidth: 14, boxHeight: 2 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw >= 0 ? '+' : ''}${fmt(ctx.raw)}` } }
+      },
+      scales: {
+        x: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9}, maxTicksLimit: 12 }, grid: { display: false } },
+        y: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9},
+               callback: v => isReais ? 'R$' + (v/1000).toFixed(0) + 'k' : v + 'u' },
+             grid: { color: ctx => ctx.tick && ctx.tick.value === 0 ? 'rgba(232,232,245,0.35)' : 'rgba(42,42,69,0.5)' } }
+      }
+    }
+  });
+}
+
+function renderCalor(d) {
+  const grid = document.getElementById('calorGrid');
+  if (!grid) return;
+  const dias = d.calor || [];
+  const isReais = evolUnit === 'r';
+  if (!dias.length) { grid.innerHTML = ''; const r = document.getElementById('calorResumo'); if (r) r.textContent = ''; return; }
+  const val = p => isReais ? +p.r : +p.u;
+  const fmt = v => isReais ? 'R$ ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
+
+  const abs = dias.map(p => Math.abs(val(p))).filter(v => v > 0).sort((a, b) => a - b);
+  const p95 = abs.length ? abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.95))] : 1;
+
+  const mapa = {}; dias.forEach(p => { mapa[p.d.slice(0, 10)] = p; });
+  const d0 = new Date(dias[0].d.slice(0, 10) + 'T12:00:00');
+  const d1 = new Date(dias[dias.length - 1].d.slice(0, 10) + 'T12:00:00');
+  const ini = new Date(d0); ini.setDate(ini.getDate() - ini.getDay());
+
+  let colunas = ''; let mesLabels = ''; let ultimoMes = -1;
+  for (let ws = new Date(ini); ws <= d1; ws.setDate(ws.getDate() + 7)) {
+    let cels = '';
+    for (let dow = 0; dow < 7; dow++) {
+      const dt = new Date(ws); dt.setDate(dt.getDate() + dow);
+      const iso = dt.toISOString().slice(0, 10);
+      const p = mapa[iso];
+      if (!p || dt < d0 || dt > d1) {
+        cels += '<div style="width:13px;height:13px;border-radius:2px;background:rgba(42,42,69,0.35)"></div>';
+      } else {
+        const v = val(p);
+        const a = v === 0 ? 0 : 0.18 + 0.82 * Math.min(1, Math.abs(v) / p95);
+        const bg = v > 0 ? `rgba(0,212,170,${a.toFixed(2)})` : v < 0 ? `rgba(255,77,106,${a.toFixed(2)})` : 'rgba(107,107,144,0.30)';
+        const dl = iso.slice(8, 10) + '/' + iso.slice(5, 7);
+        cels += `<div onclick="irParaDia('${iso}')" title="${dl}: ${v >= 0 ? '+' : ''}${fmt(v)}" style="width:13px;height:13px;border-radius:2px;background:${bg};cursor:pointer"></div>`;
+      }
+    }
+    const m = new Date(ws); m.setDate(m.getDate() + 6);
+    const lbl = (m.getMonth() !== ultimoMes && m >= d0) ? MES_ABREV[m.getMonth()] : '';
+    if (lbl) ultimoMes = m.getMonth();
+    mesLabels += `<div style="width:13px;font-family:var(--mono);font-size:0.55rem;color:#6b6b90;overflow:visible;white-space:nowrap">${lbl}</div>`;
+    colunas += `<div style="display:flex;flex-direction:column;gap:3px">${cels}</div>`;
+  }
+  grid.innerHTML = `<div style="margin:0 auto"><div style="display:flex;gap:3px;margin-bottom:4px">${mesLabels}</div><div style="display:flex;gap:3px">${colunas}</div></div>`;
+
+  const resumoEl = document.getElementById('calorResumo');
+  if (resumoEl) {
+    const verdes = dias.filter(p => val(p) > 0).length;
+    resumoEl.textContent = `${verdes} verdes / ${dias.length}d (${Math.round(verdes / dias.length * 100)}%)`;
+  }
 }
 
 // ── Navegação a partir dos Destaques ────────────────────────────
@@ -1050,10 +1032,12 @@ function setEvolUnit(unit) {
   const btnU = document.getElementById('evolBtnU');
   const btnR = document.getElementById('evolBtnR');
   [[btnU, 'u'], [btnR, 'r'],
-   [document.getElementById('ddBtnU'), 'u'],
-   [document.getElementById('ddBtnR'), 'r'],
-   [document.getElementById('ruBtnU'), 'u'],
-   [document.getElementById('ruBtnR'), 'r']].forEach(([b, w]) => {
+   [document.getElementById('rtBtnU'), 'u'],
+   [document.getElementById('rtBtnR'), 'r'],
+   [document.getElementById('coBtnU'), 'u'],
+   [document.getElementById('coBtnR'), 'r'],
+   [document.getElementById('caBtnU'), 'u'],
+   [document.getElementById('caBtnR'), 'r']].forEach(([b, w]) => {
     if (!b) return;
     b.style.background = unit === w ? 'var(--accent)' : 'transparent';
     b.style.color = unit === w ? '#fff' : 'var(--muted)';
@@ -1170,9 +1154,9 @@ function renderCharts(d) {
   makeBar('chartBookie',   toEntries(d.por_bookie));
   makeBar('chartTipster',  toEntries(d.por_tipster));
   makeBar('chartOperador', toEntries(d.por_operador));
-  renderDDChart(d);
-  renderRunup(d);
-  renderRoiOdd(d);
+  renderRitmo(d);
+  renderCorrida(d);
+  renderCalor(d);
   makeBar('chartEsporte',  toEntries(d.por_esporte));
   makeBar('chartMercado',  toEntries(d.por_mercado));
   makeBar('chartTipo',     toEntries(d.por_tipo));
