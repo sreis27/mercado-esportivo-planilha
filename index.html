@@ -788,7 +788,7 @@ function renderDashStats(d) {
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:210px"></canvas></div></div>
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Ritmo do Mês</span><span id="ritmoResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="rtBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="rtBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRitmo" style="max-height:210px"></canvas></div></div>
       <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Corrida dos Tipsters</span><span id="corridaResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="coBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="coBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartCorrida" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Calendário de Calor</span><span id="calorResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="caBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="caBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div id="calorGrid" style="width:100%;height:210px;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center"></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Calendário</span><span style="display:inline-flex;align-items:center;gap:6px;margin-left:auto"><button onclick="calorNav(-1)" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--mono);font-size:0.7rem">‹</button><span id="calorMesLbl" style="font-family:var(--mono);font-size:0.72rem;color:var(--text);min-width:52px;text-align:center"></span><button onclick="calorNav(1)" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--mono);font-size:0.7rem">›</button></span><span id="calorResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="caBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="caBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div id="calorGrid" style="width:100%;min-height:300px"></div></div>
       <!-- ROW 2: P/L Operador + Newsletter -->
       <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartOperador"></canvas></div></div></div></div>
       <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">Calculando…</div></div></div>
@@ -917,54 +917,76 @@ function renderCorrida(d) {
   });
 }
 
+let _calorMes = null;
+function calorNav(delta) {
+  if (!_calorMes || !window._dash) return;
+  const [y, m] = _calorMes.split('-').map(Number);
+  const nova = new Date(y, m - 1 + delta, 15);
+  const alvo = nova.getFullYear() + '-' + String(nova.getMonth() + 1).padStart(2, '0');
+  const meses = new Set((window._dash.calor || []).map(p => p.d.slice(0, 7)));
+  if (!meses.has(alvo)) return;
+  _calorMes = alvo;
+  renderCalor(window._dash);
+}
+
 function renderCalor(d) {
   const grid = document.getElementById('calorGrid');
   if (!grid) return;
   const dias = d.calor || [];
   const isReais = evolUnit === 'r';
-  if (!dias.length) { grid.innerHTML = ''; const r = document.getElementById('calorResumo'); if (r) r.textContent = ''; return; }
-  const val = p => isReais ? +p.r : +p.u;
-  const fmt = v => isReais ? 'R$ ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
+  const lblEl = document.getElementById('calorMesLbl');
+  const resumoEl = document.getElementById('calorResumo');
+  if (!dias.length) { grid.innerHTML = ''; if (lblEl) lblEl.textContent = ''; if (resumoEl) resumoEl.textContent = ''; return; }
 
-  const abs = dias.map(p => Math.abs(val(p))).filter(v => v > 0).sort((a, b) => a - b);
+  const meses = [...new Set(dias.map(p => p.d.slice(0, 7)))].sort();
+  if (!_calorMes || !meses.includes(_calorMes)) _calorMes = meses[meses.length - 1];
+  if (lblEl) lblEl.textContent = mesLabel(_calorMes);
+
+  const doMes = dias.filter(p => p.d.slice(0, 7) === _calorMes);
+  const mapa = {}; doMes.forEach(p => { mapa[p.d.slice(0, 10)] = p; });
+  const val = p => isReais ? +p.r : +p.u;
+  const fmtCel = v => isReais
+    ? (Math.abs(v) >= 1000 ? 'R$' + (v/1000).toFixed(1).replace('.', ',') + 'k' : 'R$' + Math.round(v))
+    : (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',');
+  const fmtFull = v => isReais ? 'R$ ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',') + 'u';
+
+  const abs = doMes.map(p => Math.abs(val(p))).filter(v => v > 0).sort((a, b) => a - b);
   const p95 = abs.length ? abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.95))] : 1;
 
-  const mapa = {}; dias.forEach(p => { mapa[p.d.slice(0, 10)] = p; });
-  const d0 = new Date(dias[0].d.slice(0, 10) + 'T12:00:00');
-  const d1 = new Date(dias[dias.length - 1].d.slice(0, 10) + 'T12:00:00');
-  const ini = new Date(d0); ini.setDate(ini.getDate() - ini.getDay());
+  const [y, m] = _calorMes.split('-').map(Number);
+  const primeiroDow = new Date(y, m - 1, 1).getDay();
+  const nDias = new Date(y, m, 0).getDate();
 
-  let colunas = ''; let mesLabels = ''; let ultimoMes = -1;
-  for (let ws = new Date(ini); ws <= d1; ws.setDate(ws.getDate() + 7)) {
-    let cels = '';
-    for (let dow = 0; dow < 7; dow++) {
-      const dt = new Date(ws); dt.setDate(dt.getDate() + dow);
-      const iso = dt.toISOString().slice(0, 10);
-      const p = mapa[iso];
-      if (!p || dt < d0 || dt > d1) {
-        cels += '<div style="width:13px;height:13px;border-radius:2px;background:rgba(42,42,69,0.35)"></div>';
-      } else {
-        const v = val(p);
-        const a = v === 0 ? 0 : 0.18 + 0.82 * Math.min(1, Math.abs(v) / p95);
-        const bg = v > 0 ? `rgba(0,212,170,${a.toFixed(2)})` : v < 0 ? `rgba(255,77,106,${a.toFixed(2)})` : 'rgba(107,107,144,0.30)';
-        const dl = iso.slice(8, 10) + '/' + iso.slice(5, 7);
-        cels += `<div onclick="irParaDia('${iso}')" title="${dl}: ${v >= 0 ? '+' : ''}${fmt(v)}" style="width:13px;height:13px;border-radius:2px;background:${bg};cursor:pointer"></div>`;
-      }
+  let cels = ['D','S','T','Q','Q','S','S'].map(h =>
+    `<div style="font-family:var(--mono);font-size:0.6rem;color:#6b6b90;text-align:center;padding-bottom:2px">${h}</div>`).join('');
+  for (let i = 0; i < primeiroDow; i++) cels += '<div></div>';
+  for (let dia = 1; dia <= nDias; dia++) {
+    const iso = `${_calorMes}-${String(dia).padStart(2, '0')}`;
+    const p = mapa[iso];
+    if (!p) {
+      cels += `<div style="border-radius:6px;background:rgba(42,42,69,0.28);min-height:44px;padding:3px 5px">` +
+              `<div style="font-family:var(--mono);font-size:0.58rem;color:#44445e">${dia}</div></div>`;
+    } else {
+      const v = val(p);
+      const a = v === 0 ? 0.12 : 0.14 + 0.60 * Math.min(1, Math.abs(v) / p95);
+      const bg = v > 0 ? `rgba(0,212,170,${a.toFixed(2)})` : v < 0 ? `rgba(255,77,106,${a.toFixed(2)})` : 'rgba(107,107,144,0.25)';
+      const cor = v > 0 ? '#7df0d8' : v < 0 ? '#ff9daf' : '#8b8bb0';
+      cels += `<div onclick="irParaDia('${iso}')" title="${dia}/${String(m).padStart(2,'0')}: ${fmtFull(v)} · ${p.n} apostas" ` +
+        `style="border-radius:6px;background:${bg};min-height:44px;padding:3px 5px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between">` +
+        `<div style="font-family:var(--mono);font-size:0.58rem;color:#a0a0c0">${dia}</div>` +
+        `<div style="text-align:center;font-family:var(--mono);font-size:0.68rem;font-weight:700;color:${cor};line-height:1">${fmtCel(v)}</div>` +
+        `<div style="text-align:right;font-family:var(--mono);font-size:0.52rem;color:#8b8bb0">${p.n}</div></div>`;
     }
-    const m = new Date(ws); m.setDate(m.getDate() + 6);
-    const lbl = (m.getMonth() !== ultimoMes && m >= d0) ? MES_ABREV[m.getMonth()] : '';
-    if (lbl) ultimoMes = m.getMonth();
-    mesLabels += `<div style="width:13px;font-family:var(--mono);font-size:0.55rem;color:#6b6b90;overflow:visible;white-space:nowrap">${lbl}</div>`;
-    colunas += `<div style="display:flex;flex-direction:column;gap:3px">${cels}</div>`;
   }
-  grid.innerHTML = `<div style="margin:0 auto"><div style="display:flex;gap:3px;margin-bottom:4px">${mesLabels}</div><div style="display:flex;gap:3px">${colunas}</div></div>`;
+  grid.innerHTML = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${cels}</div>`;
 
-  const resumoEl = document.getElementById('calorResumo');
   if (resumoEl) {
-    const verdes = dias.filter(p => val(p) > 0).length;
-    resumoEl.textContent = `${verdes} verdes / ${dias.length}d (${Math.round(verdes / dias.length * 100)}%)`;
+    const tot = doMes.reduce((s, p) => s + val(p), 0);
+    const verdes = doMes.filter(p => val(p) > 0).length;
+    resumoEl.textContent = `${fmtFull(tot)} · ${verdes}V/${doMes.length}d`;
   }
 }
+
 
 // ── Navegação a partir dos Destaques ────────────────────────────
 // Leva os filtros atuais do dashboard e abre a aba Apostas naquele dia
