@@ -954,10 +954,10 @@ function renderCalor(d) {
   const p95 = abs.length ? abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.95))] : 1;
 
   const [y, m] = _calorMes.split('-').map(Number);
-  const primeiroDow = new Date(y, m - 1, 1).getDay();
+  const primeiroDow = (new Date(y, m - 1, 1).getDay() + 6) % 7; // semana começa na segunda
   const nDias = new Date(y, m, 0).getDate();
 
-  let cels = ['D','S','T','Q','Q','S','S'].map(h =>
+  let cels = ['S','T','Q','Q','S','S','D'].map(h =>
     `<div style="font-family:var(--mono);font-size:0.6rem;color:#6b6b90;text-align:center;padding-bottom:2px">${h}</div>`).join('');
   for (let i = 0; i < primeiroDow; i++) cels += '<div></div>';
   for (let dia = 1; dia <= nDias; dia++) {
