@@ -508,7 +508,7 @@ let currentUser = sessionStorage.getItem('rm_apost_user');
 let gFilters = {};
 let evolMode = "month"; // "month" or "day"
 let evolDayMonth = null; // "yyyy-mm" when in day mode
-let evolUnit = "u"; // "u" (unidades) or "r" (reais)
+let evolUnit = "u"; // "u" (unidades), "r" (reais) ou "d" (dólar)
 let cache = { operadores:[], tipsters:[], bookies:[], esportes:[], stakes:[], tipos_aposta:[], mercados:[], contas:[] };
 let apostasData = [];
 let filtros = { operador:'', tipster:'', bookie:'', status:'', periodo:'', search:'' };
@@ -770,28 +770,31 @@ function renderDashStats(d) {
   const acerto  = settledN > 0 ? (wonN / settledN * 100) : 0;
   const oddMedia = +c.oddMed || 0;  // mediana ponderada por stake (a odd onde cruza metade do dinheiro)
   const stakeMedia  = entradas > 0 ? invU / entradas : 0;
-  const stakeMediaR = entradas > 0 ? invR / entradas : 0;
+  const entradasBrl = entradas - (+c.nUsd || 0);
+  const stakeMediaR = entradasBrl > 0 ? invR / entradasBrl : 0;
 
-  const nUsd = +c.nUsd || 0, plUsd = +c.plUsd || 0, invUsd = +c.invUsd || 0;
+  const nUsd = +c.nUsd || 0, plUsd = +c.plUsd || 0, invUsd = +c.invUsd || 0, pendInvUsd = +c.pendInvUsd || 0;
+  const roiUsd = invUsd > 0 ? (plUsd / invUsd * 100) : 0;
+  const usdSub = html => nUsd > 0 ? `<div class="card-sub" style="white-space:nowrap">${html}</div>` : '';
   const usdLine = v => nUsd > 0 ? `<div class="card-sub">${fmtValMoeda(v, 'USD')}</div>` : '';
   const pl_color = plU >= 0 ? 'green' : 'red';
 
   document.getElementById('dashContent').innerHTML = `
     <div class="cards-grid">
       <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${entradas.toLocaleString('pt-BR')}</div><div class="card-sub">${pendentes} pendente${pendentes!==1?'s':''}</div></div>
-      <div class="card hero ${plU >= 0 ? 'pos' : 'neg'}"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div>${usdLine(plUsd)}<div class="card-sub" style="white-space:nowrap">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
-      <div class="card co"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
-      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div>${usdLine(invUsd)}<div class="card-sub">${fmtR(pendInvR)} pendente</div></div>
+      <div class="card hero ${plU >= 0 ? 'pos' : 'neg'}"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div>${usdLine(plUsd)}<div class="card-sub" style="white-space:nowrap">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div>${usdSub(fmtValMoeda(plUsd + (roiUsd/100) * pendInvUsd, 'USD') + ' projetado')}</div>
+      <div class="card co"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div>${usdSub(roiUsd.toFixed(2) + '% US$')}</div>
+      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div>${usdLine(invUsd)}<div class="card-sub">${fmtR(pendInvR)} pendente</div>${usdSub(fmtValMoeda(pendInvUsd, 'USD') + ' pendente')}</div>
       <div class="card" title="Mediana ponderada por stake: a odd abaixo da qual está metade do dinheiro investido no filtro. Imune a bilhetes lotéricos de stake pequena."><div class="card-label">Odd Típica ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">mediana ponderada por stake</div></div>
-      <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMediaR)}</div></div>
+      <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMediaR)}</div>${usdSub(fmtValMoeda(nUsd > 0 ? invUsd / nUsd : 0, 'USD'))}</div>
       <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${wonN} de ${settledN}</div></div>
     </div>
     <div class="charts-grid">
       <!-- ROW 1: Evolução full width -->
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Ritmo do Mês</span><span id="ritmoResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="rtBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="rtBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRitmo" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Corrida dos Tipsters</span><span id="corridaResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="coBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="coBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartCorrida" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Calendário</span><span style="display:inline-flex;align-items:center;gap:6px;margin-left:auto"><button onclick="calorNav(-1)" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--mono);font-size:0.7rem">‹</button><span id="calorMesLbl" style="font-family:var(--mono);font-size:0.72rem;color:var(--text);min-width:52px;text-align:center"></span><button onclick="calorNav(1)" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--mono);font-size:0.7rem">›</button></span><span id="calorResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="caBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="caBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button></div></div><div id="calorGrid" style="width:100%;min-height:300px"></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button><button id="evolBtnD" onclick="setEvolUnit('d')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Dólar</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:210px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Ritmo do Mês</span><span id="ritmoResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="rtBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="rtBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button><button id="rtBtnD" onclick="setEvolUnit('d')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">US$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRitmo" style="max-height:210px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Corrida dos Tipsters</span><span id="corridaResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="coBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="coBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button><button id="coBtnD" onclick="setEvolUnit('d')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">US$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartCorrida" style="max-height:210px"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Calendário</span><span style="display:inline-flex;align-items:center;gap:6px;margin-left:auto"><button onclick="calorNav(-1)" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--mono);font-size:0.7rem">‹</button><span id="calorMesLbl" style="font-family:var(--mono);font-size:0.72rem;color:var(--text);min-width:52px;text-align:center"></span><button onclick="calorNav(1)" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--mono);font-size:0.7rem">›</button></span><span id="calorResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="caBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="caBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button><button id="caBtnD" onclick="setEvolUnit('d')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">US$</button></div></div><div id="calorGrid" style="width:100%;min-height:300px"></div></div>
       <!-- ROW 2: P/L Operador + Newsletter -->
       <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartOperador"></canvas></div></div></div></div>
       <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">Calculando…</div></div></div>
@@ -828,13 +831,13 @@ function renderRitmo(d) {
   const canvas = document.getElementById('chartRitmo');
   if (!canvas) return;
   const rt = d.ritmo || {}; const dias = rt.dias || [];
-  const isReais = evolUnit === 'r';
-  const pick = (p, u, r) => { const v = isReais ? p[r] : p[u]; return v === null || v === undefined ? null : +v; };
+  const isReais = evolUnit !== 'u'; const isUsd = evolUnit === 'd'; const SYM = isUsd ? 'US$' : 'R$';
+  const pick = (p, u, r) => { const v = isReais ? p[isUsd ? r.replace(/r$/, 'usd') : r] : p[u]; return v === null || v === undefined ? null : +v; };
   const labels = dias.map(p => p.d);
   const atual   = dias.map(p => pick(p, 'au', 'ar'));
   const media   = dias.map(p => pick(p, 'mu', 'mr'));
   const recorde = dias.map(p => pick(p, 'ru', 'rr'));
-  const fmt = v => isReais ? 'R$ ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
+  const fmt = v => isReais ? SYM + ' ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
 
   const resumoEl = document.getElementById('ritmoResumo');
   if (resumoEl) {
@@ -868,7 +871,7 @@ function renderRitmo(d) {
       scales: {
         x: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9}, maxTicksLimit: 16 }, grid: { display: false } },
         y: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9},
-               callback: v => isReais ? 'R$' + (v/1000).toFixed(0) + 'k' : v + 'u' },
+               callback: v => isReais ? SYM + (v/1000).toFixed(0) + 'k' : v + 'u' },
              grid: { color: ctx => ctx.tick && ctx.tick.value === 0 ? 'rgba(232,232,245,0.35)' : 'rgba(42,42,69,0.5)' } }
       }
     }
@@ -880,18 +883,18 @@ function renderCorrida(d) {
   const canvas = document.getElementById('chartCorrida');
   if (!canvas) return;
   const co = d.corrida || {}; const series = co.series || [];
-  const isReais = evolUnit === 'r';
+  const isReais = evolUnit !== 'u'; const isUsd = evolUnit === 'd'; const SYM = isUsd ? 'US$' : 'R$';
   const gran = co.gran || 'month';
   if (!series.length) { charts['chartCorrida'] = new Chart(canvas, {type:'line', data:{labels:[],datasets:[]}, options:{responsive:true,maintainAspectRatio:false}}); return; }
   const labels = (series[0].pts || []).map(p => {
     const dt = p.d.slice(0, 10);
     return gran === 'month' ? mesLabel(dt.slice(0, 7)) : dt.slice(8, 10) + '/' + dt.slice(5, 7);
   });
-  const fmt = v => isReais ? 'R$ ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
+  const fmt = v => isReais ? SYM + ' ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
 
   const resumoEl = document.getElementById('corridaResumo');
   if (resumoEl) {
-    const vLast = s => { const pts = s.pts || []; const p = pts[pts.length - 1]; return p ? (isReais ? +p.r : +p.u) : 0; };
+    const vLast = s => { const pts = s.pts || []; const p = pts[pts.length - 1]; return p ? (isReais ? +(isUsd ? p.usd : p.r) : +p.u) : 0; };
     const lider = series.reduce((a, b) => vLast(b) > vLast(a) ? b : a, series[0]);
     const v = vLast(lider);
     resumoEl.textContent = `Líder: ${lider.nome} ${v >= 0 ? '+' : ''}${fmt(v)}`;
@@ -900,7 +903,7 @@ function renderCorrida(d) {
   charts['chartCorrida'] = new Chart(canvas, {
     type: 'line',
     data: { labels, datasets: series.map((s, i) => ({
-      label: s.nome, data: (s.pts || []).map(p => isReais ? +p.r : +p.u),
+      label: s.nome, data: (s.pts || []).map(p => isReais ? +(isUsd ? p.usd : p.r) : +p.u),
       borderColor: CORRIDA_CORES[i % CORRIDA_CORES.length], borderWidth: 2, pointRadius: 0, tension: 0.2, fill: false
     })) },
     options: {
@@ -913,7 +916,7 @@ function renderCorrida(d) {
       scales: {
         x: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9}, maxTicksLimit: 12 }, grid: { display: false } },
         y: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9},
-               callback: v => isReais ? 'R$' + (v/1000).toFixed(0) + 'k' : v + 'u' },
+               callback: v => isReais ? SYM + (v/1000).toFixed(0) + 'k' : v + 'u' },
              grid: { color: ctx => ctx.tick && ctx.tick.value === 0 ? 'rgba(232,232,245,0.35)' : 'rgba(42,42,69,0.5)' } }
       }
     }
@@ -936,7 +939,7 @@ function renderCalor(d) {
   const grid = document.getElementById('calorGrid');
   if (!grid) return;
   const dias = d.calor || [];
-  const isReais = evolUnit === 'r';
+  const isReais = evolUnit !== 'u'; const isUsd = evolUnit === 'd'; const SYM = isUsd ? 'US$' : 'R$';
   const lblEl = document.getElementById('calorMesLbl');
   const resumoEl = document.getElementById('calorResumo');
   if (!dias.length) { grid.innerHTML = ''; if (lblEl) lblEl.textContent = ''; if (resumoEl) resumoEl.textContent = ''; return; }
@@ -947,11 +950,11 @@ function renderCalor(d) {
 
   const doMes = dias.filter(p => p.d.slice(0, 7) === _calorMes);
   const mapa = {}; doMes.forEach(p => { mapa[p.d.slice(0, 10)] = p; });
-  const val = p => isReais ? +p.r : +p.u;
+  const val = p => isReais ? +(isUsd ? p.usd : p.r) : +p.u;
   const fmtCel = v => isReais
-    ? (Math.abs(v) >= 1000 ? 'R$' + (v/1000).toFixed(1).replace('.', ',') + 'k' : 'R$' + Math.round(v))
+    ? (Math.abs(v) >= 1000 ? SYM + (v/1000).toFixed(1).replace('.', ',') + 'k' : SYM + Math.round(v))
     : (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',');
-  const fmtFull = v => isReais ? 'R$ ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',') + 'u';
+  const fmtFull = v => isReais ? SYM + ' ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',') + 'u';
 
   const abs = doMes.map(p => Math.abs(val(p))).filter(v => v > 0).sort((a, b) => a - b);
   const p95 = abs.length ? abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.95))] : 1;
@@ -1062,7 +1065,11 @@ function setEvolUnit(unit) {
    [document.getElementById('coBtnU'), 'u'],
    [document.getElementById('coBtnR'), 'r'],
    [document.getElementById('caBtnU'), 'u'],
-   [document.getElementById('caBtnR'), 'r']].forEach(([b, w]) => {
+   [document.getElementById('caBtnR'), 'r'],
+   [document.getElementById('evolBtnD'), 'd'],
+   [document.getElementById('rtBtnD'), 'd'],
+   [document.getElementById('coBtnD'), 'd'],
+   [document.getElementById('caBtnD'), 'd']].forEach(([b, w]) => {
     if (!b) return;
     b.style.background = unit === w ? 'var(--accent)' : 'transparent';
     b.style.color = unit === w ? '#fff' : 'var(--muted)';
@@ -1204,6 +1211,9 @@ function renderCharts(d) {
   let _ac = 0, _acR = 0;
   const evolAcumVals  = evolMensalVals.map(v => { _ac  += v; return parseFloat(_ac.toFixed(4)); });
   const evolAcumValsR = evolMensalValsR.map(v => { _acR += v; return parseFloat(_acR.toFixed(2)); });
+  const evolMensalValsD = evol.map(x => +(x.usd || 0));
+  let _acD = 0;
+  const evolAcumValsD = evolMensalValsD.map(v => { _acD += v; return parseFloat(_acD.toFixed(2)); });
   const isDay = (evolMode === 'day');
   const evolLabels = meses.map(m => isDay
     ? `${m.substring(8,10)}/${m.substring(5,7)}`
@@ -1214,12 +1224,12 @@ function renderCharts(d) {
   window._evolU = evolMensalVals;
 
   // Aplicar toggle Unidades/Reais
-  const isReais = evolUnit === 'r';
-  const dispMensal = isReais ? evolMensalValsR : evolMensalVals;
-  const dispAcum = isReais ? evolAcumValsR : evolAcumVals;
-  const labelMensal = isReais ? 'Mensal (R$)' : 'Mensal (u)';
+  const isReais = evolUnit !== 'u'; const isUsd = evolUnit === 'd'; const SYM = isUsd ? 'US$' : 'R$';
+  const dispMensal = isUsd ? evolMensalValsD : (isReais ? evolMensalValsR : evolMensalVals);
+  const dispAcum = isUsd ? evolAcumValsD : (isReais ? evolAcumValsR : evolAcumVals);
+  const labelMensal = isReais ? `Mensal (${SYM})` : 'Mensal (u)';
   const labelAcum = isReais
-    ? (evolMode==='day' ? `Acumulado R$ (${evolDayMonth})` : 'Acumulado R$')
+    ? (evolMode==='day' ? `Acumulado ${SYM} (${evolDayMonth})` : `Acumulado ${SYM}`)
     : (evolMode==='day' ? `Acumulado (${evolDayMonth})` : 'Acumulado');
 
   charts['chartEvolucao'] = new Chart(document.getElementById('chartEvolucao'), {
@@ -2189,7 +2199,7 @@ async function renderRankingGrupos() {
   c.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
   if (!cache.tipsters.length) await loadCache();
   if (!window._rankApostas) {
-    window._rankApostas = await sbGet('apostas?select=data_evento,stake_unidades,lucro_unidades,status,tipster_id');
+    window._rankApostas = await sbGet('apostas?select=data_evento,stake_unidades,lucro_unidades,status,tipster_id,moeda');
   }
   c.innerHTML = rankingShell();
   drawRanking();
@@ -2238,7 +2248,7 @@ function calcRankingGrupos(apostas, cutoff) {
     if (!tid) return;
     if (!map[tid]) {
       const t = cache.tipsters.find(x => x.id===tid);
-      map[tid] = { nome: t?.nome || 'Outros', plU:0, invU:0, plR:0, nSettled:0 };
+      map[tid] = { nome: t?.nome || 'Outros', plU:0, invU:0, plR:0, plUsd:0, nSettled:0 };
     }
     if (!['PENDING'].includes(a.status)) {
       const su = parseFloat(a.stake_unidades) || 0;
@@ -2246,7 +2256,8 @@ function calcRankingGrupos(apostas, cutoff) {
       const sv = getStakeValor(tid, a.data_evento) || 1;
       map[tid].plU += lu;
       map[tid].invU += su;
-      map[tid].plR += lu * sv;
+      if (a.moeda === 'USD') map[tid].plUsd += lu * (getStakeValor(tid, a.data_evento, 'USD') || 0);
+      else map[tid].plR += lu * sv;
       map[tid].nSettled++;
     }
   });
@@ -2260,7 +2271,7 @@ function drawRanking() {
   const grupos = calcRankingGrupos(window._rankApostas || [], cutoff);
   renderRankList('rankU',   [...grupos].sort((a,b)=>b.plU-a.plU), g => `${g.plU>=0?'+':''}${fmtU(g.plU)}`,        g => g.plU>=0);
   renderRankList('rankRoi', [...grupos].sort((a,b)=>b.roi-a.roi), g => `${g.roi>=0?'+':''}${g.roi.toFixed(2)}%`,  g => g.roi>=0);
-  renderRankList('rankR',   [...grupos].sort((a,b)=>b.plR-a.plR), g => `${g.plR>=0?'+':''}${fmtR(g.plR)}`,        g => g.plR>=0);
+  renderRankList('rankR',   [...grupos].sort((a,b)=>b.plR-a.plR), g => `${g.plR>=0?'+':''}${fmtR(g.plR)}${g.plUsd ? ' · ' + (g.plUsd>=0?'+':'') + fmtValMoeda(g.plUsd, 'USD') : ''}`,        g => g.plR>=0);
 }
 
 function renderRankList(elId, lista, valFn, posFn) {
@@ -2407,7 +2418,7 @@ function renderDestaques(d) {
       </div>
       <div class="dst-top-block">
         <div class="dst-top-title">Top 3 — Financeiro</div>
-        ${topR.length ? topR.map((g,i)=>topItem(g,i,`${sg(g.plR)}${fmtR(g.plR)}`, g.plR>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
+        ${topR.length ? topR.map((g,i)=>topItem(g,i,`${sg(g.plR)}${fmtR(g.plR)}${g.plUsd ? ' · ' + (g.plUsd>=0?'+':'') + fmtValMoeda(g.plUsd, 'USD') : ''}`, g.plR>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
       </div>
       <div class="dst-top-block">
         <div class="dst-top-title">Recordes — Unidades</div>
