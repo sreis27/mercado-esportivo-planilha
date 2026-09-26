@@ -779,7 +779,7 @@ function renderDashStats(d) {
   document.getElementById('dashContent').innerHTML = `
     <div class="cards-grid">
       <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${entradas.toLocaleString('pt-BR')}</div><div class="card-sub">${pendentes} pendente${pendentes!==1?'s':''}</div></div>
-      <div class="card hero ${plU >= 0 ? 'pos' : 'neg'}"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div>${usdLine(plUsd)}<div class="card-sub">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
+      <div class="card hero ${plU >= 0 ? 'pos' : 'neg'}"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div>${usdLine(plUsd)}<div class="card-sub" style="white-space:nowrap">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
       <div class="card co"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
       <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div>${usdLine(invUsd)}<div class="card-sub">${fmtR(pendInvR)} pendente</div></div>
       <div class="card" title="Mediana ponderada por stake: a odd abaixo da qual está metade do dinheiro investido no filtro. Imune a bilhetes lotéricos de stake pequena."><div class="card-label">Odd Típica ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">mediana ponderada por stake</div></div>
@@ -2272,7 +2272,7 @@ function renderRankList(elId, lista, valFn, posFn) {
 
 // ── UTILS ──────────────────────────────────────────────────
 function fmtU(v) { return `${parseFloat(v||0).toFixed(2)}u`; }
-function fmtR(v) { return `R$ ${parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`; }
+function fmtR(v) { return `R$ ${parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2})}`; }
 function fmtDate(d) { if(!d) return '—'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
 function statusClass(s) {
   const map = { 'WON':'s-won','LOST':'s-lost','PENDING':'s-pending','VOID':'s-void','HALF WON':'s-halfwon','HALF LOST':'s-halflost','CASH OUT':'s-cashout' };
