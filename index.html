@@ -416,7 +416,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
         <input type="text" id="fConta" placeholder="ex: luciaditrich, deiav, greice">
       </div>
       <div class="form-group">
-        <label id="fStakeLabel">Stake (R$)</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem"><label id="fStakeLabel">Stake (R$)</label><select id="fMoeda" onchange="trocarMoedaForm(this.value)" title="Moeda do bilhete" style="width:auto;padding:0.1rem 0.4rem;font-size:0.72rem;margin-bottom:0.3rem"><option value="BRL">R$</option><option value="USD">US$</option></select></div>
         <input type="number" id="fStakeReais" placeholder="0.00" step="0.01" oninput="calcUnidFromReais()">
       </div>
       <div class="form-group">
@@ -1625,10 +1625,20 @@ function setFormMoeda(m) {
   formMoeda = m === 'USD' ? 'USD' : 'BRL';
   const lb = document.getElementById('fStakeLabel');
   if (lb) lb.textContent = `Stake (${simboloMoeda(formMoeda)})`;
+  const sel = document.getElementById('fMoeda');
+  if (sel) sel.value = formMoeda;
+}
+function trocarMoedaForm(m) {
+  const nova = m === 'USD' ? 'USD' : 'BRL';
+  if (nova === formMoeda) return;
+  setFormMoeda(nova);
+  const u = parseFloat(document.getElementById('fStakeUnidades').value);
+  if (!isNaN(u) && u > 0) calcReaisFromUnid();
+  else atualizarLucroDisplay();
 }
 function onBookieChangeMoeda() {
-  setFormMoeda(moedaDaBookie(document.getElementById('fBookie').value));
-  recalcStake();
+  // casa em dólar sugere US$, casa em real sugere R$ — o seletor do bilhete pode sobrescrever depois
+  trocarMoedaForm(moedaDaBookie(document.getElementById('fBookie').value));
 }
 
 function getStakeValor(tipsterId, dataEvento, moeda = 'BRL') {
