@@ -409,14 +409,14 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
       </div>
       <div class="form-group">
         <label>Bookie</label>
-        <select id="fBookie"></select>
+        <select id="fBookie" onchange="onBookieChangeMoeda()"></select>
       </div>
       <div class="form-group full">
         <label>Contas utilizadas (separe por vírgula)</label>
         <input type="text" id="fConta" placeholder="ex: luciaditrich, deiav, greice">
       </div>
       <div class="form-group">
-        <label>Stake (R$)</label>
+        <label id="fStakeLabel">Stake (R$)</label>
         <input type="number" id="fStakeReais" placeholder="0.00" step="0.01" oninput="calcUnidFromReais()">
       </div>
       <div class="form-group">
@@ -547,18 +547,19 @@ async function showApp() {
 
 // ── CACHE ──────────────────────────────────────────────────
 async function loadCache() {
-  const [op,ti,bo,es,st,ta,me,co] = await Promise.all([
+  const [op,ti,bo,es,st,ta,me,co,su] = await Promise.all([
     sbGet('operadores?select=id,nome,ativo&order=nome'),
     sbGet('tipsters?select=id,nome,ativo&order=nome'),
-    sbGet('bookies?select=id,nome,ativo&order=nome'),
+    sbGet('bookies?select=id,nome,ativo,moeda&order=nome'),
     sbGet('esportes?select=id,nome&order=nome'),
     sbGet('stakes_historico?select=id,tipster_id,valor_reais,vigente_a_partir,criado_por&order=vigente_a_partir.desc'),
     sbGet('tipos_aposta?select=id,nome,ativo&order=nome'),
     sbGet('mercados?select=id,nome,ativo&order=nome'),
     sbGet('contas?select=id,casa,login,situacao&order=casa.asc,login.asc'),
+    sbGet('stakes_usd?select=id,tipster_id,valor_usd,vigente_a_partir,criado_por&order=vigente_a_partir.desc'),
   ]);
   cache.operadores = op; cache.tipsters = ti; cache.bookies = bo;
-  cache.esportes = es; cache.stakes = st; cache.tipos_aposta = ta; cache.mercados = me; cache.contas = co;
+  cache.esportes = es; cache.stakes = st; cache.stakesUsd = su || []; cache.tipos_aposta = ta; cache.mercados = me; cache.contas = co;
   populateFormSelects();
 }
 
@@ -771,14 +772,16 @@ function renderDashStats(d) {
   const stakeMedia  = entradas > 0 ? invU / entradas : 0;
   const stakeMediaR = entradas > 0 ? invR / entradas : 0;
 
+  const nUsd = +c.nUsd || 0, plUsd = +c.plUsd || 0, invUsd = +c.invUsd || 0;
+  const usdLine = v => nUsd > 0 ? `<div class="card-sub">${fmtValMoeda(v, 'USD')}</div>` : '';
   const pl_color = plU >= 0 ? 'green' : 'red';
 
   document.getElementById('dashContent').innerHTML = `
     <div class="cards-grid">
       <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${entradas.toLocaleString('pt-BR')}</div><div class="card-sub">${pendentes} pendente${pendentes!==1?'s':''}</div></div>
-      <div class="card hero ${plU >= 0 ? 'pos' : 'neg'}"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div><div class="card-sub">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
+      <div class="card hero ${plU >= 0 ? 'pos' : 'neg'}"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div>${usdLine(plUsd)}<div class="card-sub">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div></div>
       <div class="card co"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div></div>
-      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div><div class="card-sub">${fmtR(pendInvR)} pendente</div></div>
+      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div>${usdLine(invUsd)}<div class="card-sub">${fmtR(pendInvR)} pendente</div></div>
       <div class="card" title="Mediana ponderada por stake: a odd abaixo da qual está metade do dinheiro investido no filtro. Imune a bilhetes lotéricos de stake pequena."><div class="card-label">Odd Típica ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">mediana ponderada por stake</div></div>
       <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMediaR)}</div></div>
       <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${wonN} de ${settledN}</div></div>
@@ -1036,10 +1039,10 @@ async function verAposta(id) {
       row('Operador', escv(nome(cache.operadores, a.operador_id))) +
       row('Contas', escv(a.contas_utilizadas || '—')) +
       row('Odd', a.odd ?? '—') +
-      row('Stake', `${a.stake_unidades ?? '—'}u · ${a.stake_reais != null ? 'R$ ' + parseFloat(a.stake_reais).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '—'}`) +
+      row('Stake', `${a.stake_unidades ?? '—'}u · ${fmtValMoeda(a.moeda === 'USD' ? a.stake_usd : a.stake_reais, a.moeda) ?? '—'}`) +
       row('Status', escv(a.status || '—')) +
       row('Resultado', escv(a.resultado || '—')) +
-      `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0"><span style="color:var(--muted)">Lucro</span><span ${luCls}>${lu !== null ? (lu>=0?'+':'')+lu.toFixed(2)+'u' : '—'}${a.lucro_reais != null ? ' · R$ ' + parseFloat(a.lucro_reais).toLocaleString('pt-BR',{minimumFractionDigits:2}) : ''}</span></div>`;
+      `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0"><span style="color:var(--muted)">Lucro</span><span ${luCls}>${lu !== null ? (lu>=0?'+':'')+lu.toFixed(2)+'u' : '—'}${(() => { const v = fmtValMoeda(a.moeda === 'USD' ? a.lucro_usd : a.lucro_reais, a.moeda); return v ? ' · ' + v : ''; })()}</span></div>`;
   } catch (e) {
     console.error('verAposta:', e);
     body.innerHTML = 'Erro ao carregar a aposta.';
@@ -1344,7 +1347,7 @@ async function queryApostas() {
   const de  = document.getElementById('tDe')?.value;
   const ate = document.getElementById('tAte')?.value;
 
-  let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,contas_utilizadas,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,atualizado_por,atualizado_em&order=data_evento.desc`;
+  let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,contas_utilizadas,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,moeda,stake_usd,lucro_usd,atualizado_por,atualizado_em&order=data_evento.desc`;
   if (op)  url += `&operador_id=eq.${op}`;
   if (ti === '00000000-0000-0000-0000-000000000000') url += '&tipster_id=is.null';
   else if (ti) url += `&tipster_id=eq.${ti}`;
@@ -1567,6 +1570,7 @@ function openAddModal() {
   ['fEvento','fMercado','fEntrada','fStakeReais','fStakeUnidades','fOdd','fResultado'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('fStatus').value = 'PENDING';
   document.getElementById('fTipo').value = 'Simples';
+  setFormMoeda('BRL');
   atualizarLucroDisplay();
   document.getElementById('modalAposta').classList.add('open');
 }
@@ -1588,7 +1592,8 @@ function editAposta(id) {
   document.getElementById('fMercado').value = a.mercado||'';
   document.getElementById('fEntrada').value = a.entrada||'';
   document.getElementById('fConta').value = a.contas_utilizadas||'';
-  document.getElementById('fStakeReais').value     = a.stake_reais||'';
+  setFormMoeda(a.moeda === 'USD' ? 'USD' : 'BRL');
+  document.getElementById('fStakeReais').value     = (a.moeda === 'USD' ? a.stake_usd : a.stake_reais)||'';
   document.getElementById('fStakeUnidades').value  = a.stake_unidades||'';
   document.getElementById('fOdd').value            = a.odd||'';
   document.getElementById('fStatus').value = a.status||'PENDING';
@@ -1611,12 +1616,28 @@ function filterContasByBookie() {
     filtered.map(c => `<option value="${c.id}">${c.login}</option>`).join('');
 }
 
-function getStakeValor(tipsterId, dataEvento) {
+// ── MOEDA (BRL/USD) ─────────────────────────────────────────
+let formMoeda = 'BRL';
+function simboloMoeda(m) { return m === 'USD' ? 'US$' : 'R$'; }
+function fmtValMoeda(v, m) { if (v == null || v === '') return null; return simboloMoeda(m) + ' ' + parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function moedaDaBookie(id) { const b = cache.bookies.find(x => x.id === id); return b && b.moeda === 'USD' ? 'USD' : 'BRL'; }
+function setFormMoeda(m) {
+  formMoeda = m === 'USD' ? 'USD' : 'BRL';
+  const lb = document.getElementById('fStakeLabel');
+  if (lb) lb.textContent = `Stake (${simboloMoeda(formMoeda)})`;
+}
+function onBookieChangeMoeda() {
+  setFormMoeda(moedaDaBookie(document.getElementById('fBookie').value));
+  recalcStake();
+}
+
+function getStakeValor(tipsterId, dataEvento, moeda = 'BRL') {
   if (!tipsterId || !dataEvento) return null;
-  const stakes = cache.stakes
+  const usd = moeda === 'USD';
+  const stakes = (usd ? (cache.stakesUsd || []) : cache.stakes)
     .filter(s => s.tipster_id === tipsterId && s.vigente_a_partir <= dataEvento)
     .sort((a,b) => b.vigente_a_partir.localeCompare(a.vigente_a_partir));
-  return stakes.length > 0 ? stakes[0].valor_reais : null;
+  return stakes.length > 0 ? (usd ? stakes[0].valor_usd : stakes[0].valor_reais) : null;
 }
 function calcUnidades(stakeInput, tipsterId, dataEvento) {
   return parseFloat(stakeInput) || 0;
@@ -1632,7 +1653,7 @@ function calcUnidFromReais() {
   const dataEvento = document.getElementById('fData').value;
   const unidEl = document.getElementById('fStakeUnidades');
   if (isNaN(reais) || reais === 0) { atualizarLucroDisplay(); return; }
-  const valor = getStakeValor(tipsterId, dataEvento);
+  const valor = getStakeValor(tipsterId, dataEvento, formMoeda);
   if (!valor) { atualizarLucroDisplay(); return; }
   unidEl.value = (reais / valor).toFixed(4);
   atualizarLucroDisplay();
@@ -1644,7 +1665,7 @@ function calcReaisFromUnid() {
   const dataEvento = document.getElementById('fData').value;
   const reaisEl = document.getElementById('fStakeReais');
   if (isNaN(unidades) || unidades === 0) { atualizarLucroDisplay(); return; }
-  const valor = getStakeValor(tipsterId, dataEvento);
+  const valor = getStakeValor(tipsterId, dataEvento, formMoeda);
   if (!valor) { atualizarLucroDisplay(); return; }
   reaisEl.value = (unidades * valor).toFixed(2);
   atualizarLucroDisplay();
@@ -1695,7 +1716,7 @@ function atualizarLucroDisplay() {
   const lucroU = (odd - 1) * stakeU * mult;
 
   let txt = '';
-  if (stakeR > 0) txt += `R$ ${lucroR.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+  if (stakeR > 0) txt += `${simboloMoeda(formMoeda)} ${lucroR.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
   if (stakeU > 0) {
     const uStr = `${lucroU.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}u`;
     txt += txt ? ` <span style="font-size:0.78em;opacity:0.7">(${uStr})</span>` : uStr;
@@ -1724,11 +1745,14 @@ async function saveAposta() {
     contas_utilizadas: document.getElementById('fConta').value || null,
     entrada        : document.getElementById('fEntrada').value,
     stake_unidades : stakeU || null,
-    stake_reais    : stakeR || null,
+    moeda          : formMoeda,
+    stake_reais    : formMoeda === 'BRL' ? (stakeR || null) : null,
+    stake_usd      : formMoeda === 'USD' ? (stakeR || null) : null,
     odd, status, resultado: res,
     tipo_aposta    : document.getElementById('fTipo').value,
     lucro_unidades : stakeU ? calcLucroVal(stakeU, odd, res, status) : null,
-    lucro_reais    : stakeR ? calcLucroVal(stakeR, odd, res, status) : null,
+    lucro_reais    : formMoeda === 'BRL' && stakeR ? calcLucroVal(stakeR, odd, res, status) : null,
+    lucro_usd      : formMoeda === 'USD' && stakeR ? calcLucroVal(stakeR, odd, res, status) : null,
     atualizado_em  : new Date().toISOString(),
     atualizado_por : currentUser,
   };
@@ -1739,7 +1763,7 @@ async function saveAposta() {
     if (id) {
       const original = apostasData.find(a=>a.id===id);
       if (original) {
-        const campos = ['data_evento','evento','entrada','mercado','odd','stake_reais','status','tipo_aposta','resultado'];
+        const campos = ['data_evento','evento','entrada','mercado','odd','stake_reais','stake_usd','moeda','status','tipo_aposta','resultado'];
         const hist = campos.filter(f=>String(original[f]||'')!==String(payload[f]||'')).map(f=>({
           aposta_id:id, campo_alterado:f, valor_anterior:String(original[f]||''),
           valor_novo:String(payload[f]||''), alterado_por:currentUser
@@ -1995,15 +2019,18 @@ async function renderCadastro(tipo) {
         <thead><tr>
           <th>Nome</th>
           ${cfg.temStake ? '<th>Stake atual</th>' : ''}
+          ${tipo === 'bookies' ? '<th>Moeda</th>' : ''}
           ${'ativo' in (items[0]||{}) ? '<th>Status</th>' : ''}
           <th></th>
         </tr></thead>
         <tbody>
           ${items.map(item => {
             const stakeAtual = cfg.temStake ? (cache.stakes.find(s=>s.tipster_id===item.id) ? cache.stakes.find(s=>s.tipster_id===item.id).valor_reais : '—') : '';
+            const stakeUsdAtual = cfg.temStake ? ((cache.stakesUsd||[]).find(s=>s.tipster_id===item.id)?.valor_usd ?? null) : null;
             return `<tr>
               <td>${item.nome}</td>
-              ${cfg.temStake ? `<td class="mono">${stakeAtual !== '—' ? fmtR(stakeAtual) : '—'} <button class="btn-edit" style="font-size:0.68rem" onclick="openStakesModal('${item.id}','${item.nome}')">histórico</button></td>` : ''}
+              ${cfg.temStake ? `<td class="mono">${stakeAtual !== '—' ? fmtR(stakeAtual) : '—'}${stakeUsdAtual != null ? ' · ' + fmtValMoeda(stakeUsdAtual, 'USD') : ''} <button class="btn-edit" style="font-size:0.68rem" onclick="openStakesModal('${item.id}','${item.nome}')">histórico</button></td>` : ''}
+              ${tipo === 'bookies' ? `<td><button class="btn-edit" style="font-size:0.68rem" title="Clique pra alternar R$/US$" onclick="toggleMoedaBookie('${item.id}')">${simboloMoeda(item.moeda)}</button></td>` : ''}
               ${'ativo' in item ? `<td><span style="color:${item.ativo?'var(--green)':'var(--muted)'}">${item.ativo?'Ativo':'Inativo'}</span></td>` : ''}
               <td><div style="display:flex;gap:0.4rem">
                 <button class="btn-edit" onclick="openCadastroModal('${tipo}','${item.id}')">✎</button>
@@ -2064,14 +2091,32 @@ async function deleteCadastro(tipo, id) {
   catch(e) { showToast('Erro ao remover', true); }
 }
 
+async function toggleMoedaBookie(id) {
+  const b = cache.bookies.find(x => x.id === id); if (!b) return;
+  const nova = b.moeda === 'USD' ? 'BRL' : 'USD';
+  if (!confirm(`Mudar ${b.nome} para ${simboloMoeda(nova)}?\nEntradas novas nessa casa passam a ser registradas em ${nova === 'USD' ? 'dólar' : 'reais'}. As já registradas não mudam.`)) return;
+  try { await sbPatch('bookies', id, { moeda: nova }); showToast('Moeda atualizada'); await loadCache(); renderCadastro('bookies'); }
+  catch(e) { showToast('Erro ao atualizar moeda', true); }
+}
+
 async function openStakesModal(tipsterId, tipsterNome) {
   document.getElementById('modalStakesTitle').textContent = `Stakes — ${tipsterNome}`;
-  const stakes = cache.stakes.filter(s=>s.tipster_id===tipsterId).sort((a,b)=>b.vigente_a_partir>a.vigente_a_partir?1:-1);
+  const brl = cache.stakes.filter(s=>s.tipster_id===tipsterId).map(s=>({id:s.id, valor:s.valor_reais, vig:s.vigente_a_partir, moeda:'BRL'}));
+  const usd = (cache.stakesUsd||[]).filter(s=>s.tipster_id===tipsterId).map(s=>({id:s.id, valor:s.valor_usd, vig:s.vigente_a_partir, moeda:'USD'}));
+  const stakes = [...brl, ...usd].sort((a,b)=> b.vig.localeCompare(a.vig) || a.moeda.localeCompare(b.moeda));
+  const th = 'text-align:left;color:var(--muted);font-size:0.68rem;padding:0.5rem';
   document.getElementById('modalStakesBody').innerHTML = `
     <div style="margin-bottom:1rem">
       <div class="form-grid" style="margin-bottom:0.75rem">
         <div class="form-group">
-          <label>Valor (R$)</label>
+          <label>Moeda</label>
+          <select id="sMoeda" onchange="document.getElementById('sValorLabel').textContent = 'Valor (' + (this.value === 'USD' ? 'US$' : 'R$') + ')'">
+            <option value="BRL">R$ — casas em reais</option>
+            <option value="USD">US$ — casas em dólar</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label id="sValorLabel">Valor (R$)</label>
           <input type="number" id="sValor" placeholder="0.00" step="0.01">
         </div>
         <div class="form-group">
@@ -2082,34 +2127,45 @@ async function openStakesModal(tipsterId, tipsterNome) {
       <button class="btn-primary" onclick="addStake('${tipsterId}')">+ Adicionar</button>
     </div>
     <table style="width:100%">
-      <thead><tr><th style="text-align:left;color:var(--muted);font-size:0.68rem;padding:0.5rem">Valor</th><th style="text-align:left;color:var(--muted);font-size:0.68rem;padding:0.5rem">Vigente a partir</th><th></th></tr></thead>
+      <thead><tr><th style="${th}">Moeda</th><th style="${th}">Valor</th><th style="${th}">Vigente a partir</th><th></th></tr></thead>
       <tbody>${stakes.map(s=>`<tr>
-        <td class="mono" style="padding:0.5rem">${fmtR(s.valor_reais)}</td>
-        <td class="mono" style="padding:0.5rem">${fmtDate(s.vigente_a_partir)}</td>
-        <td style="padding:0.5rem"><button class="btn-danger" onclick="deleteStake('${s.id}','${tipsterId}','${tipsterNome}')">✕</button></td>
+        <td class="mono" style="padding:0.5rem">${simboloMoeda(s.moeda)}</td>
+        <td class="mono" style="padding:0.5rem">${fmtValMoeda(s.valor, s.moeda)}</td>
+        <td class="mono" style="padding:0.5rem">${fmtDate(s.vig)}</td>
+        <td style="padding:0.5rem"><button class="btn-danger" onclick="deleteStake('${s.id}','${tipsterId}','${tipsterNome}','${s.moeda}')">✕</button></td>
       </tr>`).join('')}</tbody>
     </table>`;
   document.getElementById('modalStakes').classList.add('open');
 }
 
+async function reloadStakes() {
+  const [st, su] = await Promise.all([
+    sbGet('stakes_historico?select=id,tipster_id,valor_reais,vigente_a_partir,criado_por&order=vigente_a_partir.desc'),
+    sbGet('stakes_usd?select=id,tipster_id,valor_usd,vigente_a_partir,criado_por&order=vigente_a_partir.desc'),
+  ]);
+  cache.stakes = st; cache.stakesUsd = su || [];
+}
+
 async function addStake(tipsterId) {
+  const moeda = document.getElementById('sMoeda')?.value === 'USD' ? 'USD' : 'BRL';
   const val  = parseFloat(document.getElementById('sValor').value)||0;
   const data = document.getElementById('sData').value;
   if (!val || !data) { showToast('Preencha valor e data', true); return; }
   try {
-    await sbPost('stakes_historico', { tipster_id:tipsterId, valor_reais:val, vigente_a_partir:data, criado_por:currentUser });
+    if (moeda === 'USD') await sbPost('stakes_usd', { tipster_id:tipsterId, valor_usd:val, vigente_a_partir:data, criado_por:currentUser });
+    else await sbPost('stakes_historico', { tipster_id:tipsterId, valor_reais:val, vigente_a_partir:data, criado_por:currentUser });
     showToast('Stake adicionada!');
-    cache.stakes = await sbGet('stakes_historico?select=id,tipster_id,valor_reais,vigente_a_partir,criado_por&order=vigente_a_partir.desc');
+    await reloadStakes();
     const item = cache.tipsters.find(t=>t.id===tipsterId);
     if (item) openStakesModal(tipsterId, item.nome);
   } catch(e) { showToast('Erro', true); }
 }
 
-async function deleteStake(id, tipsterId, tipsterNome) {
+async function deleteStake(id, tipsterId, tipsterNome, moeda) {
   if (!confirm('Remover esta stake?')) return;
   try {
-    await sbDelete('stakes_historico', id);
-    cache.stakes = await sbGet('stakes_historico?select=id,tipster_id,valor_reais,vigente_a_partir,criado_por&order=vigente_a_partir.desc');
+    await sbDelete(moeda === 'USD' ? 'stakes_usd' : 'stakes_historico', id);
+    await reloadStakes();
     openStakesModal(tipsterId, tipsterNome);
   } catch(e) { showToast('Erro', true); }
 }
