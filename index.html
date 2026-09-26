@@ -951,6 +951,12 @@ function renderCalor(d) {
   const doMes = dias.filter(p => p.d.slice(0, 7) === _calorMes);
   const mapa = {}; doMes.forEach(p => { mapa[p.d.slice(0, 10)] = p; });
   const val = p => isReais ? +(isUsd ? p.usd : p.r) : +p.u;
+  const detalheDia = p => {
+    const partes = [((+p.u) > 0 ? '+' : '') + (+p.u).toFixed(1).replace('.', ',') + 'u',
+                    'R$ ' + (+p.r).toLocaleString('pt-BR', {maximumFractionDigits: 0})];
+    if (+p.usd) partes.push('US$ ' + (+p.usd).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+    return partes.join(' · ');
+  };
   const fmtCel = v => isReais
     ? (Math.abs(v) >= 1000 ? SYM + (v/1000).toFixed(1).replace('.', ',') + 'k' : SYM + Math.round(v))
     : (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',');
@@ -977,7 +983,7 @@ function renderCalor(d) {
       const a = v === 0 ? 0.12 : 0.14 + 0.60 * Math.min(1, Math.abs(v) / p95);
       const bg = v > 0 ? `rgba(0,212,170,${a.toFixed(2)})` : v < 0 ? `rgba(255,77,106,${a.toFixed(2)})` : 'rgba(107,107,144,0.25)';
       const cor = v > 0 ? '#7df0d8' : v < 0 ? '#ff9daf' : '#8b8bb0';
-      cels += `<div onclick="irParaDia('${iso}')" title="${dia}/${String(m).padStart(2,'0')}: ${fmtFull(v)} · ${p.n} apostas" ` +
+      cels += `<div onclick="irParaDia('${iso}')" title="${dia}/${String(m).padStart(2,'0')}: ${detalheDia(p)} · ${p.n} apostas" ` +
         `style="border-radius:6px;background:${bg};min-height:44px;padding:3px 5px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between">` +
         `<div style="font-family:var(--mono);font-size:0.58rem;color:#a0a0c0">${dia}</div>` +
         `<div style="text-align:center;font-family:var(--mono);font-size:0.68rem;font-weight:700;color:${cor};line-height:1">${fmtCel(v)}</div>` +
@@ -989,7 +995,9 @@ function renderCalor(d) {
   if (resumoEl) {
     const tot = doMes.reduce((s, p) => s + val(p), 0);
     const verdes = doMes.filter(p => val(p) > 0).length;
-    resumoEl.textContent = `${fmtFull(tot)} · ${verdes}V/${doMes.length}d`;
+    const totUsd = doMes.reduce((s, p) => s + (+p.usd || 0), 0);
+    const extraUsd = (!isUsd && totUsd) ? ` · US$ ${totUsd.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '';
+    resumoEl.textContent = `${fmtFull(tot)}${extraUsd} · ${verdes}V/${doMes.length}d`;
   }
 }
 
@@ -1222,6 +1230,7 @@ function renderCharts(d) {
   window._evolMeses = meses;
   window._evolR = evolMensalValsR;
   window._evolU = evolMensalVals;
+  window._evolD = evolMensalValsD;
 
   // Aplicar toggle Unidades/Reais
   const isReais = evolUnit !== 'u'; const isUsd = evolUnit === 'd'; const SYM = isUsd ? 'US$' : 'R$';
@@ -1272,13 +1281,12 @@ function renderCharts(d) {
         tooltip:{ callbacks:{
           afterBody: ctx => {
             const idx = ctx[0]?.dataIndex;
-            if (isReais) {
-              const u = window._evolU?.[idx];
-              return u !== undefined ? [`${u.toLocaleString('pt-BR',{minimumFractionDigits:2})} u`] : [];
-            } else {
-              const r = window._evolR?.[idx];
-              return r !== undefined ? [`R$ ${r.toLocaleString('pt-BR',{minimumFractionDigits:2})}`] : [];
-            }
+            const out = [];
+            const u = window._evolU?.[idx], r = window._evolR?.[idx], dol = window._evolD?.[idx];
+            if (evolUnit !== 'u' && u !== undefined) out.push(`${u.toLocaleString('pt-BR',{minimumFractionDigits:2})} u`);
+            if (evolUnit !== 'r' && r !== undefined) out.push(`R$ ${r.toLocaleString('pt-BR',{minimumFractionDigits:2})}`);
+            if (evolUnit !== 'd' && dol) out.push(`US$ ${dol.toLocaleString('pt-BR',{minimumFractionDigits:2})}`);
+            return out;
           }
         }}
       },
