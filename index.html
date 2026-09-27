@@ -1131,7 +1131,8 @@ function applyDrillDown(chartId, label) {
 }
 
 function renderCharts(d) {
-  const toEntries = a => (a||[]).map(x => [x.nome, +x.u, +x.r]);
+  // [nome, u, R$, US$, nº entradas em real, nº entradas em dólar] — contagens vêm da RPC
+  const toEntries = a => (a||[]).map(x => [x.nome, +x.u, +x.r, x.usd != null ? +x.usd : null, x.nr ?? null, x.nusd ?? null]);
   Object.values(charts).forEach(c => c.destroy());
   charts = {};
 
@@ -1140,9 +1141,14 @@ function renderCharts(d) {
     indexAxis: horizontal ? 'y' : 'x',
     plugins:{ legend:{display:false}, tooltip:{ callbacks:{
       label: ctx => ` ${fmtU(ctx.raw)}`,
+      // R$ só aparece se o grupo tem entrada em real; US$ só se tem entrada em dólar
       afterLabel: ctx => {
-        const r = ctx.dataset._rVals?.[ctx.dataIndex];
-        return r != null ? ` R$ ${r.toLocaleString('pt-BR',{minimumFractionDigits:2})}` : '';
+        const ds = ctx.dataset, i = ctx.dataIndex;
+        const r = ds._rVals?.[i], usd = ds._dVals?.[i], nR = ds._nR?.[i], nD = ds._nD?.[i];
+        const out = [];
+        if (r != null && (nR == null || nR > 0)) out.push(` ${fmtValMoeda(r, 'BRL')}`);
+        if (usd != null && (nD == null ? usd !== 0 : nD > 0)) out.push(` ${fmtValMoeda(usd, 'USD')}`);
+        return out;
       }
     }}},
     scales:{
@@ -1165,6 +1171,9 @@ function renderCharts(d) {
     const labels  = entries.map(e=>e[0]);
     const vals    = entries.map(e=>e[1]);
     const rVals   = entries.map(e=>e[2] ?? null); // R$ values
+    const dVals   = entries.map(e=>e[3] ?? null); // US$ values
+    const nR      = entries.map(e=>e[4] ?? null); // nº de entradas em real no grupo
+    const nD      = entries.map(e=>e[5] ?? null); // nº de entradas em dólar no grupo
     const colors = vals.map(v => v>=0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,77,106,0.7)');
 
     // Altura do canvas: 28px por barra. Wrapper tem altura fixa via CSS (260/280/320px) com overflow-y:auto.
@@ -1186,7 +1195,7 @@ function renderCharts(d) {
     canvas.style.cursor = 'pointer';
     charts[id] = new Chart(canvas, {
       type:'bar',
-      data:{ labels, datasets:[{ data:vals, backgroundColor:colors, borderRadius:4, _rVals:rVals }] },
+      data:{ labels, datasets:[{ data:vals, backgroundColor:colors, borderRadius:4, _rVals:rVals, _dVals:dVals, _nR:nR, _nD:nD }] },
       options: opts
     });
   };
@@ -2385,10 +2394,13 @@ function renderDestaques(d) {
     return;
   }
 
-  // Top 3 por unidades e por financeiro (ranking por tipster, já vindo da função)
-  const grupos = (d.por_tipster || []).map(x => ({ nome: x.nome, plU: +x.u, plR: +x.r }));
+  // Top 3 por unidades, por R$ e por US$ (ranking por tipster, já vindo da função).
+  // R$ e US$ nunca se misturam: cada ranking só considera quem tem entrada naquela moeda.
+  const grupos = (d.por_tipster || []).map(x => ({ nome: x.nome, plU: +x.u, plR: +x.r, plUsd: +(x.usd || 0), nR: x.nr, nUsd: x.nusd }));
   const topU = [...grupos].sort((a,b)=>b.plU-a.plU).slice(0,3);
-  const topR = [...grupos].sort((a,b)=>b.plR-a.plR).slice(0,3);
+  const topR = grupos.filter(g => g.nR == null || +g.nR > 0).sort((a,b)=>b.plR-a.plR).slice(0,3);
+  const topD = grupos.filter(g => +g.nUsd > 0).sort((a,b)=>b.plUsd-a.plUsd).slice(0,3);
+  const temUsd = (+c.nUsd || 0) > 0;
 
   const medals = ['🥇','🥈','🥉'];
   const sg = v => v >= 0 ? '+' : '';
@@ -2404,19 +2416,24 @@ function renderDestaques(d) {
 
   // Recordes do período
   const rec = d.recordes || {};
-  const fmtRs = v => (v>=0?'+':'-') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const fmtRs = v => (v>=0?'+':'-') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmtUs = v => (v>=0?'+':'-') + 'US$ ' + Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmtUu = v => `${sg(v)}${fmtU(v)}`;
   const fmtD = s => s ? `${s.substring(8,10)}/${s.substring(5,7)}/${s.substring(2,4)}` : '';
-  const recRows = [];
-  if (rec.melhor_dia) recRows.push(rankItem('📈', `Melhor dia · ${fmtD(rec.melhor_dia.d)}`, `+${fmtU(+rec.melhor_dia.u)}`, 'pos', 'Abrir as apostas deste dia', `irParaDia('${rec.melhor_dia.d}')`));
-  if (rec.pior_dia)   recRows.push(rankItem('📉', `Pior dia · ${fmtD(rec.pior_dia.d)}`, `${fmtU(+rec.pior_dia.u)}`, 'neg', 'Abrir as apostas deste dia', `irParaDia('${rec.pior_dia.d}')`));
-  if (rec.maior_green && rec.maior_green.u !== null) recRows.push(rankItem('🎯', `Maior green · ${rec.maior_green.tipster || '—'}`, `+${fmtU(+rec.maior_green.u)}`, 'pos', `${rec.maior_green.evento} — ${fmtD(rec.maior_green.d)}`, `verAposta('${rec.maior_green.id || ''}')`));
-  if (rec.maior_red && rec.maior_red.u !== null)     recRows.push(rankItem('💥', `Maior red · ${rec.maior_red.tipster || '—'}`, `${fmtU(+rec.maior_red.u)}`, 'neg', `${rec.maior_red.evento} — ${fmtD(rec.maior_red.d)}`, `verAposta('${rec.maior_red.id || ''}')`));
-
-  const recRowsR = [];
-  if (rec.melhor_dia_r) recRowsR.push(rankItem('📈', `Melhor dia · ${fmtD(rec.melhor_dia_r.d)}`, fmtRs(+rec.melhor_dia_r.r), 'pos', 'Abrir as apostas deste dia', `irParaDia('${rec.melhor_dia_r.d}')`));
-  if (rec.pior_dia_r)   recRowsR.push(rankItem('📉', `Pior dia · ${fmtD(rec.pior_dia_r.d)}`, fmtRs(+rec.pior_dia_r.r), 'neg', 'Abrir as apostas deste dia', `irParaDia('${rec.pior_dia_r.d}')`));
-  if (rec.maior_green_r && rec.maior_green_r.r !== null) recRowsR.push(rankItem('🎯', `Maior green · ${rec.maior_green_r.tipster || '—'}`, fmtRs(+rec.maior_green_r.r), 'pos', `${rec.maior_green_r.evento} — ${fmtD(rec.maior_green_r.d)}`, `verAposta('${rec.maior_green_r.id || ''}')`));
-  if (rec.maior_red_r && rec.maior_red_r.r !== null)     recRowsR.push(rankItem('💥', `Maior red · ${rec.maior_red_r.tipster || '—'}`, fmtRs(+rec.maior_red_r.r), 'neg', `${rec.maior_red_r.evento} — ${fmtD(rec.maior_red_r.d)}`, `verAposta('${rec.maior_red_r.id || ''}')`));
+  // Os 4 recordes de uma régua. Cor pelo sinal; green só entra se ganhou e red só se perdeu
+  // (com uma única entrada na moeda, a mesma aposta aparecia como green e como red).
+  const linhasRecorde = (mDia, pDia, green, red, campo, fmt) => {
+    const out = [];
+    const cls = v => v >= 0 ? 'pos' : 'neg';
+    if (mDia && mDia[campo] != null) out.push(rankItem('📈', `Melhor dia · ${fmtD(mDia.d)}`, fmt(+mDia[campo]), cls(+mDia[campo]), 'Abrir as apostas deste dia', `irParaDia('${mDia.d}')`));
+    if (pDia && pDia[campo] != null) out.push(rankItem('📉', `Pior dia · ${fmtD(pDia.d)}`, fmt(+pDia[campo]), cls(+pDia[campo]), 'Abrir as apostas deste dia', `irParaDia('${pDia.d}')`));
+    if (green && green[campo] != null && +green[campo] > 0) out.push(rankItem('🎯', `Maior green · ${green.tipster || '—'}`, fmt(+green[campo]), 'pos', `${green.evento} — ${fmtD(green.d)}`, `verAposta('${green.id || ''}')`));
+    if (red && red[campo] != null && +red[campo] < 0)       out.push(rankItem('💥', `Maior red · ${red.tipster || '—'}`, fmt(+red[campo]), 'neg', `${red.evento} — ${fmtD(red.d)}`, `verAposta('${red.id || ''}')`));
+    return out;
+  };
+  const recRows    = linhasRecorde(rec.melhor_dia,     rec.pior_dia,     rec.maior_green,     rec.maior_red,     'u',   fmtUu);
+  const recRowsR   = linhasRecorde(rec.melhor_dia_r,   rec.pior_dia_r,   rec.maior_green_r,   rec.maior_red_r,   'r',   fmtRs);
+  const recRowsUsd = linhasRecorde(rec.melhor_dia_usd, rec.pior_dia_usd, rec.maior_green_usd, rec.maior_red_usd, 'usd', fmtUs);
 
   body.innerHTML = `
     <div class="dst-tops">
@@ -2425,17 +2442,26 @@ function renderDestaques(d) {
         ${topU.length ? topU.map((g,i)=>topItem(g,i,`${sg(g.plU)}${fmtU(g.plU)}`, g.plU>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
       </div>
       <div class="dst-top-block">
-        <div class="dst-top-title">Top 3 — Financeiro</div>
-        ${topR.length ? topR.map((g,i)=>topItem(g,i,`${sg(g.plR)}${fmtR(g.plR)}${g.plUsd ? ' · ' + (g.plUsd>=0?'+':'') + fmtValMoeda(g.plUsd, 'USD') : ''}`, g.plR>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
+        <div class="dst-top-title">Top 3 — R$</div>
+        ${topR.length ? topR.map((g,i)=>topItem(g,i,`${sg(g.plR)}${fmtR(g.plR)}`, g.plR>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
       </div>
       <div class="dst-top-block">
         <div class="dst-top-title">Recordes — Unidades</div>
         ${recRows.length ? recRows.join('') : '<div class="dst-empty">—</div>'}
       </div>
       <div class="dst-top-block">
-        <div class="dst-top-title">Recordes — Financeiro</div>
+        <div class="dst-top-title">Recordes — R$</div>
         ${recRowsR.length ? recRowsR.join('') : '<div class="dst-empty">—</div>'}
       </div>
+      ${temUsd ? `
+      <div class="dst-top-block">
+        <div class="dst-top-title">Top 3 — US$</div>
+        ${topD.length ? topD.map((g,i)=>topItem(g,i,`${sg(g.plUsd)}${fmtValMoeda(g.plUsd, 'USD')}`, g.plUsd>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
+      </div>
+      <div class="dst-top-block">
+        <div class="dst-top-title">Recordes — US$</div>
+        ${recRowsUsd.length ? recRowsUsd.join('') : '<div class="dst-empty">—</div>'}
+      </div>` : ''}
     </div>
     <div class="dst-briefings" id="dstBriefings"></div>
   `;
