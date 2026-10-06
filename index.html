@@ -1598,6 +1598,7 @@ function openAddModal() {
   document.getElementById('fStatus').value = 'PENDING';
   document.getElementById('fTipo').value = 'Simples';
   setFormMoeda('BRL');
+  marcarMoedaAmbas(false);
   atualizarLucroDisplay();
   document.getElementById('modalAposta').classList.add('open');
 }
@@ -1620,6 +1621,7 @@ function editAposta(id) {
   document.getElementById('fEntrada').value = a.entrada||'';
   document.getElementById('fConta').value = a.contas_utilizadas||'';
   setFormMoeda(a.moeda === 'USD' ? 'USD' : 'BRL');
+  marcarMoedaAmbas(moedaDaBookie(a.bookie_id) === 'AMBAS');
   document.getElementById('fStakeReais').value     = (a.moeda === 'USD' ? a.stake_usd : a.stake_reais)||'';
   document.getElementById('fStakeUnidades').value  = a.stake_unidades||'';
   document.getElementById('fOdd').value            = a.odd||'';
@@ -1647,7 +1649,9 @@ function filterContasByBookie() {
 let formMoeda = 'BRL';
 function simboloMoeda(m) { return m === 'USD' ? 'US$' : 'R$'; }
 function fmtValMoeda(v, m) { if (v == null || v === '') return null; return simboloMoeda(m) + ' ' + parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
-function moedaDaBookie(id) { const b = cache.bookies.find(x => x.id === id); return b && b.moeda === 'USD' ? 'USD' : 'BRL'; }
+function moedaDaBookie(id) { const b = cache.bookies.find(x => x.id === id); return b && (b.moeda === 'USD' || b.moeda === 'AMBAS') ? b.moeda : 'BRL'; }
+// rótulo da moeda da CASA (cadastro): R$ · US$ · R$ e US$
+function simboloMoedaCasa(m) { return m === 'AMBAS' ? 'R$ e US$' : simboloMoeda(m); }
 function setFormMoeda(m) {
   formMoeda = m === 'USD' ? 'USD' : 'BRL';
   const lb = document.getElementById('fStakeLabel');
@@ -1664,8 +1668,17 @@ function trocarMoedaForm(m) {
   else atualizarLucroDisplay();
 }
 function onBookieChangeMoeda() {
-  // casa em dólar sugere US$, casa em real sugere R$ — o seletor do bilhete pode sobrescrever depois
-  trocarMoedaForm(moedaDaBookie(document.getElementById('fBookie').value));
+  // casa em dólar sugere US$, casa em real sugere R$ — o seletor do bilhete pode sobrescrever depois.
+  // Casa que aceita as duas (ex.: Stake): mantém a moeda escolhida e destaca o seletor pra conferir.
+  const m = moedaDaBookie(document.getElementById('fBookie').value);
+  marcarMoedaAmbas(m === 'AMBAS');
+  if (m !== 'AMBAS') trocarMoedaForm(m);
+}
+function marcarMoedaAmbas(on) {
+  const sel = document.getElementById('fMoeda');
+  if (!sel) return;
+  sel.style.outline = on ? '1px solid var(--yellow)' : '';
+  sel.title = on ? 'Essa casa aceita R$ e US$ — escolha a moeda do bilhete' : 'Moeda do bilhete';
 }
 
 function getStakeValor(tipsterId, dataEvento, moeda = 'BRL') {
@@ -2067,7 +2080,7 @@ async function renderCadastro(tipo) {
             return `<tr>
               <td>${item.nome}</td>
               ${cfg.temStake ? `<td class="mono">${stakeAtual !== '—' ? fmtR(stakeAtual) : '—'}${stakeUsdAtual != null ? ' · ' + fmtValMoeda(stakeUsdAtual, 'USD') : ''} <button class="btn-edit" style="font-size:0.68rem" onclick="openStakesModal('${item.id}','${item.nome}')">histórico</button></td>` : ''}
-              ${tipo === 'bookies' ? `<td><button class="btn-edit" style="font-size:0.68rem" title="Clique pra alternar R$/US$" onclick="toggleMoedaBookie('${item.id}')">${simboloMoeda(item.moeda)}</button></td>` : ''}
+              ${tipo === 'bookies' ? `<td><button class="btn-edit" style="font-size:0.68rem" title="Clique pra alternar R$ / US$ / R$ e US$" onclick="toggleMoedaBookie('${item.id}')">${simboloMoedaCasa(item.moeda)}</button></td>` : ''}
               ${'ativo' in item ? `<td><span style="color:${item.ativo?'var(--green)':'var(--muted)'}">${item.ativo?'Ativo':'Inativo'}</span></td>` : ''}
               <td><div style="display:flex;gap:0.4rem">
                 <button class="btn-edit" onclick="openCadastroModal('${tipo}','${item.id}')">✎</button>
@@ -2130,8 +2143,10 @@ async function deleteCadastro(tipo, id) {
 
 async function toggleMoedaBookie(id) {
   const b = cache.bookies.find(x => x.id === id); if (!b) return;
-  const nova = b.moeda === 'USD' ? 'BRL' : 'USD';
-  if (!confirm(`Mudar ${b.nome} para ${simboloMoeda(nova)}?\nEntradas novas nessa casa passam a ser registradas em ${nova === 'USD' ? 'dólar' : 'reais'}. As já registradas não mudam.`)) return;
+  const ordem = ['BRL', 'USD', 'AMBAS'];
+  const nova = ordem[(ordem.indexOf(b.moeda) + 1) % ordem.length];
+  const como = { BRL: 'reais', USD: 'dólar', AMBAS: 'reais ou dólar, conforme o bilhete (o bot lê pelo valor no print/legenda)' }[nova];
+  if (!confirm(`Mudar ${b.nome} para ${simboloMoedaCasa(nova)}?\nEntradas novas nessa casa passam a ser registradas em ${como}. As já registradas não mudam.`)) return;
   try { await sbPatch('bookies', id, { moeda: nova }); showToast('Moeda atualizada'); await loadCache(); renderCadastro('bookies'); }
   catch(e) { showToast('Erro ao atualizar moeda', true); }
 }
