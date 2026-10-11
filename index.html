@@ -645,6 +645,11 @@ async function sbDelete(table, id) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, { method:'DELETE', headers:hdrs });
   if (!r.ok) throw new Error(await r.text());
 }
+// Apaga aposta deixando o nome de quem apagou na lixeira (o gatilho lê atualizado_por/atualizado_em da linha)
+async function apagarAposta(id) {
+  await sbPatch('apostas', id, { atualizado_por: currentUser, atualizado_em: new Date().toISOString() });
+  await sbDelete('apostas', id);
+}
 
 // ── PAGES ──────────────────────────────────────────────────
 function showPage(page) {
@@ -1538,14 +1543,26 @@ async function confirmarAlteracao() {
   showToast(`Alterando ${n} apostas...`);
 
   const ids = Array.from(selectedApostas);
+  const listas = { operador_id: 'operadores', esporte_id: 'esportes', tipster_id: 'tipsters', bookie_id: 'bookies' };
+  const legivel = (campo, v) => listas[campo] ? ((cache[listas[campo]] || []).find(x => x.id === v)?.nome || v || '') : String(v ?? '');
+  const camposAlt = Object.keys(payload).filter(k => k !== 'atualizado_em' && k !== 'atualizado_por');
+  const hist = [];
   let ok = 0, fail = 0;
   for (let i = 0; i < ids.length; i += 20) {
     const lote = ids.slice(i, i + 20);
     await Promise.all(lote.map(async id => {
-      try { await sbPatch('apostas', id, payload); ok++; }
+      try {
+        await sbPatch('apostas', id, payload); ok++;
+        const original = apostasData.find(a => a.id === id);
+        if (original) camposAlt.forEach(c => {
+          if (String(original[c] ?? '') !== String(payload[c] ?? ''))
+            hist.push({ aposta_id: id, campo_alterado: c, valor_anterior: legivel(c, original[c]), valor_novo: legivel(c, payload[c]), alterado_por: currentUser });
+        });
+      }
       catch(e) { fail++; }
     }));
   }
+  if (hist.length) { try { await sbPost('historico_apostas', hist); } catch(e) { console.error('histórico da alteração em massa:', e); } }
 
   if (fail === 0) showToast(`${ok} apostas alteradas!`);
   else showToast(`${ok} alteradas, ${fail} falharam`, true);
@@ -1822,7 +1839,7 @@ async function saveAposta() {
       }
       await sbPatch('apostas', id, payload);
     } else {
-      await sbPost('apostas', payload);
+      await sbPost('apostas', { ...payload, criado_por: currentUser });
     }
     closeModal('modalAposta');
     showToast(id ? 'Aposta atualizada!' : 'Aposta registrada!');
@@ -1850,7 +1867,7 @@ async function deleteAposta(id) {
     const ids = Array.from(selectedApostas);
     let ok = 0, fail = 0;
     for (const aid of ids) {
-      try { await sbDelete('apostas', aid); ok++; }
+      try { await apagarAposta(aid); ok++; }
       catch(e) { fail++; }
     }
     selectedApostas.clear();
@@ -1860,7 +1877,7 @@ async function deleteAposta(id) {
   }
   // Caso normal — exclusão individual
   if (!confirm('Confirma exclusão desta aposta?')) return;
-  try { await sbDelete('apostas', id); showToast('Aposta removida'); await loadApostas(); }
+  try { await apagarAposta(id); showToast('Aposta removida'); await loadApostas(); }
   catch(e) { showToast('Erro ao remover', true); }
 }
 
