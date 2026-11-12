@@ -280,7 +280,10 @@ th.num, td.num { text-align:right; font-variant-numeric:tabular-nums; }
 .d2-hero-lado div { display:flex; flex-direction:column; gap:.25rem; }
 .d2-hero-lado dt { font-size:.78rem; color:var(--tinta3); }
 .d2-hero-lado dd { margin:0; font-size:1.12rem; font-weight:620; font-stretch:92%; }
-.d2-graf { position:relative; height:268px; margin-top:.8rem; }
+/* o gráfico ocupa a altura que sobrar no cartão (o cartão acompanha a altura dos números ao lado); o desenho fica solto
+   dentro da caixa pra ela poder encolher de volta */
+.d2-graf { position:relative; flex:1 1 auto; min-height:268px; margin-top:.8rem; }
+.d2-graf canvas { position:absolute; inset:0; }
 .d2-graf-pe { display:flex; justify-content:flex-end; padding-top:.25rem; min-height:1.4rem; }
 .d2-vazio { display:flex; align-items:center; justify-content:center; text-align:center; color:var(--tinta3); font-size:.88rem; padding:2rem 1rem; }
 .d2-graf .d2-vazio { position:absolute; inset:0; }
@@ -294,6 +297,13 @@ th.num, td.num { text-align:right; font-variant-numeric:tabular-nums; }
 .d2-cel-val.t4 { font-size:min(1.62rem, 11cqw); }
 .d2-cel-sub { font-size:.78rem; color:var(--tinta3); line-height:1.5; }
 .d2-cel-sub b { font-weight:500; color:var(--tinta2); }
+/* pendente: uma faixa da largura toda, logo abaixo de entradas e investimento, com a quantidade e o stake em cada medida */
+.d2-pendente { grid-column:1 / -1; background:var(--s1); padding:.8rem 1.15rem .9rem; min-width:0; }
+.d2-pen-lin { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:.1rem 1.4rem; margin-top:.3rem; font-size:1.12rem; font-weight:640; font-stretch:92%; line-height:1.3; }
+.d2-pen-q, .d2-pen-v > span { white-space:nowrap; }
+.d2-pen-q small { font-size:.8rem; font-weight:400; font-stretch:100%; color:var(--tinta3); margin-left:.1em; }
+.d2-pen-v { display:flex; flex-wrap:wrap; gap:.1rem 1.4rem; }
+.d2-pen-nada { font-size:.86rem; font-weight:400; font-stretch:100%; color:var(--tinta3); }
 
 /* tabela gêmea do gráfico */
 .d2-tab { width:100%; border-collapse:collapse; font-size:.82rem; margin-top:.5rem; }
@@ -388,11 +398,14 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
   .d2-placar, .d2-l2 { grid-template-columns:minmax(0,1fr); }
   .d2-painel { grid-template-columns:repeat(3, minmax(0,1fr)); }
   .d2-sumula { grid-template-columns:repeat(3, 1fr); }
+  .d2-pendente { order:1; }   /* com 3 colunas a faixa vai pro fim, senão sobra buraco na grade */
+  .d2-pen-lin { justify-content:flex-start; column-gap:2.2rem; }   /* faixa larga: tudo junto à esquerda, em vez de um número em cada ponta */
 }
 @media (max-width:860px) {
   .d2-lin { grid-template-columns:minmax(90px,1.2fr) minmax(70px,1fr) 4.4rem 7.4rem; gap:.6rem; }
   .d2-lin > .some { display:none; }
   .d2-sumula { grid-template-columns:1fr 1fr; }
+  .d2-pendente { order:0; }
   .d2-resumo { grid-template-columns:1fr 1fr; }
   .d2-atual { margin-left:0; }
 }
@@ -415,13 +428,14 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
   .d2-dia-v { font-size:.7rem; letter-spacing:-.01em; }
   .d2-dia-v .d2-un { display:none; }
   .d2-cel { padding:.85rem .8rem .8rem; }
+  .d2-pendente { padding:.75rem .8rem .8rem; }
   .d2-ano { grid-template-columns:repeat(3, minmax(0,1fr)); }
   .d2-cab { padding:.9rem .8rem .7rem; }
   .d2-nav span { min-width:7.5rem; }
   .d2-dow-linhas { padding:.2rem .8rem .9rem; }
   .d2-dow-l { grid-template-columns:2.2rem minmax(40px,1fr) 5.6rem 3.6rem; gap:.45rem; }
   .d2-hero { padding:1rem .9rem .6rem; }
-  .d2-graf { height:220px; }
+  .d2-graf { min-height:220px; }
   .d2-lista { padding:.3rem .2rem .6rem; }
   .d2-lin { grid-template-columns:minmax(0,1fr) 3.2rem auto; gap:.5rem; padding:.5rem .45rem; }
   .d2-lista.m-pl .c-roi, .d2-lista.m-roi .c-pl { display:none; }
@@ -2435,6 +2449,10 @@ function d2PintarPlacar() {
   const media = x => qtd(x) > 0 ? inv(x) / qtd(x) : 0;
   const acerto = t.ns > 0 ? t.w / t.ns * 100 : null;
   const odd = D2.dados.oddMed;
+  // Pendente do período: quantas entradas ainda não liquidaram e quanto de stake está nelas, em cada medida (real e dólar nunca se somam)
+  const pendente = t.np > 0
+    ? `<span class="d2-pen-q">${d2Int(t.np)} <small>${d2Pl(t.np, 'entrada', 'entradas')}</small></span> <span class="d2-pen-v">${[m].concat(outras).map(x => `<span>${d2V(d2Pend(t, x), x, false)}</span>`).join(' ')}</span>`
+    : '<span class="d2-pen-nada">Nenhuma entrada pendente</span>';
 
   el.innerHTML = `<div class="d2-card d2-hero">
       <div class="d2-hero-topo">
@@ -2452,8 +2470,9 @@ function d2PintarPlacar() {
     <div class="d2-card d2-sumula">
       ${cel('ROI', `<span class="${d2Cls(roi || 0)}">${d2P(roi, true, 2)}</span>`, outras.map(x => d2St(t, x) > 0 ? `${nomeMed(x)} <b>${d2P(d2Roi(t, x), true, 2)}</b>` : ''))}
       ${cel('Acerto', d2P(acerto, false, 1), [`<b>${d2Int(t.w)}</b> de ${d2Int(t.ns)} liquidadas`])}
-      ${cel('Entradas', d2Int(t.n), [`<b>${d2Int(t.np)}</b> ${d2Pl(t.np, 'pendente', 'pendentes')}`, (!D2.moeda && nD > 0) ? `<b>${d2Int(nD)}</b> em dólar` : ''])}
-      ${cel('Investimento', d2V(inv(m), m, false), outras.map(x => `<b>${d2V(inv(x), x, false)}</b>`).concat(t.np > 0 ? [`pendente <b>${d2V(d2Pend(t, m), m, false)}</b>`] : []))}
+      ${cel('Entradas', d2Int(t.n), [(!D2.moeda && nD > 0) ? `<b>${d2Int(nD)}</b> em dólar` : ''])}
+      ${cel('Investimento', d2V(inv(m), m, false), outras.map(x => `<b>${d2V(inv(x), x, false)}</b>`), ' title="Stake de todas as entradas do período, liquidadas e pendentes."')}
+      <div class="d2-pendente" title="Entradas do período que ainda não liquidaram e o stake que está nelas. Já estão contadas nas entradas e no investimento."><div class="d2-rot">Pendente</div><div class="d2-pen-lin">${pendente}</div></div>
       ${cel('Odd típica', (odd === null || odd === undefined) ? '–' : d2N(odd, 2), ['metade do stake está abaixo dela'], ' id="d2OddCel" title="Mediana ponderada por stake: a odd abaixo da qual está metade do dinheiro das apostas liquidadas do período. Bilhete de odd alta com stake pequena não mexe nela."')}
       ${cel('Stake média', d2V(media(m), m, false), outras.map(x => `<b>${d2V(media(x), x, false)}</b>`))}
     </div>`;
