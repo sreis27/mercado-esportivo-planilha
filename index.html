@@ -303,6 +303,251 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
 }
 .dst-rank-row.clicavel { cursor:pointer; border-radius:6px; transition:background .15s; }
 .dst-rank-row.clicavel:hover { background:rgba(108,99,255,0.08); }
+/* ═══ DASHBOARD NOVO (início) ═══ */
+@font-face { font-family:'Archivo'; font-style:normal; font-weight:100 900; font-stretch:62% 125%; font-display:swap; src:url('fontes/archivo-latin.woff2') format('woff2'); }
+/* No celular o menu lateral escondia também os ícones e ficava vazio. */
+@media (max-width:768px) { .nav-item .icon { display:inline; } }
+/* Tema novo: vale só enquanto o "Dashboard novo" está aberto (classe tema-novo no body). */
+body.tema-novo {
+  --bg:#0e1012; --s1:#16191d; --s2:#1e2228; --s3:#262b32; --border:#262b32;
+  --accent:#f2b84b; --accent2:#b6bcc6; --yellow:#f2b84b; --green:#3ccdb9; --red:#ff8468;
+  --text:#f2f4f6; --muted:#8e95a0;
+  --font:'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; --mono:var(--font);
+  /* resultado: verde só quer dizer lucro, vermelho só quer dizer prejuízo */
+  --pos:#18a999; --neg:#e5533d; --pos-t:#3ccdb9; --neg-t:#ff8468;
+  --linha:#262b32; --linha2:#343a43; --tinta:#f2f4f6; --tinta2:#b6bcc6; --tinta3:#8e95a0;
+  color-scheme:dark;
+}
+body.tema-novo .sidebar-logo .brand { text-transform:none; letter-spacing:0; font-size:1rem; font-weight:650; font-stretch:90%; color:var(--tinta); }
+body.tema-novo .sidebar-logo .user { font-size:.78rem; }
+body.tema-novo .sidebar-logo .user span { color:var(--tinta); }
+body.tema-novo .nav-section { text-transform:none; letter-spacing:0; font-size:.74rem; }
+body.tema-novo .nav-item { font-size:.9rem; border-left-width:3px; }
+body.tema-novo .nav-item.active { color:var(--tinta); background:var(--s2); border-left-color:var(--accent); font-weight:550; }
+body.tema-novo .topbar-title { font-size:1.08rem; font-weight:650; font-stretch:92%; letter-spacing:0; }
+body.tema-novo .logout-btn { font-size:.8rem; }
+body.tema-novo .logout-btn:hover { border-color:var(--neg-t); color:var(--neg-t); }
+body.tema-novo .modal h2 { text-transform:none; letter-spacing:0; font-size:1.05rem; font-weight:650; color:var(--tinta); }
+body.tema-novo .form-group label { text-transform:none; letter-spacing:0; font-size:.78rem; }
+body.tema-novo .btn-save { background:var(--tinta); color:#0e1012; font-weight:600; font-size:.85rem; }
+body.tema-novo .btn-outline { font-size:.85rem; }
+body.tema-novo .btn-outline:hover { border-color:var(--tinta3); color:var(--tinta); }
+body.tema-novo .toast { border-color:var(--linha2); color:var(--tinta); font-size:.85rem; }
+body.tema-novo .toast.error { border-color:var(--neg); color:var(--neg-t); }
+.d2-tag { font-size:.7rem; font-weight:500; padding:.1rem .45rem; border-radius:6px; border:1px solid var(--accent); color:var(--accent); }
+
+#d2TopLeft, #d2TopRight { display:flex; align-items:center; gap:.6rem; }
+#d2TopLeft:empty, #d2TopRight:empty { display:none; }
+.d2-vt { font-size:.78rem; color:var(--tinta3); margin-left:.35rem; }
+
+/* controles */
+.d2-seg { display:inline-flex; gap:2px; padding:2px; background:var(--s2); border:1px solid var(--linha); border-radius:9px; }
+.d2-seg button { appearance:none; border:0; background:transparent; color:var(--tinta3); font:inherit; font-size:.84rem; font-weight:500; padding:.36rem .78rem; border-radius:7px; cursor:pointer; white-space:nowrap; }
+.d2-seg button:hover { color:var(--tinta); }
+.d2-seg button[aria-pressed="true"] { background:var(--linha2); color:var(--tinta); font-weight:600; }
+.d2-seg.pq button { font-size:.78rem; padding:.28rem .62rem; }
+.d2-btn { appearance:none; background:var(--s2); border:1px solid var(--linha); color:var(--tinta2); font:inherit; font-size:.84rem; font-weight:500; padding:.42rem .85rem; border-radius:9px; cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:.45rem; }
+.d2-btn:hover { border-color:var(--linha2); color:var(--tinta); }
+.d2-btn[aria-expanded="true"] { border-color:var(--tinta3); color:var(--tinta); }
+.d2-btn.forte { background:var(--tinta); border-color:var(--tinta); color:#0e1012; font-weight:600; }
+.d2-btn.forte:hover { background:#fff; color:#0e1012; }
+.d2-cont { min-width:1.25rem; text-align:center; font-size:.72rem; font-weight:650; padding:.04rem .3rem; border-radius:6px; background:var(--accent); color:#17130a; }
+.d2-link { appearance:none; background:none; border:0; padding:0; font:inherit; font-size:.8rem; color:var(--tinta3); cursor:pointer; text-decoration:underline; text-decoration-color:var(--linha2); text-underline-offset:3px; }
+.d2-link:hover { color:var(--tinta); }
+.d2 button:focus-visible, .d2 select:focus-visible, .d2 input:focus-visible,
+#d2TopLeft button:focus-visible, #d2TopRight button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+.d2 { font-family:var(--font); color:var(--tinta); font-size:.9rem; line-height:1.4; max-width:1480px; }
+.d2-filtros { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; margin-bottom:.9rem; }
+.d2-datas { display:inline-flex; align-items:center; gap:.4rem; color:var(--tinta3); font-size:.8rem; }
+.d2-datas input { background:var(--s2); border:1px solid var(--linha); color:var(--tinta2); font:inherit; font-size:.82rem; padding:.34rem .5rem; border-radius:9px; }
+.d2-datas.ativo input { border-color:var(--tinta3); color:var(--tinta); }
+.d2-chips { display:flex; flex-wrap:wrap; gap:.4rem; }
+.d2-chip { appearance:none; display:inline-flex; align-items:center; gap:.4rem; background:transparent; border:1px solid var(--linha2); color:var(--tinta); font:inherit; font-size:.8rem; padding:.3rem .55rem .3rem .7rem; border-radius:999px; cursor:pointer; }
+.d2-chip small { color:var(--tinta3); font-size:.78rem; }
+.d2-chip b { font-weight:500; color:var(--tinta3); font-size:1rem; line-height:1; }
+.d2-chip:hover { border-color:var(--neg); }
+.d2-chip:hover b { color:var(--neg-t); }
+.d2-atual { margin-left:auto; display:inline-flex; align-items:center; gap:.6rem; color:var(--tinta3); font-size:.78rem; }
+.d2-painel { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:.7rem; padding:.9rem 1rem; margin-bottom:.9rem; background:var(--s1); border:1px solid var(--linha); border-radius:12px; }
+.d2-painel[hidden] { display:none; }
+.d2-painel label { display:flex; flex-direction:column; gap:.3rem; font-size:.76rem; color:var(--tinta3); min-width:0; }
+.d2-painel select { background:var(--s2); border:1px solid var(--linha); color:var(--tinta); font:inherit; font-size:.84rem; padding:.42rem .5rem; border-radius:8px; min-width:0; width:100%; }
+.d2-painel select.ativo { border-color:var(--accent); }
+
+.d2-card { background:var(--s1); border:1px solid var(--linha); border-radius:14px; min-width:0; }
+.d2-tit { font-size:1rem; font-weight:650; font-stretch:92%; }
+.d2-rot { font-size:.8rem; color:var(--tinta3); }
+.pos { color:var(--pos-t); } .neg { color:var(--neg-t); }
+/* unidade do número: "u" depois, R$ ou US$ antes */
+.d2-un { font-size:.8em; font-weight:500; color:var(--tinta3); margin-left:.08em; }
+.d2-un.m { margin-left:0; margin-right:.26em; }
+.pos > .d2-un, .neg > .d2-un { color:inherit; opacity:.78; }
+.d2-cel-val .d2-un { font-size:.6em; }
+.d2-cel-sub .d2-un, .d2-hero-sub .d2-un, .d2-tab .d2-un, .d2-lin .d2-un, .d2-dow-l .d2-un, .d2-resumo small .d2-un { font-size:1em; }
+
+/* placar: o número do período e a curva que levou até ele */
+.d2-placar { display:grid; grid-template-columns:minmax(0,1.72fr) minmax(0,1fr); gap:.9rem; margin-bottom:.9rem; }
+.d2-hero { padding:1.25rem 1.4rem .8rem; display:flex; flex-direction:column; }
+.d2-hero-topo { display:flex; justify-content:space-between; align-items:flex-start; gap:1.5rem; flex-wrap:wrap; }
+.d2-hero-num { font-size:clamp(2.5rem, 4.3vw, 3.8rem); font-weight:680; font-stretch:82%; line-height:1; letter-spacing:-.012em; margin:.3rem 0 .5rem; white-space:nowrap; }
+.d2-hero-num .d2-un { font-size:.5em; font-weight:560; }
+.d2-hero-num .d2-un.m { margin-right:.16em; }
+.d2-hero-sub { display:flex; flex-wrap:wrap; gap:.2rem 1.1rem; font-size:.9rem; color:var(--tinta2); min-height:1.3rem; }
+.d2-hero-lado { display:flex; gap:1.7rem; margin:.15rem 0 0; flex-wrap:wrap; }
+.d2-hero-lado div { display:flex; flex-direction:column; gap:.25rem; }
+.d2-hero-lado dt { font-size:.78rem; color:var(--tinta3); }
+.d2-hero-lado dd { margin:0; font-size:1.12rem; font-weight:620; font-stretch:92%; }
+.d2-graf { position:relative; height:268px; margin-top:.8rem; }
+.d2-graf-pe { display:flex; justify-content:flex-end; padding-top:.25rem; min-height:1.4rem; }
+.d2-vazio { display:flex; align-items:center; justify-content:center; text-align:center; color:var(--tinta3); font-size:.88rem; padding:2rem 1rem; }
+.d2-graf .d2-vazio { position:absolute; inset:0; }
+
+.d2-sumula { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--linha); overflow:hidden; }
+.d2-cel { background:var(--s1); padding:1rem 1.15rem .95rem; display:flex; flex-direction:column; min-width:0; container-type:inline-size; }
+.d2-cel-val { font-size:1.62rem; font-weight:650; font-stretch:90%; line-height:1.15; margin:.28rem 0 .32rem; white-space:nowrap; }
+/* número comprido encolhe conforme a largura da célula, em vez de vazar */
+.d2-cel-val.t2 { font-size:min(1.62rem, 17cqw); }
+.d2-cel-val.t3 { font-size:min(1.62rem, 13.5cqw); }
+.d2-cel-val.t4 { font-size:min(1.62rem, 11cqw); }
+.d2-cel-sub { font-size:.78rem; color:var(--tinta3); line-height:1.5; }
+.d2-cel-sub b { font-weight:500; color:var(--tinta2); }
+
+/* tabela gêmea do gráfico */
+.d2-tab { width:100%; border-collapse:collapse; font-size:.82rem; margin-top:.5rem; }
+.d2-tab th { background:transparent; color:var(--tinta3); font-family:var(--font); font-size:.76rem; font-weight:500; text-transform:none; letter-spacing:0; text-align:right; padding:.4rem .6rem; border-bottom:1px solid var(--linha); cursor:default; }
+.d2-tab td { text-align:right; padding:.36rem .6rem; border-bottom:1px solid var(--linha); font-variant-numeric:tabular-nums; }
+.d2-tab th:first-child, .d2-tab td:first-child { text-align:left; }
+.d2-tab tbody tr:hover { background:var(--s2); }
+.d2-tab-rol { max-height:300px; overflow-y:auto; }
+
+/* calendário e dia da semana */
+.d2-l2 { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:.9rem; margin-bottom:.9rem; }
+.d2-cab { display:flex; align-items:center; justify-content:space-between; gap:.7rem; flex-wrap:wrap; padding:1.05rem 1.2rem .8rem; }
+.d2-cab-dir { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+.d2-nav { display:inline-flex; align-items:center; gap:.3rem; }
+.d2-nav button { appearance:none; width:1.9rem; height:1.9rem; border-radius:8px; background:var(--s2); border:1px solid var(--linha); color:var(--tinta2); font:inherit; font-size:1rem; line-height:1; cursor:pointer; }
+.d2-nav button:hover:not(:disabled) { border-color:var(--linha2); color:var(--tinta); }
+.d2-nav button:disabled { opacity:.35; cursor:default; }
+.d2-nav span { min-width:9.5rem; text-align:center; font-size:.9rem; font-weight:560; }
+.d2-cal-grade { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:5px; padding:0 1.2rem; }
+.d2-cal-sem { font-size:.74rem; color:var(--tinta3); text-align:center; padding-bottom:.15rem; }
+.d2-dia { appearance:none; font:inherit; text-align:left; color:var(--tinta); border:1px solid transparent; border-radius:8px; min-height:66px; padding:.34rem .45rem .38rem; display:flex; flex-direction:column; justify-content:space-between; background:rgba(255,255,255,.022); min-width:0; }
+button.d2-dia { cursor:pointer; background:var(--s2); }
+button.d2-dia:hover { border-color:var(--tinta3); }
+.d2-dia.hoje { border-color:var(--accent); }
+.d2-dia-n { font-size:.72rem; color:var(--tinta3); display:flex; justify-content:space-between; gap:.3rem; }
+button.d2-dia .d2-dia-n { color:rgba(242,244,246,.8); }
+.d2-dia-v { font-size:.92rem; font-weight:650; font-stretch:88%; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.d2-dia-q { font-size:.7rem; color:rgba(242,244,246,.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.d2-cal-grade:not(.d2-ano) .d2-dia-v .d2-un.m { display:none; }   /* no dia a moeda fica no título do calendário */
+/* bolinha âmbar = tem aposta pendente naquele dia (o número ao lado é quantas) */
+.d2-pend { display:inline-flex; align-items:center; gap:.25rem; white-space:nowrap; }
+.d2-pend::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+.d2-em { font-size:.8rem; font-weight:400; color:var(--tinta3); margin-left:.3rem; }
+.d2-ano { grid-template-columns:repeat(4, minmax(0,1fr)); }
+.d2-ano .d2-dia { min-height:84px; padding:.55rem .65rem; }
+.d2-ano .d2-dia-n { font-size:.82rem; }
+.d2-ano .d2-dia-v { font-size:1.05rem; }
+.d2-resumo { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:1px; background:var(--linha); border-top:1px solid var(--linha); margin-top:1rem; border-radius:0 0 13px 13px; overflow:hidden; }
+.d2-resumo > div { background:var(--s1); padding:.75rem 1.2rem .85rem; min-width:0; }
+.d2-resumo strong { display:block; font-size:1.12rem; font-weight:650; font-stretch:92%; margin-top:.2rem; white-space:nowrap; }
+.d2-resumo small { display:block; font-size:.74rem; color:var(--tinta3); margin-top:.1rem; }
+.d2-dow { display:flex; flex-direction:column; }
+.d2-dow-linhas { flex:1; display:flex; flex-direction:column; justify-content:space-around; padding:.2rem 1.2rem 1rem; gap:.3rem; }
+.d2-dow-l { display:grid; grid-template-columns:2.4rem minmax(60px,1fr) 6.6rem 4.2rem; align-items:center; gap:.7rem; padding:.42rem 0; }
+.d2-dow-l > span:first-child { color:var(--tinta2); font-size:.86rem; }
+.d2-num { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.d2-fraco { color:var(--tinta3); }
+
+/* barra que parte do zero: direita é lucro, esquerda é prejuízo */
+.d2-div { position:relative; height:12px; }
+.d2-div::before { content:''; position:absolute; left:50%; top:-5px; bottom:-5px; width:1px; background:var(--linha2); }
+.d2-div i { position:absolute; top:1px; height:10px; left:50%; background:var(--pos); border-radius:0 4px 4px 0; }
+.d2-div i.neg { left:auto; right:50%; background:var(--neg); border-radius:4px 0 0 4px; }
+.d2-dow .d2-div { height:16px; }
+.d2-dow .d2-div i { height:14px; }
+
+/* desempenho detalhado */
+.d2-desemp { margin-bottom:.9rem; }
+.d2-abas { display:flex; gap:.2rem; padding:0 1.2rem; border-bottom:1px solid var(--linha); overflow-x:auto; }
+.d2-abas button { appearance:none; background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-1px; color:var(--tinta3); font:inherit; font-size:.88rem; font-weight:500; padding:.55rem .75rem .6rem; cursor:pointer; white-space:nowrap; }
+.d2-abas button:hover { color:var(--tinta); }
+.d2-abas button[aria-selected="true"] { color:var(--tinta); border-bottom-color:var(--accent); font-weight:620; }
+.d2-ferr { display:flex; align-items:center; gap:.9rem; flex-wrap:wrap; }
+.d2-ferr label { display:inline-flex; align-items:center; gap:.4rem; font-size:.78rem; color:var(--tinta3); }
+.d2-ferr select { background:var(--s2); border:1px solid var(--linha); color:var(--tinta); font:inherit; font-size:.8rem; padding:.26rem .4rem; border-radius:7px; }
+.d2-lista { padding:.3rem .6rem .7rem; }
+.d2-lin { display:grid; grid-template-columns:minmax(120px,1.25fr) minmax(110px,1.5fr) 5rem 4.6rem 5.4rem 8.2rem; align-items:center; gap:.9rem; padding:.5rem .6rem; border-radius:8px; }
+.d2-lin.cab { padding-top:.6rem; padding-bottom:.3rem; font-size:.76rem; color:var(--tinta3); }
+button.d2-lin { appearance:none; width:100%; background:none; border:0; font:inherit; color:inherit; text-align:left; cursor:pointer; }
+button.d2-lin:hover { background:var(--s2); }
+button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
+.d2-lin-nome { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:500; }
+.d2-lin .forte { font-weight:650; }
+.d2-meio { display:flex; align-items:center; gap:.8rem; padding:.45rem .6rem; color:var(--tinta3); font-size:.8rem; }
+.d2-meio::before, .d2-meio::after { content:''; flex:1; height:1px; background:var(--linha); }
+.d2-rodape { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; padding:.2rem 1.2rem 1rem; font-size:.78rem; color:var(--tinta3); }
+.d2-nota { font-size:.78rem; color:var(--tinta3); margin:.2rem 0 1.5rem; }
+.d2-erro { padding:2.5rem 1rem; text-align:center; color:var(--tinta2); }
+.d2-erro p { margin-bottom:.9rem; }
+
+/* lista de briefings */
+.d2-pop-wrap { position:relative; }
+.d2-pop { position:absolute; right:0; top:calc(100% + 6px); min-width:11rem; background:var(--s2); border:1px solid var(--linha2); border-radius:10px; padding:.35rem; z-index:60; display:flex; flex-direction:column; }
+.d2-pop[hidden] { display:none; }
+.d2-pop button { appearance:none; background:none; border:0; font:inherit; font-size:.84rem; color:var(--tinta2); text-align:left; padding:.42rem .6rem; border-radius:7px; cursor:pointer; }
+.d2-pop button:hover { background:var(--linha2); color:var(--tinta); }
+.d2-pop p { font-size:.8rem; color:var(--tinta3); padding:.42rem .6rem; }
+
+/* enquanto recarrega, a tela anterior fica no lugar, mais apagada */
+.d2-ocupado #d2Corpo, .d2-ocupado-parcial #d2Desemp, .d2-ocupado-parcial #d2OddCel { opacity:.5; pointer-events:none; }
+@media (prefers-reduced-motion:no-preference) { #d2Corpo, #d2Desemp, #d2OddCel { transition:opacity .15s ease; } }
+
+@media (max-width:1180px) {
+  .d2-placar, .d2-l2 { grid-template-columns:minmax(0,1fr); }
+  .d2-painel { grid-template-columns:repeat(3, minmax(0,1fr)); }
+  .d2-sumula { grid-template-columns:repeat(3, 1fr); }
+}
+@media (max-width:860px) {
+  .d2-lin { grid-template-columns:minmax(90px,1.2fr) minmax(70px,1fr) 4.4rem 7.4rem; gap:.6rem; }
+  .d2-lin > .some { display:none; }
+  .d2-sumula { grid-template-columns:1fr 1fr; }
+  .d2-resumo { grid-template-columns:1fr 1fr; }
+  .d2-atual { margin-left:0; }
+}
+@media (max-width:560px) {
+  body.tema-novo .content { padding:1rem .8rem; }
+  body.tema-novo .topbar { padding:0 .8rem; height:auto; min-height:56px; flex-wrap:wrap; gap:.4rem; padding-top:.4rem; padding-bottom:.4rem; }
+  body.tema-novo .topo-esq { flex-wrap:wrap; gap:.35rem .6rem !important; }
+  #d2TopLeft { flex-wrap:wrap; gap:.4rem; }
+  .d2-vt { display:none; }
+  .d2-filtros > .d2-seg { width:100%; }
+  .d2-filtros > .d2-seg button { flex:1; padding:.4rem .2rem; text-align:center; }
+  .d2-datas { width:100%; }
+  .d2-datas input { flex:1; min-width:0; }
+  .d2-painel { grid-template-columns:1fr 1fr; }
+  .d2-cal-grade { gap:3px; padding:0 .6rem; }
+  .d2-dia { min-height:54px; padding:.25rem .28rem; }
+  .d2-dia-q { display:none; }
+  .d2-dia-v { font-size:.7rem; letter-spacing:-.01em; }
+  .d2-dia-v .d2-un { display:none; }
+  .d2-cel { padding:.85rem .8rem .8rem; }
+  .d2-ano { grid-template-columns:repeat(3, minmax(0,1fr)); }
+  .d2-cab { padding:.9rem .8rem .7rem; }
+  .d2-nav span { min-width:7.5rem; }
+  .d2-dow-linhas { padding:.2rem .8rem .9rem; }
+  .d2-dow-l { grid-template-columns:2.2rem minmax(40px,1fr) 5.6rem 3.6rem; gap:.45rem; }
+  .d2-hero { padding:1rem .9rem .6rem; }
+  .d2-graf { height:220px; }
+  .d2-lista { padding:.3rem .2rem .6rem; }
+  .d2-lin { grid-template-columns:minmax(0,1fr) 3.2rem auto; gap:.5rem; padding:.5rem .45rem; }
+  .d2-lista.m-pl .c-roi, .d2-lista.m-roi .c-pl { display:none; }
+  .d2-pend { font-size:0; gap:0; }
+  .d2-rodape { padding:.2rem .7rem .9rem; }
+  .d2-abas { padding:0 .6rem; }
+}
+/* ═══ DASHBOARD NOVO (fim) ═══ */
 </style>
 </head>
 <body>
@@ -341,6 +586,7 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
     <nav>
       <div class="nav-section">Principal</div>
       <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></div>
+      <div class="nav-item" onclick="showPage('dashboard_novo')"><span class="icon">📈</span><span>Dashboard novo</span></div>
       <div class="nav-item" onclick="showPage('apostas')"><span class="icon">📋</span><span>Apostas</span></div>
       <div class="nav-section">Cadastros</div>
       <div class="nav-item" onclick="showPage('tipsters')"><span class="icon">👥</span><span>Tipsters</span></div>
@@ -360,8 +606,12 @@ td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
   <!-- Main -->
   <div class="main">
     <div class="topbar">
-      <div class="topbar-title" id="topbarTitle">Dashboard</div>
-      <div style="display:flex;gap:0.75rem">
+      <div class="topo-esq" style="display:flex;align-items:center;gap:1rem;min-width:0">
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div id="d2TopLeft"></div>
+      </div>
+      <div style="display:flex;gap:0.75rem;align-items:center">
+        <div id="d2TopRight"></div>
         <button class="btn-primary" id="topbarAddBtn" onclick="openAddModal()" style="display:none">+ Nova Aposta</button>
       </div>
     </div>
@@ -532,6 +782,7 @@ function doLogin() {
 function doLogout() {
   sessionStorage.removeItem('rm_apost_user');
   currentUser = null;
+  d2Sair();
   document.getElementById('app').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('loginPass').value='';
@@ -542,7 +793,7 @@ async function showApp() {
   document.getElementById('app').style.display='block';
   document.getElementById('sideUser').textContent = currentUser;
   await loadCache();
-  showPage('dashboard');
+  showPage(location.hash === '#novo' ? 'dashboard_novo' : 'dashboard');   // link direto pra prévia
 }
 
 // ── CACHE ──────────────────────────────────────────────────
@@ -653,15 +904,17 @@ async function apagarAposta(id) {
 
 // ── PAGES ──────────────────────────────────────────────────
 function showPage(page) {
+  if (page !== 'dashboard_novo') d2Sair();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const navMap = { dashboard:0, apostas:1, tipsters:2, bookies:3, operadores:4, esportes:5, tipos_aposta:6, mercados:7, bugs_melhorias:8, ranking_grupos:9 };
+  const navMap = { dashboard:0, dashboard_novo:1, apostas:2, tipsters:3, bookies:4, operadores:5, esportes:6, tipos_aposta:7, mercados:8, bugs_melhorias:9, ranking_grupos:10 };
   document.querySelectorAll('.nav-item')[navMap[page]]?.classList.add('active');
-  const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de Aposta', mercados:'Mercados', bugs_melhorias:'Bugs / Melhorias', ranking_grupos:'Ranking de Grupos' };
+  const titles = { dashboard:'Dashboard', dashboard_novo:'Dashboard novo', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de Aposta', mercados:'Mercados', bugs_melhorias:'Bugs / Melhorias', ranking_grupos:'Ranking de Grupos' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
   document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
   const content = document.getElementById('pageContent');
   content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
   if (page==='dashboard') renderDashboard(gFilters);
+  else if (page==='dashboard_novo') d2Entrar();
   else if (page==='apostas') renderApostas();
   else if (page==='bugs_melhorias') renderBugsMelhorias();
   else if (page==='ranking_grupos') renderRankingGrupos();
@@ -2364,7 +2617,7 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
 const BRIEFING_API = 'https://web-production-af071f.up.railway.app';
 
 function abrirModalFecharDia() {
-  const hoje = new Date().toISOString().slice(0,10);
+  const hoje = d2Hoje();   // dia do computador; pelo relógio universal, depois das 21h já vinha o dia seguinte
   document.getElementById('fdData').value = hoje;
   document.getElementById('modalFecharDia').classList.add('open');
 }
@@ -2523,6 +2776,768 @@ async function openBriefing(dataRef) {
     document.getElementById('briefingModal').classList.add('open');
   } catch(e) { showToast('Erro: '+e.message, true); }
 }
+
+/* ═══ DASHBOARD NOVO (início) ═══ */
+// Prévia do dashboard novo. Uma chamada só ao banco (dashboard_v2) traz tudo; o desenho é feito aqui.
+// Moeda: "Geral" soma só unidades. Reais e dólar nunca entram no mesmo total.
+const D2_ZERO = '00000000-0000-0000-0000-000000000000';   // id zerado = "sem cadastro"
+const D2_SEM_MERCADO = '__sem__';
+const D2_COR = { pos:'#18a999', neg:'#e5533d', posF:'rgba(24,169,153,.14)', negF:'rgba(229,83,61,.14)', linha:'#262b32', linha2:'#343a43', zero:'#4a515c', tinta:'#f2f4f6', tinta2:'#b6bcc6', tinta3:'#8e95a0', fundo:'#16191d', fundo2:'#1e2228' };
+const D2_FONTE = "'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif";
+const D2_SEM = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const D2_SEM_LONGO = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+const D2_MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const D2_MES_C = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const D2_PERIODOS = [['7d','7 dias'],['30d','30 dias'],['90d','90 dias'],['mes','Mês'],['tudo','Tudo']];
+const D2_ABAS = [['tipster','Tipsters','Tipster'],['mercado','Mercados','Mercado'],['esporte','Esportes','Esporte'],['casa','Casas','Casa'],['odd','Odds','Faixa de odd'],['unidade','Unidades','Stake da aposta'],['operador','Operadores','Operador']];
+const D2_FILTRO_DA_ABA = { tipster:'ti', mercado:'me', esporte:'es', casa:'bo', operador:'op' };
+const D2_FAIXA_ODD = ['Sem odd','até 1,49','1,50 a 1,79','1,80 a 1,99','2,00 a 2,49','2,50 a 2,99','3,00 a 4,99','5,00 a 9,99','10,00 a 49,99','50,00 ou mais'];
+const D2_FAIXA_UNI = ['','até 0,24u','0,25 a 0,49u','0,50 a 0,74u','0,75 a 0,99u','1,00 a 1,49u','1,50 a 1,99u','2,00 a 2,99u','3,00u ou mais'];
+const D2_STATUS = [['WON','Won'],['LOST','Lost'],['PENDING','Pending'],['VOID','Void'],['HALF WON','Half Won'],['HALF LOST','Half Lost'],['CASH OUT','Cash Out']];
+const D2_CAMPOS = [['op','Operador','Todos'],['ti','Tipster','Todos'],['bo','Casa','Todas'],['es','Esporte','Todos'],['me','Mercado','Todos'],['st','Status','Todos']];
+
+const D2 = {
+  moeda: null,          // null = geral, 'BRL', 'USD'
+  medida: 'm',          // com moeda escolhida: 'm' mostra em dinheiro, 'u' em unidades
+  periodo: '30d',       // 7d, 30d, 90d, mes, tudo ou datas
+  de: '', ate: '',      // só quando periodo = 'datas'
+  f: { op:'', ti:'', bo:'', es:'', me:'', st:'' },
+  calMes: null, calModo: 'mes', dowModo: 'periodo',
+  aba: 'tipster', metrica: 'pl', minAp: 10, tudoAberto: false,
+  tabelaAberta: false, filtrosAbertos: false,
+  dados: null, chave: null, serie: [], opcoes: null, briefings: null,
+  seq: 0, chart: null, erro: false, ativo: false
+};
+
+(function d2LerPrefs() {
+  try {
+    const p = JSON.parse(localStorage.getItem('rm_d2') || '{}');
+    if (D2_PERIODOS.some(x => x[0] === p.periodo)) D2.periodo = p.periodo;
+    if (p.medida === 'u' || p.medida === 'm') D2.medida = p.medida;
+    if (D2_ABAS.some(x => x[0] === p.aba)) D2.aba = p.aba;
+    if (p.metrica === 'pl' || p.metrica === 'roi') D2.metrica = p.metrica;
+    if ([1, 5, 10, 20, 50, 100].includes(p.minAp)) D2.minAp = p.minAp;
+    if (p.dowModo === 'periodo' || p.dowModo === 'cal') D2.dowModo = p.dowModo;
+  } catch (e) {}
+})();
+function d2GravarPrefs() {
+  try {
+    localStorage.setItem('rm_d2', JSON.stringify({ periodo: D2.periodo === 'datas' ? '30d' : D2.periodo, medida: D2.medida, aba: D2.aba, metrica: D2.metrica, minAp: D2.minAp, dowModo: D2.dowModo }));
+  } catch (e) {}
+}
+
+// ── datas (sempre no dia do computador de quem olha, nunca no fuso do banco) ──
+function d2Dt(iso) { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); }
+function d2Iso(dt) { return dt.getUTCFullYear() + '-' + String(dt.getUTCMonth() + 1).padStart(2, '0') + '-' + String(dt.getUTCDate()).padStart(2, '0'); }
+function d2Hoje() { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0'); }
+function d2Mais(iso, n) { const dt = d2Dt(iso); dt.setUTCDate(dt.getUTCDate() + n); return d2Iso(dt); }
+function d2Dif(a, b) { return Math.round((d2Dt(b) - d2Dt(a)) / 86400000); }
+function d2UltimoDia(ym) { const [y, m] = ym.split('-').map(Number); return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+function d2MesMais(ym, n) { const [y, m] = ym.split('-').map(Number); const dt = new Date(Date.UTC(y, m - 1 + n, 1)); return dt.getUTCFullYear() + '-' + String(dt.getUTCMonth() + 1).padStart(2, '0'); }
+function d2DataLonga(iso) { return ['dom.','seg.','ter.','qua.','qui.','sex.','sáb.'][d2Dt(iso).getUTCDay()] + ', ' + (+iso.slice(8)) + ' de ' + D2_MES_C[+iso.slice(5, 7) - 1] + '. de ' + iso.slice(0, 4); }
+function d2DataCurta(iso) { return iso.slice(8) + '/' + iso.slice(5, 7) + '/' + iso.slice(2, 4); }
+
+// Os atalhos valem "de tal dia em diante": aposta pendente de evento futuro continua contando.
+function d2Janela() {
+  const h = d2Hoje();
+  switch (D2.periodo) {
+    case '7d':  return { de: d2Mais(h, -6),  ate: null };
+    case '30d': return { de: d2Mais(h, -29), ate: null };
+    case '90d': return { de: d2Mais(h, -89), ate: null };
+    case 'mes': return { de: h.slice(0, 8) + '01', ate: null };
+    case 'datas': return { de: D2.de || null, ate: D2.ate || null };
+    default: return { de: null, ate: null };
+  }
+}
+function d2JanelaAnterior() {
+  const h = d2Hoje(), j = d2Janela();
+  const n = { '7d': 7, '30d': 30, '90d': 90 }[D2.periodo];
+  if (n) return { de: d2Mais(j.de, -n), ate: d2Mais(j.de, -1), rotulo: `${n} dias anteriores` };
+  if (D2.periodo === 'mes') {
+    const ma = d2MesMais(h.slice(0, 7), -1), dia = Math.min(+h.slice(8), d2UltimoDia(ma)), nome = D2_MES[+ma.slice(5) - 1];
+    return { de: ma + '-01', ate: ma + '-' + String(dia).padStart(2, '0'), rotulo: `${nome[0].toUpperCase() + nome.slice(1)} até o dia ${dia}` };
+  }
+  if (D2.periodo === 'datas' && j.de) {
+    const q = d2Dif(j.de, j.ate || h) + 1;
+    if (q < 1) return null;
+    return { de: d2Mais(j.de, -q), ate: d2Mais(j.de, -1), rotulo: q === 1 ? 'Dia anterior' : `${q} dias anteriores` };
+  }
+  return null;
+}
+function d2RotuloPeriodo() {
+  const j = d2Janela();
+  switch (D2.periodo) {
+    case '7d': return 'dos últimos 7 dias';
+    case '30d': return 'dos últimos 30 dias';
+    case '90d': return 'dos últimos 90 dias';
+    case 'mes': return 'de ' + D2_MES[+d2Hoje().slice(5, 7) - 1];
+    case 'tudo': return 'de todo o histórico';
+  }
+  if (j.de && j.ate) return j.de === j.ate ? 'de ' + d2DataCurta(j.de) : `de ${d2DataCurta(j.de)} a ${d2DataCurta(j.ate)}`;
+  if (j.de) return 'desde ' + d2DataCurta(j.de);
+  if (j.ate) return 'até ' + d2DataCurta(j.ate);
+  return 'de todo o histórico';
+}
+
+// ── contas ──
+// Linha do dia que vem do banco: [dia, entradas, em dólar, liquidadas, green, red, pendentes,
+//   P/L u, stake liquidado u, stake pendente u, P/L R$, stake liq. R$, stake pend. R$, P/L US$, stake liq. US$, stake pend. US$]
+function d2Obj(r) { return { d: r[0], n: r[1], nu: r[2], ns: r[3], w: r[4], l: r[5], np: r[6], lu: r[7], su: r[8], sp: r[9], lr: r[10], sr: r[11], rp: r[12], ld: r[13], sd: r[14], dp: r[15] }; }
+function d2Soma(de, ate) {
+  const o = { n:0, nu:0, ns:0, w:0, l:0, np:0, lu:0, su:0, sp:0, lr:0, sr:0, rp:0, ld:0, sd:0, dp:0, dias: [] };
+  for (const r of ((D2.dados && D2.dados.dias) || [])) {
+    if (de && r[0] < de) continue;
+    if (ate && r[0] > ate) continue;
+    o.n += r[1]; o.nu += r[2]; o.ns += r[3]; o.w += r[4]; o.l += r[5]; o.np += r[6];
+    o.lu += r[7]; o.su += r[8]; o.sp += r[9]; o.lr += r[10]; o.sr += r[11]; o.rp += r[12]; o.ld += r[13]; o.sd += r[14]; o.dp += r[15];
+    o.dias.push(r);
+  }
+  return o;
+}
+// Medida em uso: 'u' (unidades), 'BRL' ou 'USD'. Em "Geral" é sempre unidade.
+function d2Med() { return (D2.moeda && D2.medida === 'm') ? D2.moeda : 'u'; }
+function d2PL(o, m)   { return +(m === 'BRL' ? o.lr : m === 'USD' ? o.ld : o.lu) || 0; }   // lucro das liquidadas
+function d2St(o, m)   { return +(m === 'BRL' ? o.sr : m === 'USD' ? o.sd : o.su) || 0; }   // stake das liquidadas
+function d2Pend(o, m) { return +(m === 'BRL' ? o.rp : m === 'USD' ? o.dp : o.sp) || 0; }   // stake das pendentes
+function d2Roi(o, m)  { const s = d2St(o, m); return s > 0 ? d2PL(o, m) / s * 100 : null; } // ROI só sobre o que já liquidou
+
+// ── escrita dos números ──
+function d2E(s) { return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+// Arredonda como o banco (meio pra longe do zero). Os valores vêm com até 6 casas; passar por inteiros evita
+// que R$ 336,975 vire 336,97 num lugar e 336,98 em outro por causa da conta em binário.
+function d2Arred(v, dec) { return Math.round(Math.round(Math.abs(+v || 0) * 1e6) / Math.pow(10, 6 - dec)) / Math.pow(10, dec); }
+function d2N(v, dec) { return d2Arred(v, dec).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
+function d2Int(v) { return (+v || 0).toLocaleString('pt-BR'); }
+function d2Nulo(v, dec) { return d2Arred(v, dec) === 0; }
+function d2Sinal(v, dec, comMais) { return d2Nulo(v, dec) ? '' : (v < 0 ? '−' : (comMais ? '+' : '')); }
+function d2Simb(m) { return m === 'USD' ? 'US$' : 'R$'; }
+function d2Cls(v, dec = 2) { return d2Nulo(v, dec) ? '' : (v > 0 ? 'pos' : 'neg'); }
+// texto puro: "+12,34u", "−R$ 1.198,56"
+function d2T(v, m, comMais = true, dec = 2) {
+  const s = d2Sinal(v, dec, comMais), n = d2N(d2Nulo(v, dec) ? 0 : v, dec);
+  return m === 'u' ? `${s}${n}u` : `${s}${d2Simb(m)} ${n}`;
+}
+// o mesmo, com a unidade num span menor
+function d2V(v, m, comMais = true, dec = 2) {
+  const s = d2Sinal(v, dec, comMais), n = d2N(d2Nulo(v, dec) ? 0 : v, dec);
+  return m === 'u' ? `${s}${n}<span class="d2-un">u</span>` : `${s}<span class="d2-un m">${d2Simb(m)}</span>${n}`;
+}
+// versão curta pra célula de calendário e eixo do gráfico
+function d2Curto(v, m, comMais = true) {
+  v = +v || 0;
+  const a = Math.abs(v);
+  let n;
+  if (m === 'u') n = a >= 100 ? d2N(a, 0) : d2N(a, 1);
+  else if (a >= 999500) n = d2N(a / 1e6, a >= 1e7 ? 0 : 1) + 'M';
+  else if (a >= 1000) n = d2N(a / 1e3, a >= 1e5 ? 0 : 1) + 'k';
+  else n = d2N(a, 0);
+  const nulo = /^0(,0)?$/.test(n);
+  return { s: nulo ? '' : (v < 0 ? '−' : (comMais ? '+' : '')), n };
+}
+function d2CurtoT(v, m, comMais) { const c = d2Curto(v, m, comMais); return m === 'u' ? `${c.s}${c.n}u` : `${c.s}${d2Simb(m)} ${c.n}`; }
+function d2CurtoV(v, m, comMais) { const c = d2Curto(v, m, comMais); return m === 'u' ? `${c.s}${c.n}<span class="d2-un">u</span>` : `${c.s}<span class="d2-un m">${d2Simb(m)}</span>${c.n}`; }
+// rótulo do eixo do gráfico: sem casas sobrando, conforme o passo entre as marcas
+function d2Eixo(v, m, passo) {
+  const a = Math.abs(+v || 0);
+  let n;
+  if (m !== 'u' && a >= 1e6) n = d2N(a / 1e6, passo >= 1e6 ? 0 : 1) + 'M';
+  else if (m !== 'u' && a >= 1e4) n = d2N(a / 1e3, passo >= 1000 ? 0 : 1) + 'k';
+  else n = d2N(a, passo >= 1 ? 0 : passo >= 0.1 ? 1 : 2);
+  const s = (v < 0 && /[1-9]/.test(n)) ? '−' : '';
+  return m === 'u' ? `${s}${n}u` : `${s}${d2Simb(m)} ${n}`;
+}
+function d2P(v, comMais = false, dec = 1) {
+  if (v === null || v === undefined || !isFinite(v)) return '–';
+  return d2Sinal(v, dec, comMais) + d2N(d2Nulo(v, dec) ? 0 : v, dec) + '%';
+}
+function d2Pl(n, um, varios) { return n === 1 ? um : varios; }
+
+// ── entrar e sair da página ──
+function d2Entrar() {
+  D2.ativo = true;
+  document.body.classList.add('tema-novo');
+  if (!D2.calMes) D2.calMes = d2Hoje().slice(0, 7);
+  try { history.replaceState(null, '', '#novo'); } catch (e) {}
+  d2PintarLente();
+  d2PintarAcoes();
+  document.getElementById('pageContent').innerHTML = d2Casca();
+  const raiz = document.getElementById('d2');
+  raiz.addEventListener('click', d2Clique);
+  raiz.addEventListener('change', d2Mudou);
+  d2PintarFiltros();
+  if (D2.dados && !D2.erro && D2.chave === d2ChaveFiltros()) d2Pintar();   // voltou pra página: mostra o que já tinha enquanto atualiza
+  d2Carregar(true);
+  if (!D2.opcoes) d2CarregarOpcoes();
+}
+function d2Sair() {
+  if (!D2.ativo && !document.body.classList.contains('tema-novo')) return;
+  D2.ativo = false;
+  D2.seq++;
+  document.body.classList.remove('tema-novo');
+  ['d2TopLeft', 'd2TopRight'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = ''; });
+  if (D2.chart) { D2.chart.destroy(); D2.chart = null; }
+  try { if (location.hash === '#novo') history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+}
+function d2Casca() {
+  return `<div class="d2" id="d2">
+    <div class="d2-filtros">
+      <div class="d2-seg" role="group" aria-label="Período" id="d2Periodos">${D2_PERIODOS.map(([k, r]) => `<button type="button" data-a="periodo" data-v="${k}">${r}</button>`).join('')}</div>
+      <div class="d2-datas" id="d2Datas"><input type="date" id="d2De" aria-label="Data inicial"><span>até</span><input type="date" id="d2Ate" aria-label="Data final"></div>
+      <button type="button" class="d2-btn" id="d2BtnFiltros" data-a="filtros" aria-expanded="false" aria-controls="d2Painel">Filtros<span class="d2-cont" id="d2Cont" hidden></span></button>
+      <div class="d2-chips" id="d2Chips"></div>
+      <div class="d2-atual"><span id="d2Hora"></span><button type="button" class="d2-link" data-a="atualizar">Atualizar</button></div>
+    </div>
+    <div class="d2-painel" id="d2Painel" hidden></div>
+    <div id="d2Corpo"><div class="loading"><div class="spinner"></div>Calculando...</div></div>
+  </div>`;
+}
+
+// ── barra de cima: moeda, medida, briefings, fechar dia ──
+function d2PintarLente() {
+  const e = document.getElementById('d2TopLeft');
+  if (!e) return;
+  const lente = [['', 'Geral', 'Tudo junto, em unidades'], ['BRL', 'R$', 'Só o que foi apostado em reais'], ['USD', 'US$', 'Só o que foi apostado em dólar']];
+  let h = `<span class="d2-tag">prévia</span><div class="d2-seg" role="group" aria-label="Moeda">${lente.map(([v, r, t]) => `<button type="button" data-a="moeda" data-v="${v}" title="${t}" aria-pressed="${(D2.moeda || '') === v}">${r}</button>`).join('')}</div>`;
+  if (D2.moeda) {
+    h += `<span class="d2-vt">Ver em</span><div class="d2-seg" role="group" aria-label="Ver em">
+      <button type="button" data-a="medida" data-v="m" aria-pressed="${D2.medida === 'm'}">${D2.moeda === 'USD' ? 'Dólar' : 'Reais'}</button>
+      <button type="button" data-a="medida" data-v="u" aria-pressed="${D2.medida === 'u'}">Unidades</button></div>`;
+  }
+  e.innerHTML = h;
+}
+function d2PintarAcoes() {
+  const d = document.getElementById('d2TopRight');
+  if (!d) return;
+  d.innerHTML = `<div class="d2-pop-wrap"><button type="button" class="d2-btn" data-a="briefings" id="d2BtnBrf" aria-expanded="false" aria-controls="d2Pop">Briefings</button><div class="d2-pop" id="d2Pop" hidden></div></div>
+    <button type="button" class="d2-btn forte" data-a="fechar-dia">Fechar dia</button>`;
+}
+function d2FecharPop() {
+  const pop = document.getElementById('d2Pop'), btn = document.getElementById('d2BtnBrf');
+  if (pop && !pop.hidden) { pop.hidden = true; if (btn) btn.setAttribute('aria-expanded', 'false'); }
+}
+async function d2AbrirBriefings() {
+  const pop = document.getElementById('d2Pop'), btn = document.getElementById('d2BtnBrf');
+  if (!pop || !btn) return;
+  if (!pop.hidden) { d2FecharPop(); return; }
+  pop.hidden = false;
+  btn.setAttribute('aria-expanded', 'true');
+  if (!D2.briefings) {
+    pop.innerHTML = '<p>Carregando…</p>';
+    try { D2.briefings = await sbGet('briefings?select=data_ref&order=data_ref.desc&limit=10'); } catch (e) { D2.briefings = null; }
+  }
+  const lista = Array.isArray(D2.briefings) ? D2.briefings : [];
+  pop.innerHTML = lista.length
+    ? lista.map(b => `<button type="button" data-a="briefing" data-v="${d2E(b.data_ref)}">${d2DataLonga(b.data_ref)}</button>`).join('')
+    : '<p>Nenhum briefing ainda.</p>';
+}
+
+// ── filtros ──
+function d2ChaveFiltros() { return JSON.stringify([D2.moeda, D2.f]); }
+function d2Fonte(k) { return ({ op: cache.operadores, ti: cache.tipsters, bo: cache.bookies, es: cache.esportes })[k] || []; }
+function d2NomeFiltro(k, v) {
+  if (k === 'st') return (D2_STATUS.find(x => x[0] === v) || [v, v])[1];
+  if (k === 'me') return v === D2_SEM_MERCADO ? 'Sem mercado' : v;
+  if (v === D2_ZERO) return ({ op: 'Sem operador', ti: 'Sem tipster', bo: 'Sem casa', es: 'Sem esporte' })[k];
+  return (d2Fonte(k).find(x => x.id === v) || {}).nome || 'Não cadastrado';
+}
+// Só entra na lista o que já teve aposta na moeda escolhida.
+function d2Permitidos(k) {
+  if (!D2.opcoes) return null;
+  const s = new Set();
+  (D2.moeda ? [D2.moeda] : ['BRL', 'USD']).forEach(m => (((D2.opcoes[m] || {})[k]) || []).forEach(x => s.add(x)));
+  return s;
+}
+function d2Opcoes(k) {
+  if (k === 'st') return D2_STATUS;
+  const perm = d2Permitidos(k);
+  let lista;
+  if (k === 'me') lista = perm ? [...perm].map(x => [x, x]) : (cache.mercados || []).map(x => [x.nome, x.nome]);
+  else lista = d2Fonte(k).filter(x => !perm || perm.has(x.id)).map(x => [x.id, x.nome]);
+  lista.sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'pt-BR'));
+  const atual = D2.f[k];
+  if (atual && !lista.some(x => x[0] === atual)) lista.unshift([atual, d2NomeFiltro(k, atual)]);
+  return lista;
+}
+function d2PintarFiltros() {
+  const raiz = document.getElementById('d2');
+  if (!raiz) return;
+  raiz.querySelectorAll('#d2Periodos button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === D2.periodo)));
+  const j = d2Janela(), de = document.getElementById('d2De'), ate = document.getElementById('d2Ate');
+  if (D2.periodo === 'datas') { de.value = D2.de; ate.value = D2.ate; } else { de.value = j.de || ''; ate.value = ''; }
+  document.getElementById('d2Datas').classList.toggle('ativo', D2.periodo === 'datas');
+
+  const ativos = D2_CAMPOS.filter(([k]) => D2.f[k]);
+  const cont = document.getElementById('d2Cont');
+  cont.hidden = !ativos.length;
+  cont.textContent = ativos.length;
+  document.getElementById('d2BtnFiltros').setAttribute('aria-expanded', String(D2.filtrosAbertos));
+  document.getElementById('d2Chips').innerHTML =
+    ativos.map(([k, rot]) => `<button type="button" class="d2-chip" data-a="tirar" data-v="${k}" title="Tirar este filtro"><small>${rot}</small>${d2E(d2NomeFiltro(k, D2.f[k]))}<b aria-hidden="true">×</b></button>`).join('') +
+    (ativos.length > 1 ? '<button type="button" class="d2-link" data-a="limpar">Limpar filtros</button>' : '');
+
+  const p = document.getElementById('d2Painel');
+  p.hidden = !D2.filtrosAbertos;
+  if (!D2.filtrosAbertos) return;
+  const foco = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.f : null;
+  p.innerHTML = D2_CAMPOS.map(([k, rot, todos]) => `<label>${rot}<select data-f="${k}" class="${D2.f[k] ? 'ativo' : ''}"><option value="">${todos}</option>${d2Opcoes(k).map(([v, n]) => `<option value="${d2E(v)}"${v === D2.f[k] ? ' selected' : ''}>${d2E(n)}</option>`).join('')}</select></label>`).join('');
+  if (foco) { const s = p.querySelector(`select[data-f="${foco}"]`); if (s) s.focus(); }
+}
+
+// ── cliques e mudanças ──
+function d2Clique(ev) {
+  const b = ev.target.closest('[data-a]');
+  if (!b) return;
+  const a = b.dataset.a, v = b.dataset.v;
+  if (a === 'periodo') { D2.periodo = v; D2.de = ''; D2.ate = ''; d2GravarPrefs(); d2MudouPeriodo(); }
+  else if (a === 'moeda') { D2.moeda = v || null; d2PintarLente(); d2PintarFiltros(); d2Carregar(true); }
+  else if (a === 'medida') { D2.medida = v; d2GravarPrefs(); d2PintarLente(); d2Pintar(); }
+  else if (a === 'filtros') { D2.filtrosAbertos = !D2.filtrosAbertos; d2PintarFiltros(); }
+  else if (a === 'tirar') { D2.f[v] = ''; d2PintarFiltros(); d2Carregar(true); }
+  else if (a === 'limpar') { D2.f = { op:'', ti:'', bo:'', es:'', me:'', st:'' }; d2PintarFiltros(); d2Carregar(true); }
+  else if (a === 'atualizar' || a === 'de-novo') { d2Carregar(true); }
+  else if (a === 'tabela') { D2.tabelaAberta = !D2.tabelaAberta; d2PintarTabela(); }
+  else if (a === 'cal-modo') { D2.calModo = v; d2PintarCal(); d2PintarDow(); }
+  else if (a === 'cal-nav') { d2CalNav(+v); }
+  else if (a === 'cal-mes') { D2.calMes = v; D2.calModo = 'mes'; d2PintarCal(); d2PintarDow(); }
+  else if (a === 'dia') { d2IrParaDia(v); }
+  else if (a === 'dow-modo') { D2.dowModo = v; d2GravarPrefs(); d2PintarDow(); }
+  else if (a === 'aba') { D2.aba = v; D2.tudoAberto = false; d2GravarPrefs(); d2PintarDesemp(); }
+  else if (a === 'metrica') { D2.metrica = v; d2GravarPrefs(); d2PintarDesemp(); }
+  else if (a === 'abrir-tudo') { D2.tudoAberto = !D2.tudoAberto; d2PintarDesemp(); }
+  else if (a === 'filtrar') {
+    const campo = D2_FILTRO_DA_ABA[D2.aba];
+    if (!campo) return;
+    const valor = b.dataset.k || (campo === 'me' ? D2_SEM_MERCADO : D2_ZERO);
+    D2.f[campo] = D2.f[campo] === valor ? '' : valor;
+    d2PintarFiltros();
+    d2Carregar(true);
+  }
+  else if (a === 'briefings') { d2AbrirBriefings(); }
+  else if (a === 'briefing') { d2FecharPop(); openBriefing(v); }
+  else if (a === 'fechar-dia') { abrirModalFecharDia(); }
+}
+function d2Mudou(ev) {
+  const t = ev.target;
+  if (t.id === 'd2De' || t.id === 'd2Ate') {
+    D2.de = document.getElementById('d2De').value;
+    D2.ate = document.getElementById('d2Ate').value;
+    if (D2.de || D2.ate) D2.periodo = 'datas';
+    else if (D2.periodo === 'datas') D2.periodo = '30d';
+    d2MudouPeriodo();
+  } else if (t.dataset && t.dataset.f) {
+    D2.f[t.dataset.f] = t.value;
+    d2PintarFiltros();
+    d2Carregar(true);
+  } else if (t.id === 'd2MinAp') {
+    D2.minAp = +t.value;
+    d2GravarPrefs();
+    d2PintarDesemp();
+  }
+}
+// Trocar só o período: a tela muda na hora com os dias que já estão aqui; o banco manda o resto (abas e odd típica).
+function d2MudouPeriodo() {
+  d2PintarFiltros();
+  if (D2.dados && !D2.erro && D2.chave === d2ChaveFiltros()) { d2Pintar(); d2Carregar(false); }
+  else d2Carregar(true);
+}
+function d2IrParaDia(iso) {
+  gFilters = { op: D2.f.op === D2_ZERO ? '' : D2.f.op, ti: D2.f.ti, bo: D2.f.bo === D2_ZERO ? '' : D2.f.bo, st: D2.f.st, de: iso, ate: iso };
+  showPage('apostas');
+}
+
+// ── buscar no banco ──
+function d2Ocupado(tipo) {
+  const r = document.getElementById('d2');
+  if (!r) return;
+  r.classList.toggle('d2-ocupado', tipo === 'tudo');
+  r.classList.toggle('d2-ocupado-parcial', tipo === 'parcial');
+}
+async function d2Carregar(comDias) {
+  const chave = d2ChaveFiltros();
+  if (!D2.dados || D2.erro || D2.chave !== chave) comDias = true;
+  const seq = ++D2.seq, j = d2Janela();
+  d2Ocupado(comDias ? 'tudo' : 'parcial');
+  let r = null;
+  try {
+    r = await sbRpc('dashboard_v2', {
+      p_moeda: D2.moeda, p_op: D2.f.op || null, p_ti: D2.f.ti || null, p_bo: D2.f.bo || null, p_es: D2.f.es || null,
+      p_me: D2.f.me || null, p_st: D2.f.st || null, p_de: j.de, p_ate: j.ate, p_dias: comDias
+    });
+  } catch (e) { r = null; }
+  if (seq !== D2.seq || !D2.ativo) return;   // chegou resposta de um pedido antigo
+  d2Ocupado('');
+  if (!r || !r.por || (comDias && !Array.isArray(r.dias))) { D2.erro = true; d2Pintar(); return; }
+  D2.erro = false;
+  if (comDias) { D2.dados = r; D2.chave = chave; }
+  else D2.dados = Object.assign({}, D2.dados, { por: r.por, oddMed: r.oddMed, em: r.em });
+  d2Pintar();
+}
+async function d2CarregarOpcoes() {
+  try {
+    const o = await sbRpc('dashboard_v2_opcoes', {});
+    if (o && (o.BRL || o.USD)) { D2.opcoes = o; if (D2.ativo) d2PintarFiltros(); }
+  } catch (e) {}
+}
+
+// ── desenho ──
+function d2Pintar() {
+  const c = document.getElementById('d2Corpo');
+  if (!c) return;
+  if (D2.erro || !D2.dados) {
+    if (D2.chart) { D2.chart.destroy(); D2.chart = null; }
+    c.innerHTML = D2.erro ? '<div class="d2-card d2-erro"><p>Não deu pra carregar os números.</p><button type="button" class="d2-btn" data-a="de-novo">Tentar de novo</button></div>' : '';
+    return;
+  }
+  const hora = document.getElementById('d2Hora');
+  if (hora && D2.dados.em) hora.textContent = 'Atualizado às ' + new Date(D2.dados.em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (!document.getElementById('d2Placar')) {
+    c.innerHTML = `<section class="d2-placar" id="d2Placar"></section>
+      <section class="d2-l2"><div class="d2-card" id="d2Cal"></div><div class="d2-card d2-dow" id="d2Dow"></div></section>
+      <section class="d2-card d2-desemp" id="d2Desemp"></section>
+      <p class="d2-nota">Prévia do dashboard novo. O dashboard atual continua no menu, do jeito que estava.</p>`;
+  }
+  d2PintarPlacar();
+  d2PintarCal();
+  d2PintarDow();
+  d2PintarDesemp();
+}
+
+function d2PintarPlacar() {
+  const el = document.getElementById('d2Placar');
+  if (!el) return;
+  const j = d2Janela(), m = d2Med(), t = d2Soma(j.de, j.ate);
+  const ant = d2JanelaAnterior(), ta = ant ? d2Soma(ant.de, ant.ate) : null;
+  const pl = d2PL(t, m), roi = d2Roi(t, m);
+  const nR = t.n - t.nu, nD = t.nu;
+  const outras = m === 'u' ? [nR > 0 ? 'BRL' : null, nD > 0 ? 'USD' : null].filter(Boolean) : ['u'];   // as outras medidas do mesmo recorte
+
+  const lado = [];
+  if (ta) lado.push([ant.rotulo, `<span class="${d2Cls(d2PL(ta, m))}">${d2V(d2PL(ta, m), m)}</span>`, '']);
+  if (t.np > 0 && roi !== null) {
+    const proj = pl + roi / 100 * d2Pend(t, m);
+    lado.push([`Projeção com ${d2Int(t.np)} ${d2Pl(t.np, 'pendente', 'pendentes')}`, `<span class="${d2Cls(proj)}">${d2V(proj, m)}</span>`, 'P/L de agora mais o stake pendente rendendo o ROI do período']);
+  }
+  const lente = D2.moeda === 'BRL' ? ', só em reais' : D2.moeda === 'USD' ? ', só em dólar' : '';
+
+  const cel = (rot, val, subs, extra) => {
+    const letras = String(val).replace(/<[^>]*>/g, '').length, tam = letras >= 14 ? ' t4' : letras >= 12 ? ' t3' : letras >= 9 ? ' t2' : '';
+    return `<div class="d2-cel"${extra || ''}><div class="d2-rot">${rot}</div><div class="d2-cel-val${tam}">${val}</div><div class="d2-cel-sub">${subs.filter(Boolean).join('<br>')}</div></div>`;
+  };
+  const nomeMed = x => x === 'u' ? 'em unidades' : x === 'USD' ? 'em dólar' : 'em reais';
+  const inv = x => d2St(t, x) + d2Pend(t, x);
+  const qtd = x => x === 'BRL' ? nR : x === 'USD' ? nD : t.n;
+  const media = x => qtd(x) > 0 ? inv(x) / qtd(x) : 0;
+  const acerto = t.ns > 0 ? t.w / t.ns * 100 : null;
+  const odd = D2.dados.oddMed;
+
+  el.innerHTML = `<div class="d2-card d2-hero">
+      <div class="d2-hero-topo">
+        <div>
+          <div class="d2-rot">P/L ${d2RotuloPeriodo()}${lente}</div>
+          <div class="d2-hero-num ${d2Cls(pl)}">${d2V(pl, m)}</div>
+          <div class="d2-hero-sub">${outras.map(x => `<span>${d2V(d2PL(t, x), x)}</span>`).join('')}</div>
+        </div>
+        <dl class="d2-hero-lado">${lado.map(([r, v, dica]) => `<div${dica ? ` title="${dica}"` : ''}><dt>${r}</dt><dd>${v}</dd></div>`).join('')}</dl>
+      </div>
+      <div class="d2-graf" id="d2Graf"><canvas id="d2Evol" role="img" aria-label="Evolução do P/L acumulado no período. Os mesmos números estão em Ver em tabela."></canvas></div>
+      <div class="d2-graf-pe"><button type="button" class="d2-link" data-a="tabela" id="d2BtnTabela" aria-expanded="false" aria-controls="d2Tabela">Ver em tabela</button></div>
+      <div id="d2Tabela" hidden></div>
+    </div>
+    <div class="d2-card d2-sumula">
+      ${cel('ROI', `<span class="${d2Cls(roi || 0)}">${d2P(roi, true, 2)}</span>`, outras.map(x => d2St(t, x) > 0 ? `${nomeMed(x)} <b>${d2P(d2Roi(t, x), true, 2)}</b>` : ''))}
+      ${cel('Acerto', d2P(acerto, false, 1), [`<b>${d2Int(t.w)}</b> de ${d2Int(t.ns)} liquidadas`])}
+      ${cel('Entradas', d2Int(t.n), [`<b>${d2Int(t.np)}</b> ${d2Pl(t.np, 'pendente', 'pendentes')}`, (!D2.moeda && nD > 0) ? `<b>${d2Int(nD)}</b> em dólar` : ''])}
+      ${cel('Investimento', d2V(inv(m), m, false), outras.map(x => `<b>${d2V(inv(x), x, false)}</b>`).concat(t.np > 0 ? [`pendente <b>${d2V(d2Pend(t, m), m, false)}</b>`] : []))}
+      ${cel('Odd típica', (odd === null || odd === undefined) ? '–' : d2N(odd, 2), ['metade do stake está abaixo dela'], ' id="d2OddCel" title="Mediana ponderada por stake: a odd abaixo da qual está metade do dinheiro das apostas liquidadas do período. Bilhete de odd alta com stake pequena não mexe nela."')}
+      ${cel('Stake média', d2V(media(m), m, false), outras.map(x => `<b>${d2V(media(x), x, false)}</b>`))}
+    </div>`;
+  d2Grafico(j, m);
+  d2PintarTabela();
+}
+
+// Um ponto por dia do período, com o acumulado. Dia sem aposta liquidada repete o acumulado.
+function d2Serie(j, m) {
+  const dias = D2.dados.dias || [], h = d2Hoje();
+  let primeiro = null, ultimo = null;
+  for (const r of dias) if (r[3] > 0) { if (!primeiro) primeiro = r[0]; ultimo = r[0]; }
+  if (!primeiro) return [];
+  const ini = (j.de && j.de > primeiro) ? j.de : primeiro;   // não desenha os dias vazios de antes da primeira aposta
+  let fim = ultimo > h ? ultimo : h;
+  if (j.ate && j.ate < fim) fim = j.ate;
+  if (fim < ini) return [];
+  const mapa = new Map(dias.map(r => [r[0], r]));
+  const out = [];
+  let ac = 0, liquidadas = 0;
+  for (let d = ini; d <= fim; d = d2Mais(d, 1)) {
+    const r = mapa.get(d), v = r ? d2PL(d2Obj(r), m) : 0, ns = r ? r[3] : 0;
+    ac += v; liquidadas += ns;
+    out.push({ d, v, ac, ns });
+  }
+  return liquidadas > 0 ? out : [];
+}
+const d2Mira = {
+  id: 'd2Mira',
+  beforeDatasetsDraw(chart) {
+    const ativos = chart.tooltip && chart.tooltip.getActiveElements ? chart.tooltip.getActiveElements() : [];
+    if (!ativos.length) return;
+    const x = ativos[0].element.x, a = chart.chartArea, ctx = chart.ctx;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(x, a.top); ctx.lineTo(x, a.bottom);
+    ctx.lineWidth = 1; ctx.strokeStyle = D2_COR.zero; ctx.stroke(); ctx.restore();
+  }
+};
+function d2Grafico(j, m) {
+  if (D2.chart) { D2.chart.destroy(); D2.chart = null; }
+  const caixa = document.getElementById('d2Graf'), canvas = document.getElementById('d2Evol');
+  if (!caixa || !canvas) return;
+  const s = D2.serie = d2Serie(j, m);
+  if (!s.length) { caixa.innerHTML = '<div class="d2-vazio">Nenhuma aposta liquidada nesse recorte. Tente outro período ou tire algum filtro.</div>'; return; }
+  if (typeof Chart === 'undefined') { caixa.innerHTML = '<div class="d2-vazio">O gráfico não carregou. Os números estão em Ver em tabela.</div>'; return; }
+  const longo = s.length > 92, n = s.length;
+  // linha e área: verde acima do zero, vermelho abaixo
+  const corPorZero = (c, acima, abaixo) => {
+    const ch = c.chart, a = ch.chartArea;
+    if (!a) return acima;
+    const y0 = ch.scales.y.getPixelForValue(0), g = ch.ctx.createLinearGradient(0, a.top, 0, a.bottom);
+    const p = Math.max(0, Math.min(1, (y0 - a.top) / (a.bottom - a.top)));
+    g.addColorStop(0, acima); g.addColorStop(p, acima); g.addColorStop(p, abaixo); g.addColorStop(1, abaixo);
+    return g;
+  };
+  D2.chart = new Chart(canvas, {
+    type: 'line',
+    data: { labels: s.map(p => p.d), datasets: [{
+      data: s.map(p => p.ac), borderWidth: 2, borderJoinStyle: 'round', borderCapStyle: 'round', tension: 0,
+      borderColor: c => corPorZero(c, D2_COR.pos, D2_COR.neg),
+      fill: { target: 'origin', above: D2_COR.posF, below: D2_COR.negF },
+      pointRadius: c => c.dataIndex === n - 1 ? 4 : 0,
+      pointBackgroundColor: s[n - 1].ac < 0 ? D2_COR.neg : D2_COR.pos, pointBorderColor: D2_COR.fundo, pointBorderWidth: 2,
+      pointHoverRadius: 5, pointHoverBackgroundColor: c => (s[c.dataIndex] && s[c.dataIndex].ac < 0) ? D2_COR.neg : D2_COR.pos,
+      pointHoverBorderColor: D2_COR.fundo, pointHoverBorderWidth: 2, pointHitRadius: 14
+    }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: 'index', intersect: false },
+      layout: { padding: { top: 8, right: 10 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          displayColors: false, backgroundColor: D2_COR.fundo2, borderColor: D2_COR.linha2, borderWidth: 1, padding: 10, cornerRadius: 8,
+          titleColor: D2_COR.tinta2, titleFont: { family: D2_FONTE, size: 12, weight: '500' }, titleMarginBottom: 6,
+          bodyColor: D2_COR.tinta, bodyFont: { family: D2_FONTE, size: 13, weight: '600' }, bodySpacing: 3,
+          callbacks: {
+            title: it => d2DataLonga(s[it[0].dataIndex].d),
+            label: c => { const p = s[c.dataIndex]; return [`${d2T(p.ac, m)} acumulado`, `${d2T(p.v, m)} no dia`, `${d2Int(p.ns)} ${d2Pl(p.ns, 'aposta liquidada', 'apostas liquidadas')}`]; }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { color: D2_COR.linha2 },
+             ticks: { color: D2_COR.tinta3, font: { family: D2_FONTE, size: 11 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 18, maxTicksLimit: 9,
+                      callback: function (v) { const d = s[v] ? s[v].d : ''; return !d ? '' : longo ? D2_MES_C[+d.slice(5, 7) - 1] + '/' + d.slice(2, 4) : d.slice(8) + '/' + d.slice(5, 7); } } },
+        y: { suggestedMin: 0, suggestedMax: 0, border: { display: false },
+             grid: { color: c => c.tick && c.tick.value === 0 ? D2_COR.zero : D2_COR.linha, lineWidth: 1 },
+             ticks: { color: D2_COR.tinta3, font: { family: D2_FONTE, size: 11 }, maxTicksLimit: 6, padding: 8, callback: (v, i, marcas) => d2Eixo(v, m, marcas.length > 1 ? Math.abs(marcas[1].value - marcas[0].value) : 1) } }
+      }
+    },
+    plugins: [d2Mira]
+  });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (D2.chart) D2.chart.update('none'); });
+}
+// Tabela gêmea do gráfico: os mesmos números, sem depender de passar o mouse.
+function d2PintarTabela() {
+  const el = document.getElementById('d2Tabela'), btn = document.getElementById('d2BtnTabela');
+  if (!el || !btn) return;
+  btn.setAttribute('aria-expanded', String(D2.tabelaAberta));
+  btn.textContent = D2.tabelaAberta ? 'Esconder a tabela' : 'Ver em tabela';
+  el.hidden = !D2.tabelaAberta;
+  if (!D2.tabelaAberta) return;
+  const m = d2Med(), s = D2.serie || [];
+  let linhas = [], primeira = 'Dia';
+  if (s.length <= 62) linhas = s.filter(p => p.ns > 0).map(p => [d2DataLonga(p.d), p.ns, p.v, p.ac]);
+  else {
+    primeira = 'Mês';
+    const porMes = new Map();
+    for (const p of s) { const k = p.d.slice(0, 7), o = porMes.get(k) || { ns: 0, v: 0, ac: 0 }; o.ns += p.ns; o.v += p.v; o.ac = p.ac; porMes.set(k, o); }
+    linhas = [...porMes].filter(([, o]) => o.ns > 0).map(([k, o]) => [D2_MES[+k.slice(5) - 1] + ' de ' + k.slice(0, 4), o.ns, o.v, o.ac]);
+  }
+  linhas.reverse();
+  el.innerHTML = linhas.length
+    ? `<div class="d2-tab-rol"><table class="d2-tab"><thead><tr><th>${primeira}</th><th>Apostas liquidadas</th><th>P/L</th><th>Acumulado</th></tr></thead><tbody>${linhas.map(([a, b, c, d]) => `<tr><td>${a}</td><td>${d2Int(b)}</td><td class="${d2Cls(c)}">${d2V(c, m)}</td><td class="${d2Cls(d)}">${d2V(d, m)}</td></tr>`).join('')}</tbody></table></div>`
+    : '<div class="d2-vazio">Nenhuma aposta liquidada nesse recorte.</div>';
+}
+
+// ── calendário ──
+function d2CalLimites() {
+  const dias = D2.dados.dias || [], h = d2Hoje().slice(0, 7);
+  let min = h, max = h;
+  for (const r of dias) { if (r[1] > 0) { const ym = r[0].slice(0, 7); if (ym < min) min = ym; if (ym > max) max = ym; } }
+  return { min, max };
+}
+function d2CalNav(delta) {
+  const lim = d2CalLimites();
+  let novo = d2MesMais(D2.calMes, D2.calModo === 'ano' ? delta * 12 : delta);
+  if (D2.calModo === 'ano') { if (novo.slice(0, 4) < lim.min.slice(0, 4) || novo.slice(0, 4) > lim.max.slice(0, 4)) return; }
+  else if (novo < lim.min || novo > lim.max) return;
+  D2.calMes = novo;
+  d2PintarCal();
+  d2PintarDow();
+}
+function d2Celula(rotulo, o, m, ref, hoje, attrs, nomeLongo) {
+  if (!o || !o.n) return `<div class="d2-dia${hoje ? ' hoje' : ''}"><div class="d2-dia-n"><span>${rotulo}</span></div></div>`;
+  const v = d2PL(o, m), temRes = o.ns > 0;
+  let estilo = '';
+  if (temRes && !d2Nulo(v, 2)) estilo = ` style="background:rgba(${v > 0 ? '24,169,153' : '229,83,61'},${(0.14 + 0.34 * Math.min(1, Math.abs(v) / ref)).toFixed(2)})"`;
+  const fala = `${nomeLongo}: ${temRes ? d2T(v, m) : 'sem resultado ainda'}, ${d2Int(o.n)} ${d2Pl(o.n, 'aposta', 'apostas')}${o.np ? `, ${d2Int(o.np)} ${d2Pl(o.np, 'pendente', 'pendentes')}` : ''}`;
+  return `<button type="button" class="d2-dia${hoje ? ' hoje' : ''}" ${attrs}${estilo} aria-label="${fala}" title="${fala}">
+    <div class="d2-dia-n"><span>${rotulo}</span>${o.np ? `<span class="d2-pend">${d2Int(o.np)}</span>` : ''}</div>
+    <div class="d2-dia-v">${temRes ? d2CurtoV(v, m) : ''}</div>
+    <div class="d2-dia-q">${d2Int(o.n)} ap.</div></button>`;
+}
+function d2Referencia(valores) {   // escala da cor: o 95º percentil, pra um dia fora da curva não apagar os outros
+  const abs = valores.map(Math.abs).filter(v => v > 0).sort((a, b) => a - b);
+  return abs.length ? abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.95))] : 1;
+}
+function d2Resumo(itens) {
+  return `<div class="d2-resumo">${itens.map(([r, v, s]) => `<div><div class="d2-rot">${r}</div><strong>${v}</strong>${s ? `<small>${s}</small>` : ''}</div>`).join('')}</div>`;
+}
+function d2PintarCal() {
+  const el = document.getElementById('d2Cal');
+  if (!el) return;
+  const m = d2Med(), lim = d2CalLimites(), hoje = d2Hoje();
+  if (D2.calMes < lim.min) D2.calMes = lim.min;
+  if (D2.calMes > lim.max) D2.calMes = lim.max;
+  const ano = D2.calMes.slice(0, 4), noAno = D2.calModo === 'ano';
+  const podeMenos = noAno ? ano > lim.min.slice(0, 4) : D2.calMes > lim.min;
+  const podeMais = noAno ? ano < lim.max.slice(0, 4) : D2.calMes < lim.max;
+  const rotulo = noAno ? ano : D2_MES[+D2.calMes.slice(5) - 1] + ' de ' + ano;
+  let grade, rodape;
+  if (noAno) {
+    const meses = [];
+    for (let i = 1; i <= 12; i++) { const ym = ano + '-' + String(i).padStart(2, '0'); meses.push([ym, d2Soma(ym + '-01', ym + '-' + String(d2UltimoDia(ym)).padStart(2, '0'))]); }
+    const ref = d2Referencia(meses.filter(([, t]) => t.ns > 0).map(([, t]) => d2PL(t, m)));
+    grade = `<div class="d2-cal-grade d2-ano">${meses.map(([ym, t], i) => d2Celula(D2_MES_C[i], t, m, ref, ym === hoje.slice(0, 7), `data-a="cal-mes" data-v="${ym}"`, D2_MES[i] + ' de ' + ano)).join('')}</div>`;
+    const t = d2Soma(ano + '-01-01', ano + '-12-31'), pl = d2PL(t, m), roi = d2Roi(t, m);
+    const comRes = meses.filter(([, x]) => x.ns > 0), verdes = comRes.filter(([, x]) => d2PL(x, m) > 0).length;
+    rodape = d2Resumo([
+      ['Resultado do ano', `<span class="${d2Cls(pl)}">${d2V(pl, m)}</span>`],
+      ['ROI do ano', `<span class="${d2Cls(roi || 0, 1)}">${d2P(roi, true, 1)}</span>`],
+      ['Meses no verde', `${verdes} de ${comRes.length}`],
+      ['Apostas', d2Int(t.n), `${d2Int(t.w)} green, ${d2Int(t.l)} red`]
+    ]);
+  } else {
+    const nDias = d2UltimoDia(D2.calMes), de = D2.calMes + '-01', ate = D2.calMes + '-' + String(nDias).padStart(2, '0');
+    const t = d2Soma(de, ate), mapa = new Map(t.dias.map(r => [r[0], d2Obj(r)]));
+    const comRes = t.dias.filter(r => r[3] > 0).map(r => d2PL(d2Obj(r), m)), ref = d2Referencia(comRes);
+    const vazios = (d2Dt(de).getUTCDay() + 6) % 7;   // a semana começa na segunda
+    let cels = D2_SEM.map(x => `<div class="d2-cal-sem">${x}</div>`).join('') + '<div></div>'.repeat(vazios);
+    for (let dia = 1; dia <= nDias; dia++) {
+      const iso = D2.calMes + '-' + String(dia).padStart(2, '0');
+      cels += d2Celula(String(dia), mapa.get(iso), m, ref, iso === hoje, `data-a="dia" data-v="${iso}"`, `${dia} de ${D2_MES[+D2.calMes.slice(5) - 1]}`);
+    }
+    grade = `<div class="d2-cal-grade">${cels}</div>`;
+    const pl = d2PL(t, m), roi = d2Roi(t, m), verdes = comRes.filter(v => v > 0).length;
+    rodape = d2Resumo([
+      ['Resultado do mês', `<span class="${d2Cls(pl)}">${d2V(pl, m)}</span>`],
+      ['ROI do mês', `<span class="${d2Cls(roi || 0, 1)}">${d2P(roi, true, 1)}</span>`],
+      ['Dias no verde', `${verdes} de ${comRes.length}`],
+      ['Apostas', d2Int(t.n), `${d2Int(t.w)} green, ${d2Int(t.l)} red`]
+    ]);
+  }
+  el.innerHTML = `<div class="d2-cab"><div class="d2-tit">Resultado por ${noAno ? 'mês' : 'dia'}${m === 'u' ? '' : ` <span class="d2-em">em ${d2Simb(m)}</span>`}</div><div class="d2-cab-dir">
+      <div class="d2-seg pq" role="group" aria-label="Visão do calendário"><button type="button" data-a="cal-modo" data-v="mes" aria-pressed="${!noAno}">Mês</button><button type="button" data-a="cal-modo" data-v="ano" aria-pressed="${noAno}">Ano</button></div>
+      <div class="d2-nav"><button type="button" data-a="cal-nav" data-v="-1" aria-label="${noAno ? 'Ano anterior' : 'Mês anterior'}"${podeMenos ? '' : ' disabled'}>‹</button><span>${rotulo}</span><button type="button" data-a="cal-nav" data-v="1" aria-label="${noAno ? 'Próximo ano' : 'Próximo mês'}"${podeMais ? '' : ' disabled'}>›</button></div>
+    </div></div>${grade}${rodape}`;
+}
+
+// ── por dia da semana ──
+function d2Barra(v, max) {
+  const w = max > 0 ? Math.min(50, Math.abs(v) / max * 50) : 0;
+  return `<span class="d2-div" aria-hidden="true">${w >= 0.3 ? `<i class="${v < 0 ? 'neg' : ''}" style="width:${w.toFixed(1)}%"></i>` : ''}</span>`;
+}
+function d2PintarDow() {
+  const el = document.getElementById('d2Dow');
+  if (!el) return;
+  const m = d2Med(), noAno = D2.calModo === 'ano', ano = D2.calMes.slice(0, 4);
+  let de, ate;
+  if (D2.dowModo === 'cal') {
+    if (noAno) { de = ano + '-01-01'; ate = ano + '-12-31'; }
+    else { de = D2.calMes + '-01'; ate = D2.calMes + '-' + String(d2UltimoDia(D2.calMes)).padStart(2, '0'); }
+  } else { const j = d2Janela(); de = j.de; ate = j.ate; }
+  const t = d2Soma(de, ate);
+  const g = Array.from({ length: 7 }, () => ({ ns: 0, lu: 0, su: 0, lr: 0, sr: 0, ld: 0, sd: 0 }));
+  for (const r of t.dias) {
+    const o = g[(d2Dt(r[0]).getUTCDay() + 6) % 7];
+    o.ns += r[3]; o.lu += r[7]; o.su += r[8]; o.lr += r[10]; o.sr += r[11]; o.ld += r[13]; o.sd += r[14];
+  }
+  const max = Math.max(0, ...g.map(o => Math.abs(d2PL(o, m))));
+  const linhas = g.map((o, i) => {
+    const v = d2PL(o, m);
+    return `<div class="d2-dow-l" title="${D2_SEM_LONGO[i]}: ${d2Int(o.ns)} ${d2Pl(o.ns, 'aposta liquidada', 'apostas liquidadas')}"><span>${D2_SEM[i]}</span>${d2Barra(v, max)}<span class="d2-num ${d2Cls(v)}">${d2V(v, m)}</span><span class="d2-num d2-fraco">${d2P(d2Roi(o, m), true, 1)}</span></div>`;
+  }).join('');
+  el.innerHTML = `<div class="d2-cab"><div class="d2-tit">Por dia da semana</div>
+      <div class="d2-seg pq" role="group" aria-label="De quando"><button type="button" data-a="dow-modo" data-v="periodo" aria-pressed="${D2.dowModo === 'periodo'}">Período do filtro</button><button type="button" data-a="dow-modo" data-v="cal" aria-pressed="${D2.dowModo === 'cal'}">${noAno ? 'Ano' : 'Mês'} do calendário</button></div></div>
+    <div class="d2-dow-linhas">${t.ns > 0 ? `<div class="d2-dow-l d2-rot" style="padding:0"><span></span><span></span><span class="d2-num">P/L</span><span class="d2-num">ROI</span></div>${linhas}` : '<div class="d2-vazio">Nenhuma aposta liquidada nesse recorte.</div>'}</div>`;
+}
+
+// ── desempenho detalhado ──
+function d2PintarDesemp() {
+  const el = document.getElementById('d2Desemp');
+  if (!el) return;
+  const m = d2Med(), aba = D2.aba, porRoi = D2.metrica === 'roi';
+  const ordinal = aba === 'odd' || aba === 'unidade', campo = D2_FILTRO_DA_ABA[aba];
+  let linhas = (((D2.dados.por || {})[aba]) || []).filter(x => x.ns > 0).map(x => Object.assign({}, x, {
+    nome: aba === 'odd' ? D2_FAIXA_ODD[x.k] : aba === 'unidade' ? D2_FAIXA_UNI[x.k] : x.nome,
+    pl: d2PL(x, m), roi: d2Roi(x, m), acerto: x.ns > 0 ? x.w / x.ns * 100 : null
+  }));
+  let fora = 0;
+  if (porRoi) { const antes = linhas.length; linhas = linhas.filter(x => x.ns >= D2.minAp && x.roi !== null); fora = antes - linhas.length; }
+  const val = x => porRoi ? x.roi : x.pl;
+  if (ordinal) linhas.sort((a, b) => (a.k || 99) - (b.k || 99));
+  else linhas.sort((a, b) => val(b) - val(a) || String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
+  const max = Math.max(0, ...linhas.map(x => Math.abs(val(x))));
+
+  const linha = x => {
+    const k = (x.k === null || x.k === undefined) ? '' : String(x.k);
+    const ativo = !!campo && D2.f[campo] === (k || (campo === 'me' ? D2_SEM_MERCADO : D2_ZERO));
+    const outras = m === 'u' ? [x.n - x.nu > 0 ? d2T(x.lr, 'BRL') : '', x.nu > 0 ? d2T(x.ld, 'USD') : ''].filter(Boolean).join(' e ') : d2T(x.lu, 'u');
+    const miolo = `<span class="d2-lin-nome">${d2E(x.nome)}</span>${d2Barra(val(x), max)}
+      <span class="d2-num d2-fraco some">${d2Int(x.ns)}</span>
+      <span class="d2-num d2-fraco some">${d2P(x.acerto, false, 1)}</span>
+      <span class="d2-num c-roi ${porRoi ? 'forte ' + d2Cls(x.roi || 0, 1) : 'd2-fraco'}">${d2P(x.roi, true, 1)}</span>
+      <span class="d2-num c-pl ${porRoi ? '' : 'forte '}${d2Cls(x.pl)}" title="${outras}">${d2V(x.pl, m)}</span>`;
+    return campo
+      ? `<button type="button" class="d2-lin" data-a="filtrar" data-k="${d2E(k)}" title="${ativo ? 'Tirar este filtro' : 'Filtrar tudo por ' + d2E(x.nome)}">${miolo}</button>`
+      : `<div class="d2-lin">${miolo}</div>`;
+  };
+  let corpo;
+  const longa = !ordinal && linhas.length > 10;
+  if (!linhas.length) corpo = `<div class="d2-vazio">${fora ? `Nada com ${D2.minAp} apostas ou mais nesse recorte. Baixe o mínimo de apostas.` : 'Nenhuma aposta liquidada nesse recorte. Tente outro período ou tire algum filtro.'}</div>`;
+  else if (longa && !D2.tudoAberto) corpo = linhas.slice(0, 5).map(linha).join('') + `<div class="d2-meio">mais ${linhas.length - 10} no meio</div>` + linhas.slice(-5).map(linha).join('');
+  else corpo = linhas.map(linha).join('');
+
+  const aviso = [];
+  if (fora) aviso.push(`${fora} com menos de ${D2.minAp} ${d2Pl(D2.minAp, 'aposta', 'apostas')} ${d2Pl(fora, 'ficou', 'ficaram')} de fora.`);
+  if (campo && linhas.length) aviso.push('Clique numa linha pra filtrar tudo por ela.');
+  el.innerHTML = `<div class="d2-cab"><div class="d2-tit">Desempenho detalhado</div><div class="d2-ferr">
+      ${porRoi ? `<label>Mínimo de apostas <select id="d2MinAp">${[1, 5, 10, 20, 50, 100].map(q => `<option value="${q}"${q === D2.minAp ? ' selected' : ''}>${q}</option>`).join('')}</select></label>` : ''}
+      <div class="d2-seg pq" role="group" aria-label="Ordenar por"><button type="button" data-a="metrica" data-v="pl" aria-pressed="${!porRoi}">P/L</button><button type="button" data-a="metrica" data-v="roi" aria-pressed="${porRoi}">ROI</button></div>
+    </div></div>
+    <div class="d2-abas" role="tablist" aria-label="Recorte">${D2_ABAS.map(([k, r]) => `<button type="button" role="tab" data-a="aba" data-v="${k}" aria-selected="${k === aba}">${r}</button>`).join('')}</div>
+    <div class="d2-lista ${porRoi ? 'm-roi' : 'm-pl'}">
+      <div class="d2-lin cab"><span>${(D2_ABAS.find(x => x[0] === aba) || [])[2] || ''}</span><span></span><span class="d2-num some" title="Apostas liquidadas">Apostas</span><span class="d2-num some">Acerto</span><span class="d2-num c-roi">ROI</span><span class="d2-num c-pl">P/L</span></div>
+      ${corpo}
+    </div>
+    <div class="d2-rodape"><span>${aviso.join(' ')}</span>${longa ? `<button type="button" class="d2-link" data-a="abrir-tudo">${D2.tudoAberto ? 'Mostrar só os 5 melhores e os 5 piores' : `Ver todos (${linhas.length})`}</button>` : ''}</div>`;
+}
+
+// O "Fechar dia" chamava esta função e ela não existia: depois de fechar aparecia um erro falso.
+async function loadBriefings() { D2.briefings = null; await loadDstBriefings(); }
+
+(function d2Ligar() {
+  ['d2TopLeft', 'd2TopRight'].forEach(id => { const e = document.getElementById(id); if (e) e.addEventListener('click', d2Clique); });
+  document.addEventListener('click', ev => { if (!ev.target.closest('.d2-pop-wrap')) d2FecharPop(); });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') d2FecharPop(); });
+})();
+/* ═══ DASHBOARD NOVO (fim) ═══ */
 
 // Hook: renderiza painel de métricas sempre que o dashboard recalcula
 const _origRenderDashStats = renderDashStats;
