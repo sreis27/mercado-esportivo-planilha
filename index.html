@@ -4,342 +4,225 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mercado Esportivo — Apostas</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" href="fontes/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root {
-  --bg: #080810;
-  --s1: #0f0f1a;
-  --s2: #16162a;
-  --s3: #1e1e35;
-  --border: #2a2a45;
-  --accent: #6c63ff;
-  --accent2: #00d4aa;
-  --yellow: #ffd84d;
-  --red: #ff4d6a;
-  --green: #00d4aa;
-  --text: #e8e8f5;
-  --muted: #6b6b90;
-  --font: 'Syne', sans-serif;
-  --mono: 'JetBrains Mono', monospace;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; }
-
-/* ── Login ── */
-#loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; }
-.login-box { background:var(--s1); border:1px solid var(--border); border-radius:20px; padding:2.5rem; width:100%; max-width:380px; }
-.login-logo { font-family:var(--mono); font-size:0.85rem; color:var(--accent); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.3rem; }
-.login-logo span { color:var(--muted); }
-.login-sub { font-size:0.78rem; color:var(--muted); margin-bottom:2rem; font-family:var(--mono); }
-.login-group { display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1rem; }
-.login-group label { font-family:var(--mono); font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
-.login-group select, .login-group input { background:var(--s2); border:1px solid var(--border); color:var(--text); padding:0.7rem 1rem; border-radius:10px; font-family:var(--font); font-size:0.9rem; outline:none; transition:border-color 0.2s; width:100%; }
-.login-group select:focus, .login-group input:focus { border-color:var(--accent); }
-.login-btn { background:linear-gradient(135deg, var(--accent), #9b5fff); border:none; color:#fff; padding:0.8rem; border-radius:10px; font-family:var(--mono); font-size:0.85rem; font-weight:500; cursor:pointer; width:100%; margin-top:0.5rem; letter-spacing:0.05em; transition:opacity 0.2s; }
-.login-btn:hover { opacity:0.85; }
-.login-error { color:var(--red); font-size:0.75rem; font-family:var(--mono); margin-top:0.5rem; display:none; }
-
-/* ── App ── */
-#app { display:none; }
-.sidebar { position:fixed; left:0; top:0; width:220px; height:100vh; background:var(--s1); border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:50; }
-.sidebar-logo { padding:1.5rem; border-bottom:1px solid var(--border); }
-.sidebar-logo .brand { font-family:var(--mono); font-size:0.8rem; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; }
-.sidebar-logo .user { font-family:var(--mono); font-size:0.68rem; color:var(--muted); margin-top:0.3rem; }
-.sidebar-logo .user span { color:var(--accent2); }
-nav { flex:1; padding:1rem 0; overflow-y:auto; }
-.nav-section { font-family:var(--mono); font-size:0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; padding:0.5rem 1.5rem; margin-top:0.5rem; }
-.nav-item { display:flex; align-items:center; gap:0.75rem; padding:0.65rem 1.5rem; color:var(--muted); font-size:0.85rem; cursor:pointer; transition:all 0.15s; border-left:2px solid transparent; }
-.nav-item:hover { color:var(--text); background:var(--s2); }
-.nav-item.active { color:var(--accent); border-left-color:var(--accent); background:rgba(108,99,255,0.08); }
-.nav-item .icon { font-size:14px; width:18px; text-align:center; }
-.sidebar-footer { padding:1rem 1.5rem; border-top:1px solid var(--border); }
-.logout-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.5rem 1rem; border-radius:8px; font-family:var(--mono); font-size:0.72rem; cursor:pointer; width:100%; transition:all 0.2s; }
-.logout-btn:hover { border-color:var(--red); color:var(--red); }
-.main { margin-left:220px; min-height:100vh; }
-.topbar { background:var(--s1); border-bottom:1px solid var(--border); padding:0 2rem; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:40; }
-.topbar-title { font-family:var(--mono); font-size:0.85rem; color:var(--text); letter-spacing:0.05em; }
-.content { padding:1.5rem 2rem; }
-
-/* ── Cards ── */
-.cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.5rem; }
-.card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.2rem 1.4rem; transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
-.card:hover { transform:translateY(-2px); border-color:#3a3a5c; }
-/* Hierarquia: P/L é o placar da operação; ROI vem logo atrás */
-.card.hero { border-width:1px; }
-.card.hero .card-value { font-size:1.75rem; font-weight:600; }
-.card.hero.pos { border-color:rgba(0,212,170,.45); box-shadow:0 0 22px rgba(0,212,170,.07), inset 0 0 18px rgba(0,212,170,.04); }
-.card.hero.pos:hover { border-color:rgba(0,212,170,.7); box-shadow:0 0 26px rgba(0,212,170,.12); }
-.card.hero.neg { border-color:rgba(255,77,106,.45); box-shadow:0 0 22px rgba(255,77,106,.07), inset 0 0 18px rgba(255,77,106,.04); }
-.card.hero.neg:hover { border-color:rgba(255,77,106,.7); box-shadow:0 0 26px rgba(255,77,106,.12); }
-.card.co .card-value { font-size:1.55rem; font-weight:550; }
-.card-label { font-family:var(--mono); font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem; }
-.card-value { font-family:var(--mono); font-size:1.4rem; font-weight:500; }
-.card-value.green { color:var(--green); }
-.card-value.yellow { color:var(--yellow); }
-.card-value.red { color:var(--red); }
-.card-value.purple { color:var(--accent); }
-.card-value.cyan { color:var(--accent2); }
-.card-sub { font-family:var(--mono); font-size:0.72rem; color:var(--muted); margin-top:0.25rem; }
-
-/* ── Filters ── */
-.filters { display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem; align-items:center; }
-.btn-recalc {
-  background: transparent; border: 1px solid var(--accent); color: var(--accent);
-  padding: 0.45rem 1.1rem; border-radius: 10px; font-family: var(--mono);
-  font-size: 0.78rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;
-}
-.btn-recalc:hover { background: var(--accent); color: #fff; }
-.btn-filter {
-  background: linear-gradient(135deg, var(--accent), #9b5fff);
-  color: #fff; border: none; padding: 0.45rem 1.3rem;
-  border-radius: 10px; font-family: var(--mono); font-size: 0.8rem;
-  cursor: pointer; transition: opacity 0.2s; white-space: nowrap; letter-spacing: 0.04em;
-}
-.btn-filter:hover { opacity: 0.8; }
-.btn-limpar { background: transparent !important; border: 1px solid var(--muted); color: var(--muted); }
-.btn-limpar:hover { border-color: var(--red); color: var(--red); opacity: 1 !important; }
-
-.newsletter-card { display: flex; flex-direction: column; }
-.newsletter-body { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding: 4px 2px; }
-
-.btn-fechar {
-  background: linear-gradient(135deg, #ffd84d, #f5a623) !important;
-  border: none !important; color: #1a1a2e !important; font-weight: 600;
-}
-.btn-fechar:hover { opacity: 0.88 !important; }
-
-/* Briefing card styling on dashboard */
-.nl-item {
-  background: var(--s3); border-radius: 8px; padding: 12px 14px;
-  border-left: 3px solid var(--accent2); cursor: pointer;
-  transition: transform 0.15s;
-}
-.nl-item:hover { transform: translateX(2px); border-left-color: var(--yellow); }
-.nl-item-date { font-size: 11px; color: var(--muted); font-family: var(--mono); letter-spacing: 0.08em; margin-bottom: 6px; text-transform: uppercase; }
-.nl-item-pl { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
-.nl-item-pl.pos { color: var(--green); }
-.nl-item-pl.neg { color: var(--red); }
-.nl-item-frase { font-size: 13px; color: var(--text); opacity: 0.85; line-height: 1.4; }
-.nl-item-footer { font-size: 11px; color: var(--muted); margin-top: 6px; font-family: var(--mono); }
-
-/* Briefing modal */
-.briefing-modal-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-  z-index: 1000; align-items: flex-start; justify-content: center;
-  overflow-y: auto; padding: 40px 20px;
-}
-.briefing-modal-overlay.open { display: flex; }
-.briefing-modal-content {
-  background: #0a0a0f; border: 1px solid #2a2a45; border-radius: 12px;
-  width: 100%; max-width: 780px; max-height: none; padding: 0;
-}
-.briefing-modal-close {
-  position: sticky; top: 0; background: #0a0a0f;
-  display: flex; justify-content: flex-end; padding: 12px 16px;
-  border-bottom: 1px solid #2a2a45; z-index: 2;
-}
-.briefing-modal-close button {
-  background: transparent; border: 1px solid #2a2a45; color: #e8e8f5;
-  padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: var(--mono); font-size: 12px;
-}
-.briefing-modal-close button:hover { border-color: var(--accent); }
-
-/* Loading briefing */
-.fechar-dia-loading {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1500;
-  display: none; align-items: center; justify-content: center;
-}
-.fechar-dia-loading.open { display: flex; }
-.fechar-dia-box {
-  background: var(--s1); border: 1px solid var(--border); border-radius: 12px;
-  padding: 32px 40px; text-align: center; max-width: 400px;
-}
-.fechar-dia-box .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
-.fechar-dia-box p { font-family: var(--mono); font-size: 13px; color: var(--text); }
-.fechar-dia-box p.sub { font-size: 11px; color: var(--muted); margin-top: 8px; }
-
-.nl-placeholder { color: var(--muted); font-size: 0.85rem; line-height: 1.6; padding: 20px 10px; text-align: center; font-family: var(--mono); }
-.nl-item { background: var(--s3); border-radius: 8px; padding: 12px 14px; border-left: 3px solid var(--accent2); }
-.nl-item-title { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; font-family: var(--mono); }
-.nl-item-value { font-size: 1rem; font-weight: 600; color: var(--text); }
-
-.insights-frase { color: var(--text); font-size: 0.95rem; line-height: 1.5; padding: 4px 2px 14px; font-weight: 500; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
-.insights-bullet { display: flex; gap: 12px; align-items: flex-start; padding: 8px 6px; border-radius: 6px; }
-.insights-bullet:hover { background: rgba(108,99,255,0.04); }
-.insights-bullet-emoji { font-size: 1.2rem; line-height: 1.2; flex-shrink: 0; width: 24px; text-align: center; }
-.insights-bullet-text { color: var(--text); font-size: 0.85rem; line-height: 1.5; }
-.insights-erro { color: var(--red); font-size: 0.78rem; padding: 12px; font-family: var(--mono); }
-.insights-loading { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.82rem; padding: 16px; font-family: var(--mono); }
-.insights-loading-spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-
-.filter-select, .filter-input { background:var(--s1); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.9rem; border-radius:8px; font-family:var(--font); font-size:0.82rem; outline:none; cursor:pointer; }
-.filter-input { width:200px; }
-.filter-select:focus, .filter-input:focus { border-color:var(--accent); }
-.btn-primary { background:var(--accent); border:none; color:#fff; padding:0.5rem 1.2rem; border-radius:8px; font-family:var(--mono); font-size:0.78rem; cursor:pointer; transition:opacity 0.2s; }
-.btn-primary:hover { opacity:0.85; }
-.btn-outline { background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.5rem 1rem; border-radius:8px; font-family:var(--mono); font-size:0.78rem; cursor:pointer; transition:all 0.2s; }
-.btn-outline:hover { border-color:var(--accent2); color:var(--accent2); }
-.btn-danger { background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.3rem 0.6rem; border-radius:6px; font-size:0.75rem; cursor:pointer; transition:all 0.15s; }
-.btn-danger:hover { border-color:var(--red); color:var(--red); }
-.btn-edit { background:transparent; border:1px solid var(--border); color:var(--muted); padding:0.3rem 0.6rem; border-radius:6px; font-size:0.75rem; cursor:pointer; transition:all 0.15s; }
-.btn-edit:hover { border-color:var(--accent); color:var(--accent); }
-
-/* ── Table ── */
-.table-wrap { overflow-x:auto; }
-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
-thead th { background:var(--s2); color:var(--muted); font-family:var(--mono); font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding:0.75rem 1rem; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; }
-thead th:hover { color:var(--text); }
-tbody tr { border-bottom:1px solid rgba(42,42,69,0.5); transition:background 0.15s; }
-tbody tr:hover { background:var(--s1); }
-td { padding:0.65rem 1rem; vertical-align:middle; white-space:nowrap; }
-.mono { font-family:var(--mono); font-size:0.78rem; }
-.status-badge { padding:0.2rem 0.6rem; border-radius:4px; font-family:var(--mono); font-size:0.68rem; font-weight:500; }
-.s-won { background:rgba(0,212,170,0.12); color:var(--green); }
-.s-lost { background:rgba(255,77,106,0.12); color:var(--red); }
-.s-pending { background:rgba(108,99,255,0.12); color:var(--accent); }
-.s-void { background:rgba(107,107,144,0.15); color:var(--muted); }
-.s-halfwon { background:rgba(0,212,170,0.07); color:#7eeedd; }
-.s-halflost { background:rgba(255,77,106,0.07); color:#ff8fa0; }
-.s-cashout { background:rgba(255,216,77,0.1); color:var(--yellow); }
-.positive { color:var(--green); font-family:var(--mono); }
-.negative { color:var(--red); font-family:var(--mono); }
-.neutral { color:var(--muted); font-family:var(--mono); }
-
-/* ── Charts ── */
-.charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
-.chart-card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:1.25rem; }
-.chart-card canvas { display:block; }
-.chart-card > div::-webkit-scrollbar { width:8px; }
-.chart-card > div::-webkit-scrollbar-track { background:transparent; }
-.chart-card > div::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
-.chart-card > div::-webkit-scrollbar-thumb:hover { background:var(--text3); }
-.chart-title { font-family:var(--mono); font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem; }
-.chart-full { grid-column:1/-1; }
-
-/* ── Ranking de Grupos ── */
-.rank-pills { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
-.rank-pill { background:var(--s1); border:1px solid var(--border); color:var(--muted); padding:0.45rem 1rem; border-radius:10px; font-family:var(--mono); font-size:0.76rem; cursor:pointer; transition:all 0.15s; }
-.rank-pill:hover { color:var(--text); border-color:var(--accent); }
-.rank-pill.active { background:rgba(108,99,255,0.12); border-color:var(--accent); color:var(--accent); }
-.rank-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
-@media (max-width:980px) { .rank-grid { grid-template-columns:1fr; } }
-.rank-list { display:flex; flex-direction:column; gap:5px; max-height:430px; overflow-y:auto; padding-right:4px; }
-.rank-list::-webkit-scrollbar { width:8px; }
-.rank-list::-webkit-scrollbar-track { background:transparent; }
-.rank-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
-.rank-row { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--s2); border-radius:8px; border-left:2px solid transparent; }
-.rank-row.top1 { border-left-color:#ffd84d; background:rgba(255,216,77,0.06); }
-.rank-row.top2 { border-left-color:#c0c0c0; background:rgba(192,192,192,0.05); }
-.rank-row.top3 { border-left-color:#cd7f32; background:rgba(205,127,50,0.05); }
-.rank-pos { font-family:var(--mono); font-size:0.85rem; width:26px; text-align:center; flex-shrink:0; color:var(--muted); }
-.rank-name { flex:1; font-size:0.82rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.rank-val { font-family:var(--mono); font-size:0.82rem; flex-shrink:0; font-weight:500; }
-.rank-val.pos { color:var(--green); }
-.rank-val.neg { color:var(--red); }
-.rank-empty { color:var(--muted); font-family:var(--mono); font-size:0.78rem; padding:18px 10px; text-align:center; }
-
-/* ── Destaques: painel de métricas ── */
-.dst-tops { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
-.dst-top-block { background:var(--s3); border-radius:8px; padding:10px 12px; border-left:3px solid var(--accent); }
-.dst-top-title { font-size:10px; color:var(--muted); font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px; }
-.dst-rank-row { display:flex; align-items:center; gap:6px; padding:3px 0; font-size:12px; }
-.dst-rank-pos { width:18px; flex-shrink:0; text-align:center; }
-.dst-rank-name { flex:1; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.dst-rank-val { font-family:var(--mono); font-weight:500; flex-shrink:0; font-size:11.5px; }
-.dst-rank-val.pos { color:var(--green); }
-.dst-rank-val.neg { color:var(--red); }
-.dst-empty { color:var(--muted); font-size:11px; padding:4px 0; }
-.dst-briefings { font-size:11px; color:var(--muted); padding-top:8px; border-top:1px solid var(--border); font-family:var(--mono); margin-top:auto; }
-.dst-brf-label { opacity:0.7; }
-.dst-brf-link { color:var(--accent2); cursor:pointer; margin:0 2px; }
-.dst-brf-link:hover { color:var(--text); text-decoration:underline; }
-
-/* ── Modal ── */
-.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; align-items:center; justify-content:center; }
-.modal-overlay.open { display:flex; }
-.modal { background:var(--s1); border:1px solid var(--border); border-radius:16px; padding:2rem; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; }
-.modal h2 { font-family:var(--mono); font-size:0.85rem; color:var(--accent); margin-bottom:1.5rem; letter-spacing:0.08em; text-transform:uppercase; }
-.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
-.form-group { display:flex; flex-direction:column; gap:0.4rem; }
-.form-group.full { grid-column:1/-1; }
-.form-group label { font-family:var(--mono); font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
-.form-group input, .form-group select, .form-group textarea { background:var(--s2); border:1px solid var(--border); color:var(--text); padding:0.6rem 0.8rem; border-radius:8px; font-family:var(--font); font-size:0.85rem; outline:none; transition:border-color 0.2s; }
-.form-group input:focus, .form-group select:focus { border-color:var(--accent); }
-.modal-footer { display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem; }
-.btn-save { background:linear-gradient(135deg, var(--accent), #9b5fff); border:none; color:#fff; padding:0.6rem 1.5rem; border-radius:8px; font-family:var(--mono); font-size:0.8rem; cursor:pointer; }
-
-/* ── Cadastros ── */
-.crud-table { background:var(--s1); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
-.crud-table table { width:100%; }
-
-/* ── Loading ── */
-.loading { display:flex; align-items:center; justify-content:center; padding:4rem; gap:0.75rem; color:var(--muted); font-family:var(--mono); font-size:0.8rem; }
-.spinner { width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-
-/* ── Toast ── */
-.toast { position:fixed; bottom:2rem; right:2rem; background:var(--s2); border:1px solid var(--accent); color:var(--accent); padding:0.75rem 1.5rem; border-radius:10px; font-family:var(--mono); font-size:0.78rem; z-index:999; transform:translateY(100px); opacity:0; transition:all 0.3s; }
-.toast.show { transform:translateY(0); opacity:1; }
-.toast.error { border-color:var(--red); color:var(--red); }
-
-/* ── Hist modal ── */
-.hist-item { padding:0.75rem 0; border-bottom:1px solid var(--border); }
-.hist-item:last-child { border-bottom:none; }
-.hist-campo { font-family:var(--mono); color:var(--accent); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em; }
-.hist-valores { display:flex; align-items:center; gap:0.5rem; margin:0.25rem 0; font-family:var(--mono); font-size:0.75rem; }
-.hist-ant { color:var(--red); text-decoration:line-through; }
-.hist-nov { color:var(--green); }
-.hist-meta { font-size:0.68rem; color:var(--muted); font-family:var(--mono); }
-.hist-user { color:var(--accent2); }
-
-@media (max-width:768px) {
-  .sidebar { width:60px; }
-  .sidebar-logo .brand, .sidebar-logo .user, .nav-item span, .nav-section { display:none; }
-  .nav-item { justify-content:center; padding:0.75rem; }
-  .main { margin-left:60px; }
-  .charts-grid { grid-template-columns:1fr; }
-  .form-grid { grid-template-columns:1fr; }
-}
-.dst-rank-row.clicavel { cursor:pointer; border-radius:6px; transition:background .15s; }
-.dst-rank-row.clicavel:hover { background:rgba(108,99,255,0.08); }
-/* ═══ DASHBOARD NOVO (início) ═══ */
 @font-face { font-family:'Archivo'; font-style:normal; font-weight:100 900; font-stretch:62% 125%; font-display:swap; src:url('fontes/archivo-latin.woff2') format('woff2'); }
-/* No celular o menu lateral escondia também os ícones e ficava vazio. */
-@media (max-width:768px) { .nav-item .icon { display:inline; } }
-/* Tema novo: vale só enquanto o "Dashboard novo" está aberto (classe tema-novo no body). */
-body.tema-novo {
+:root {
   --bg:#0e1012; --s1:#16191d; --s2:#1e2228; --s3:#262b32; --border:#262b32;
-  --accent:#f2b84b; --accent2:#b6bcc6; --yellow:#f2b84b; --green:#3ccdb9; --red:#ff8468;
+  --linha:#262b32; --linha2:#343a43; --tinta:#f2f4f6; --tinta2:#b6bcc6; --tinta3:#8e95a0;
   --text:#f2f4f6; --muted:#8e95a0;
-  --font:'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; --mono:var(--font);
+  --accent:#f2b84b; --accent2:#b6bcc6; --yellow:#f2b84b;
   /* resultado: verde só quer dizer lucro, vermelho só quer dizer prejuízo */
   --pos:#18a999; --neg:#e5533d; --pos-t:#3ccdb9; --neg-t:#ff8468;
-  --linha:#262b32; --linha2:#343a43; --tinta:#f2f4f6; --tinta2:#b6bcc6; --tinta3:#8e95a0;
+  --green:#3ccdb9; --red:#ff8468;
+  --font:'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; --mono:var(--font);
   color-scheme:dark;
 }
-body.tema-novo .sidebar-logo .brand { text-transform:none; letter-spacing:0; font-size:1rem; font-weight:650; font-stretch:90%; color:var(--tinta); }
-body.tema-novo .sidebar-logo .user { font-size:.78rem; }
-body.tema-novo .sidebar-logo .user span { color:var(--tinta); }
-body.tema-novo .nav-section { text-transform:none; letter-spacing:0; font-size:.74rem; }
-body.tema-novo .nav-item { font-size:.9rem; border-left-width:3px; }
-body.tema-novo .nav-item.active { color:var(--tinta); background:var(--s2); border-left-color:var(--accent); font-weight:550; }
-body.tema-novo .topbar-title { font-size:1.08rem; font-weight:650; font-stretch:92%; letter-spacing:0; }
-body.tema-novo .logout-btn { font-size:.8rem; }
-body.tema-novo .logout-btn:hover { border-color:var(--neg-t); color:var(--neg-t); }
-body.tema-novo .modal h2 { text-transform:none; letter-spacing:0; font-size:1.05rem; font-weight:650; color:var(--tinta); }
-body.tema-novo .form-group label { text-transform:none; letter-spacing:0; font-size:.78rem; }
-body.tema-novo .btn-save { background:var(--tinta); color:#0e1012; font-weight:600; font-size:.85rem; }
-body.tema-novo .btn-outline { font-size:.85rem; }
-body.tema-novo .btn-outline:hover { border-color:var(--tinta3); color:var(--tinta); }
-body.tema-novo .toast { border-color:var(--linha2); color:var(--tinta); font-size:.85rem; }
-body.tema-novo .toast.error { border-color:var(--neg); color:var(--neg-t); }
-.d2-tag { font-size:.7rem; font-weight:500; padding:.1rem .45rem; border-radius:6px; border:1px solid var(--accent); color:var(--accent); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; -webkit-font-smoothing:antialiased; }
+button, input, select, textarea { font-family:inherit; }
+button:focus-visible, a:focus-visible, input[type="checkbox"]:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 
+/* ── Entrada ── */
+#loginScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1rem; }
+.login-box { background:var(--s1); border:1px solid var(--linha); border-radius:16px; padding:2.2rem; width:100%; max-width:380px; }
+.login-logo { font-size:1.3rem; font-weight:680; font-stretch:88%; color:var(--tinta); margin-bottom:.2rem; }
+.login-logo span { color:var(--accent); }
+.login-sub { font-size:.86rem; color:var(--tinta3); margin-bottom:1.8rem; }
+.login-group { display:flex; flex-direction:column; gap:.4rem; margin-bottom:1rem; }
+.login-group label { font-size:.78rem; color:var(--tinta3); }
+.login-group select, .login-group input { background:var(--s2); border:1px solid var(--linha); color:var(--tinta); padding:.7rem .9rem; border-radius:10px; font-size:.92rem; outline:none; width:100%; }
+.login-group select:focus, .login-group input:focus { border-color:var(--accent); }
+.login-btn { background:var(--tinta); border:none; color:#0e1012; padding:.8rem; border-radius:10px; font-size:.92rem; font-weight:650; cursor:pointer; width:100%; margin-top:.5rem; }
+.login-btn:hover { background:#fff; }
+.login-error { color:var(--neg-t); font-size:.82rem; margin-top:.6rem; display:none; }
+
+/* ── Menu e barra de cima ── */
+#app { display:none; }
+.sidebar { position:fixed; left:0; top:0; width:220px; height:100vh; background:var(--s1); border-right:1px solid var(--linha); display:flex; flex-direction:column; z-index:50; }
+.sidebar-logo { padding:1.4rem 1.5rem; border-bottom:1px solid var(--linha); }
+.sidebar-logo .brand { font-size:1rem; font-weight:650; font-stretch:90%; color:var(--tinta); }
+.sidebar-logo .user { font-size:.78rem; color:var(--tinta3); margin-top:.3rem; }
+.sidebar-logo .user span { color:var(--tinta); }
+nav { flex:1; padding:1rem 0; overflow-y:auto; }
+.nav-section { font-size:.74rem; color:var(--tinta3); padding:.5rem 1.5rem; margin-top:.5rem; }
+.nav-item { appearance:none; background:none; border:0; border-left:3px solid transparent; width:100%; text-align:left; font:inherit; display:flex; align-items:center; gap:.75rem; padding:.6rem 1.5rem; color:var(--tinta3); font-size:.9rem; cursor:pointer; }
+.nav-item:focus-visible { outline-offset:-2px; }
+.nav-item:hover { color:var(--tinta); background:var(--s2); }
+.nav-item.active { color:var(--tinta); background:var(--s2); border-left-color:var(--accent); font-weight:550; }
+.nav-item .icon { font-size:14px; width:18px; text-align:center; filter:grayscale(1); opacity:.65; }
+.nav-item:hover .icon, .nav-item.active .icon { opacity:1; }
+.sidebar-footer { padding:1rem 1.5rem; border-top:1px solid var(--linha); }
+.logout-btn { background:transparent; border:1px solid var(--linha2); color:var(--tinta3); padding:.5rem 1rem; border-radius:9px; font-size:.82rem; cursor:pointer; width:100%; }
+.logout-btn:hover { border-color:var(--neg); color:var(--neg-t); }
+.main { margin-left:220px; min-height:100vh; }
+.topbar { background:var(--s1); border-bottom:1px solid var(--linha); padding:0 2rem; height:56px; display:flex; align-items:center; justify-content:space-between; gap:1rem; position:sticky; top:0; z-index:40; }
+.topbar-title { font-size:1.08rem; font-weight:650; font-stretch:92%; color:var(--tinta); white-space:nowrap; }
+.content { padding:1.5rem 2rem; }
 #d2TopLeft, #d2TopRight { display:flex; align-items:center; gap:.6rem; }
 #d2TopLeft:empty, #d2TopRight:empty { display:none; }
 .d2-vt { font-size:.78rem; color:var(--tinta3); margin-left:.35rem; }
 
+/* ── Botões ── */
+.btn-primary, .btn-save { background:var(--tinta); border:1px solid var(--tinta); color:#0e1012; padding:.48rem 1.1rem; border-radius:9px; font-size:.85rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+.btn-primary:hover, .btn-save:hover { background:#fff; border-color:#fff; }
+.btn-filter { background:var(--s2); border:1px solid var(--linha); color:var(--tinta2); padding:.45rem 1rem; border-radius:9px; font-size:.84rem; font-weight:500; cursor:pointer; white-space:nowrap; }
+.btn-filter:hover { border-color:var(--linha2); color:var(--tinta); }
+.btn-filter:disabled { cursor:not-allowed; }
+.btn-limpar { background:transparent; color:var(--tinta3); }
+.btn-limpar:hover { border-color:var(--neg); color:var(--neg-t); }
+.btn-outline { background:transparent; border:1px solid var(--linha2); color:var(--tinta2); padding:.48rem 1rem; border-radius:9px; font-size:.85rem; cursor:pointer; white-space:nowrap; }
+.btn-outline:hover { border-color:var(--tinta3); color:var(--tinta); }
+.btn-edit, .btn-danger, .btn-icon { background:transparent; border:1px solid var(--linha); color:var(--tinta2); padding:.26rem .55rem; border-radius:7px; font-size:.78rem; cursor:pointer; }
+.btn-edit:hover, .btn-icon:hover { border-color:var(--tinta3); color:var(--tinta); }
+.btn-danger:hover { border-color:var(--neg); color:var(--neg-t); }
+.row-actions { display:flex; gap:.3rem; }
+
+/* ── Filtros das páginas de lista ── */
+.filters { display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1rem; align-items:center; }
+.filter-select, .filter-input { background:var(--s2); border:1px solid var(--linha); color:var(--tinta); padding:.45rem .7rem; border-radius:9px; font-size:.84rem; outline:none; }
+.filter-select { cursor:pointer; max-width:230px; }
+.filter-input { width:220px; }
+.filter-select:focus, .filter-input:focus { border-color:var(--tinta3); }
+
+/* ── Tabelas ── */
+.table-wrap { overflow-x:auto; background:var(--s1); border:1px solid var(--linha); border-radius:14px; }
+table { width:100%; border-collapse:collapse; font-size:.86rem; }
+thead th { color:var(--tinta3); font-size:.76rem; font-weight:500; padding:.7rem .75rem; text-align:left; border-bottom:1px solid var(--linha); white-space:nowrap; user-select:none; }
+thead th[onclick] { cursor:pointer; }
+thead th[onclick]:hover { color:var(--tinta); }
+tbody tr { border-bottom:1px solid var(--linha); }
+tbody tr:last-child { border-bottom:0; }
+tbody tr:hover { background:var(--s2); }
+td { padding:.5rem .75rem; vertical-align:middle; white-space:nowrap; }
+.mono { font-variant-numeric:tabular-nums; }
+.status-badge { display:inline-block; padding:.16rem .5rem; border-radius:6px; font-size:.72rem; font-weight:600; }
+.s-won { background:rgba(24,169,153,.16); color:var(--pos-t); }
+.s-lost { background:rgba(229,83,61,.16); color:var(--neg-t); }
+.s-halfwon { background:rgba(24,169,153,.08); color:var(--pos-t); }
+.s-halflost { background:rgba(229,83,61,.08); color:var(--neg-t); }
+.s-pending { background:rgba(242,184,75,.14); color:var(--accent); }
+.s-void { background:rgba(142,149,160,.14); color:var(--tinta3); }
+.s-cashout { background:rgba(182,188,198,.12); color:var(--tinta2); }
+.positive { color:var(--pos-t); font-variant-numeric:tabular-nums; }
+.negative { color:var(--neg-t); font-variant-numeric:tabular-nums; }
+.neutral { color:var(--tinta3); font-variant-numeric:tabular-nums; }
+th.num, td.num { text-align:right; font-variant-numeric:tabular-nums; }
+.tag-usd { font-size:.68rem; font-weight:600; color:var(--tinta2); border:1px solid var(--linha2); border-radius:5px; padding:0 .3rem; margin-right:.4rem; }
+.tabela-vazia { text-align:center; padding:2.2rem 1rem; color:var(--tinta3); }
+/* Apostas: as colunas de texto dividem o espaço que sobra e cortam com reticências (o texto inteiro fica na dica);
+   as outras ficam do tamanho do conteúdo. Assim status, lucro e os botões aparecem sem rolar pro lado. */
+.tab-apostas { min-width:1010px; }
+.tab-apostas th, .tab-apostas td { padding-left:.5rem; padding-right:.5rem; }
+.tab-apostas th:first-child, .tab-apostas td:first-child { padding-left:.85rem; }
+.tab-apostas th:last-child, .tab-apostas td:last-child { padding-right:.85rem; }
+.tab-apostas .estica { max-width:0; overflow:hidden; text-overflow:ellipsis; }
+.tab-apostas .btn-edit, .tab-apostas .btn-danger { padding:.2rem .36rem; }
+.tab-apostas .row-actions { gap:.22rem; }
+.corta { overflow:hidden; text-overflow:ellipsis; }
+.bm-cont { margin-left:auto; display:flex; gap:1.1rem; flex-wrap:wrap; color:var(--tinta3); font-size:.84rem; }
+.bm-cont b { font-weight:600; font-variant-numeric:tabular-nums; }
+.card { background:var(--s1); border:1px solid var(--linha); border-radius:14px; padding:1.2rem 1.4rem; }
+.crud-table { background:var(--s1); border:1px solid var(--linha); border-radius:14px; overflow:hidden; }
+.crud-table table { width:100%; }
+
+/* ── Ranking de Grupos ── */
+.rank-grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:.9rem; }
+@media (max-width:980px) { .rank-grid { grid-template-columns:1fr; } .rank-list { max-height:26rem; } }
+.rank-list { display:flex; flex-direction:column; gap:2px; max-height:max(20rem, calc(100vh - 15rem)); overflow-y:auto; padding:0 .6rem .8rem; scrollbar-width:thin; scrollbar-color:var(--linha2) transparent; }
+.rank-row { display:flex; align-items:center; gap:10px; padding:.45rem .6rem; border-radius:8px; border-left:2px solid transparent; }
+.rank-row:hover { background:var(--s2); }
+.rank-row.top1 { border-left-color:#f2b84b; background:rgba(242,184,75,.07); }
+.rank-row.top2 { border-left-color:#b6bcc6; background:rgba(182,188,198,.06); }
+.rank-row.top3 { border-left-color:#c98a5a; background:rgba(201,138,90,.06); }
+.rank-pos { width:26px; text-align:center; flex-shrink:0; color:var(--tinta3); font-size:.85rem; font-variant-numeric:tabular-nums; }
+.rank-name { flex:1; font-size:.88rem; color:var(--tinta); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rank-val { font-size:.88rem; flex-shrink:0; font-weight:600; font-variant-numeric:tabular-nums; text-align:right; }
+.rank-val.pos { color:var(--pos-t); }
+.rank-val.neg { color:var(--neg-t); }
+.rank-val small { display:block; font-size:.76rem; font-weight:500; color:var(--tinta3); }
+.rank-val small.pos { color:var(--pos-t); }
+.rank-val small.neg { color:var(--neg-t); }
+.rank-list .d2-meio { padding:.6rem .6rem .3rem; }
+.rank-list .loading { padding:2.5rem 1rem; }
+.rank-empty { color:var(--tinta3); font-size:.85rem; padding:1.2rem .6rem; text-align:center; }
+.rank-topo { display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; margin-bottom:.9rem; }
+.rank-ocupado .rank-list { opacity:.5; }
+
+/* ── Janelas ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:200; align-items:center; justify-content:center; padding:1rem; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--s1); border:1px solid var(--linha2); border-radius:16px; padding:1.75rem; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; }
+.modal h2 { font-size:1.08rem; font-weight:650; font-stretch:92%; color:var(--tinta); margin-bottom:1.3rem; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:.9rem; align-items:end; }
+.form-group { display:flex; flex-direction:column; gap:.35rem; min-width:0; }
+.form-group.full { grid-column:1/-1; }
+.form-group label { font-size:.78rem; color:var(--tinta3); }
+.form-group input, .form-group select, .form-group textarea { background:var(--s2); border:1px solid var(--linha); color:var(--tinta); padding:.55rem .75rem; border-radius:8px; font-size:.88rem; outline:none; min-width:0; }
+.form-group input, .form-group select { height:2.4rem; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--tinta3); }
+.modal-footer { display:flex; justify-content:flex-end; gap:.6rem; margin-top:1.4rem; }
+.lucro-previsto { display:none; flex:1; padding:.5rem .9rem; background:rgba(24,169,153,.12); border:1px solid rgba(24,169,153,.4); border-radius:8px; color:var(--pos-t); font-size:.95rem; text-align:center; line-height:1.2; }
+.lucro-previsto small { font-size:.74rem; opacity:.85; margin-right:.3rem; }
+
+/* ── Histórico de alterações ── */
+.hist-item { padding:.75rem 0; border-bottom:1px solid var(--linha); }
+.hist-item:last-child { border-bottom:none; }
+.hist-campo { color:var(--tinta2); font-size:.78rem; font-weight:600; }
+.hist-valores { display:flex; align-items:center; gap:.5rem; margin:.25rem 0; font-size:.84rem; }
+.hist-ant { color:var(--neg-t); text-decoration:line-through; }
+.hist-nov { color:var(--pos-t); }
+.hist-meta { font-size:.76rem; color:var(--tinta3); }
+.hist-user { color:var(--tinta); }
+
+/* ── Briefing e fechar dia ── */
+.briefing-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:1000; align-items:flex-start; justify-content:center; overflow-y:auto; padding:40px 20px; }
+.briefing-modal-overlay.open { display:flex; }
+/* o briefing chega pronto do serviço, com as cores dele; a moldura acompanha */
+.briefing-modal-content { background:#0a0a0f; border:1px solid var(--linha2); border-radius:12px; width:100%; max-width:780px; max-height:none; padding:0; }
+.briefing-modal-close { position:sticky; top:0; background:#0a0a0f; display:flex; justify-content:flex-end; padding:12px 16px; border-bottom:1px solid var(--linha2); z-index:2; border-radius:12px 12px 0 0; }
+.briefing-modal-close button { background:transparent; border:1px solid var(--linha2); color:var(--tinta2); padding:6px 14px; border-radius:8px; cursor:pointer; font-size:.8rem; }
+.briefing-modal-close button:hover { border-color:var(--tinta3); color:var(--tinta); }
+#briefingContent tbody tr { border-bottom:0; }
+#briefingContent tbody tr:hover { background:none; }
+#briefingContent td { white-space:normal; }
+.fechar-dia-loading { position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:1500; display:none; align-items:center; justify-content:center; }
+.fechar-dia-loading.open { display:flex; }
+.fechar-dia-box { background:var(--s1); border:1px solid var(--linha2); border-radius:14px; padding:32px 40px; text-align:center; max-width:400px; }
+.fechar-dia-box .spinner { width:32px; height:32px; border:3px solid var(--linha2); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 16px; }
+.fechar-dia-box p { font-size:.9rem; color:var(--tinta); }
+.fechar-dia-box p.sub { font-size:.78rem; color:var(--tinta3); margin-top:8px; }
+
+/* ── Carregando e avisos ── */
+.loading { display:flex; align-items:center; justify-content:center; padding:4rem; gap:.75rem; color:var(--tinta3); font-size:.86rem; }
+.spinner { width:18px; height:18px; border:2px solid var(--linha2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .spinner, .fechar-dia-box .spinner { animation-duration:2.4s; } }
+.toast { position:fixed; bottom:2rem; right:2rem; background:var(--s2); border:1px solid var(--linha2); color:var(--tinta); padding:.75rem 1.4rem; border-radius:10px; font-size:.86rem; z-index:999; transform:translateY(100px); opacity:0; transition:all .3s; }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.error { border-color:var(--neg); color:var(--neg-t); }
+
+.ano2 { display:none; }
+@media (max-width:1480px) {
+  .content { padding:1.25rem; }
+  .topbar { padding:0 1.25rem; }
+  .tab-apostas { font-size:.82rem; }
+  .ano4 { display:none; }
+  .ano2 { display:inline; }
+}
+@media (max-width:768px) {
+  .sidebar { width:60px; }
+  .sidebar-logo .brand, .sidebar-logo .user, .nav-item span, .nav-section { display:none; }
+  .nav-item .icon { display:inline; }   /* a regra de cima escondia também os ícones e o menu ficava vazio */
+  .nav-item { justify-content:center; padding:.75rem; }
+  .sidebar-footer { padding:.6rem .4rem; }
+  .logout-btn { padding:.45rem .2rem; font-size:.72rem; }
+  .main { margin-left:60px; }
+  .form-grid { grid-template-columns:1fr; }
+}
+
+/* ═══ DASHBOARD ═══ */
 /* controles */
 .d2-seg { display:inline-flex; gap:2px; padding:2px; background:var(--s2); border:1px solid var(--linha); border-radius:9px; }
 .d2-seg button { appearance:none; border:0; background:transparent; color:var(--tinta3); font:inherit; font-size:.84rem; font-weight:500; padding:.36rem .78rem; border-radius:7px; cursor:pointer; white-space:nowrap; }
@@ -354,8 +237,7 @@ body.tema-novo .toast.error { border-color:var(--neg); color:var(--neg-t); }
 .d2-cont { min-width:1.25rem; text-align:center; font-size:.72rem; font-weight:650; padding:.04rem .3rem; border-radius:6px; background:var(--accent); color:#17130a; }
 .d2-link { appearance:none; background:none; border:0; padding:0; font:inherit; font-size:.8rem; color:var(--tinta3); cursor:pointer; text-decoration:underline; text-decoration-color:var(--linha2); text-underline-offset:3px; }
 .d2-link:hover { color:var(--tinta); }
-.d2 button:focus-visible, .d2 select:focus-visible, .d2 input:focus-visible,
-#d2TopLeft button:focus-visible, #d2TopRight button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.d2 select:focus-visible, .d2 input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 
 .d2 { font-family:var(--font); color:var(--tinta); font-size:.9rem; line-height:1.4; max-width:1480px; }
 .d2-filtros { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; margin-bottom:.9rem; }
@@ -384,7 +266,7 @@ body.tema-novo .toast.error { border-color:var(--neg); color:var(--neg-t); }
 .d2-un.m { margin-left:0; margin-right:.26em; }
 .pos > .d2-un, .neg > .d2-un { color:inherit; opacity:.78; }
 .d2-cel-val .d2-un { font-size:.6em; }
-.d2-cel-sub .d2-un, .d2-hero-sub .d2-un, .d2-tab .d2-un, .d2-lin .d2-un, .d2-dow-l .d2-un, .d2-resumo small .d2-un { font-size:1em; }
+.d2-cel-sub .d2-un, .d2-hero-sub .d2-un, .d2-tab .d2-un, .d2-lin .d2-un, .d2-dow-l .d2-un, .d2-resumo small .d2-un, .rank-val .d2-un { font-size:1em; }
 
 /* placar: o número do período e a curva que levou até ele */
 .d2-placar { display:grid; grid-template-columns:minmax(0,1.72fr) minmax(0,1fr); gap:.9rem; margin-bottom:.9rem; }
@@ -415,10 +297,9 @@ body.tema-novo .toast.error { border-color:var(--neg); color:var(--neg-t); }
 
 /* tabela gêmea do gráfico */
 .d2-tab { width:100%; border-collapse:collapse; font-size:.82rem; margin-top:.5rem; }
-.d2-tab th { background:transparent; color:var(--tinta3); font-family:var(--font); font-size:.76rem; font-weight:500; text-transform:none; letter-spacing:0; text-align:right; padding:.4rem .6rem; border-bottom:1px solid var(--linha); cursor:default; }
+.d2-tab th { color:var(--tinta3); font-size:.76rem; font-weight:500; text-align:right; padding:.4rem .6rem; border-bottom:1px solid var(--linha); }
 .d2-tab td { text-align:right; padding:.36rem .6rem; border-bottom:1px solid var(--linha); font-variant-numeric:tabular-nums; }
 .d2-tab th:first-child, .d2-tab td:first-child { text-align:left; }
-.d2-tab tbody tr:hover { background:var(--s2); }
 .d2-tab-rol { max-height:300px; overflow-y:auto; }
 
 /* calendário e dia da semana */
@@ -488,7 +369,6 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
 .d2-meio { display:flex; align-items:center; gap:.8rem; padding:.45rem .6rem; color:var(--tinta3); font-size:.8rem; }
 .d2-meio::before, .d2-meio::after { content:''; flex:1; height:1px; background:var(--linha); }
 .d2-rodape { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; padding:.2rem 1.2rem 1rem; font-size:.78rem; color:var(--tinta3); }
-.d2-nota { font-size:.78rem; color:var(--tinta3); margin:.2rem 0 1.5rem; }
 .d2-erro { padding:2.5rem 1rem; text-align:center; color:var(--tinta2); }
 .d2-erro p { margin-bottom:.9rem; }
 
@@ -502,7 +382,7 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
 
 /* enquanto recarrega, a tela anterior fica no lugar, mais apagada */
 .d2-ocupado #d2Corpo, .d2-ocupado-parcial #d2Desemp, .d2-ocupado-parcial #d2OddCel { opacity:.5; pointer-events:none; }
-@media (prefers-reduced-motion:no-preference) { #d2Corpo, #d2Desemp, #d2OddCel { transition:opacity .15s ease; } }
+@media (prefers-reduced-motion:no-preference) { #d2Corpo, #d2Desemp, #d2OddCel, .rank-list { transition:opacity .15s ease; } }
 
 @media (max-width:1180px) {
   .d2-placar, .d2-l2 { grid-template-columns:minmax(0,1fr); }
@@ -517,13 +397,15 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
   .d2-atual { margin-left:0; }
 }
 @media (max-width:560px) {
-  body.tema-novo .content { padding:1rem .8rem; }
-  body.tema-novo .topbar { padding:0 .8rem; height:auto; min-height:56px; flex-wrap:wrap; gap:.4rem; padding-top:.4rem; padding-bottom:.4rem; }
-  body.tema-novo .topo-esq { flex-wrap:wrap; gap:.35rem .6rem !important; }
+  .content { padding:1rem .8rem; }
+  .topbar { padding:.4rem .8rem; height:auto; min-height:56px; flex-wrap:wrap; gap:.4rem; }
+  .topo-esq { flex-wrap:wrap; gap:.35rem .6rem !important; }
   #d2TopLeft { flex-wrap:wrap; gap:.4rem; }
   .d2-vt { display:none; }
-  .d2-filtros > .d2-seg { width:100%; }
-  .d2-filtros > .d2-seg button { flex:1; padding:.4rem .2rem; text-align:center; }
+  .filter-input, .filter-select { max-width:none; flex:1 1 9rem; min-width:0; }
+  .d2-filtros > .d2-seg, .rank-topo > .d2-seg { width:100%; }
+  .d2-filtros > .d2-seg button, .rank-topo > .d2-seg button { flex:1; padding:.4rem .2rem; text-align:center; }
+  .rank-topo > .d2-seg { flex-wrap:wrap; }
   .d2-datas { width:100%; }
   .d2-datas input { flex:1; min-width:0; }
   .d2-painel { grid-template-columns:1fr 1fr; }
@@ -546,8 +428,8 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
   .d2-pend { font-size:0; gap:0; }
   .d2-rodape { padding:.2rem .7rem .9rem; }
   .d2-abas { padding:0 .6rem; }
+  .modal { padding:1.2rem; }
 }
-/* ═══ DASHBOARD NOVO (fim) ═══ */
 </style>
 </head>
 <body>
@@ -556,7 +438,7 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">RM <span>/</span> Mercado Esportivo</div>
-    <div class="login-sub">Gestão de Apostas</div>
+    <div class="login-sub">Gestão de apostas</div>
     <div class="login-group">
       <label>Usuário</label>
       <select id="loginUser">
@@ -585,18 +467,17 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
     </div>
     <nav>
       <div class="nav-section">Principal</div>
-      <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></div>
-      <div class="nav-item" onclick="showPage('dashboard_novo')"><span class="icon">📈</span><span>Dashboard novo</span></div>
-      <div class="nav-item" onclick="showPage('apostas')"><span class="icon">📋</span><span>Apostas</span></div>
+      <button type="button" class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></button>
+      <button type="button" class="nav-item" onclick="showPage('apostas')"><span class="icon">📋</span><span>Apostas</span></button>
       <div class="nav-section">Cadastros</div>
-      <div class="nav-item" onclick="showPage('tipsters')"><span class="icon">👥</span><span>Tipsters</span></div>
-      <div class="nav-item" onclick="showPage('bookies')"><span class="icon">🏠</span><span>Bookies</span></div>
-      <div class="nav-item" onclick="showPage('operadores')"><span class="icon">👤</span><span>Operadores</span></div>
-      <div class="nav-item" onclick="showPage('esportes')"><span class="icon">⚽</span><span>Esportes</span></div>
-      <div class="nav-item" onclick="showPage('tipos_aposta')"><span class="icon">🎯</span><span>Tipos de Aposta</span></div>
-      <div class="nav-item" onclick="showPage('mercados')"><span class="icon">📌</span><span>Mercados</span></div>
-      <div class="nav-item" onclick="showPage('bugs_melhorias')"><span class="icon">🐛</span><span>Bugs / Melhorias</span></div>
-      <div class="nav-item" onclick="showPage('ranking_grupos')"><span class="icon">🏆</span><span>Ranking de Grupos</span></div>
+      <button type="button" class="nav-item" onclick="showPage('tipsters')"><span class="icon">👥</span><span>Tipsters</span></button>
+      <button type="button" class="nav-item" onclick="showPage('bookies')"><span class="icon">🏠</span><span>Bookies</span></button>
+      <button type="button" class="nav-item" onclick="showPage('operadores')"><span class="icon">👤</span><span>Operadores</span></button>
+      <button type="button" class="nav-item" onclick="showPage('esportes')"><span class="icon">⚽</span><span>Esportes</span></button>
+      <button type="button" class="nav-item" onclick="showPage('tipos_aposta')"><span class="icon">🎯</span><span>Tipos de aposta</span></button>
+      <button type="button" class="nav-item" onclick="showPage('mercados')"><span class="icon">📌</span><span>Mercados</span></button>
+      <button type="button" class="nav-item" onclick="showPage('bugs_melhorias')"><span class="icon">🐛</span><span>Bugs e melhorias</span></button>
+      <button type="button" class="nav-item" onclick="showPage('ranking_grupos')"><span class="icon">🏆</span><span>Ranking de grupos</span></button>
     </nav>
     <div class="sidebar-footer">
       <button class="logout-btn" onclick="doLogout()">Sair</button>
@@ -612,7 +493,7 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
       </div>
       <div style="display:flex;gap:0.75rem;align-items:center">
         <div id="d2TopRight"></div>
-        <button class="btn-primary" id="topbarAddBtn" onclick="openAddModal()" style="display:none">+ Nova Aposta</button>
+        <button class="btn-primary" id="topbarAddBtn" onclick="openAddModal()" style="display:none">+ Nova aposta</button>
       </div>
     </div>
     <div class="content" id="pageContent"></div>
@@ -622,7 +503,7 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
 <!-- Modal Aposta -->
 <div class="modal-overlay" id="modalAposta">
   <div class="modal">
-    <h2 id="modalApostaTitle">Nova Aposta</h2>
+    <h2 id="modalApostaTitle">Nova aposta</h2>
     <div class="form-grid">
       <input type="hidden" id="fId">
       <div class="form-group">
@@ -666,7 +547,7 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
         <input type="text" id="fConta" placeholder="ex: luciaditrich, deiav, greice">
       </div>
       <div class="form-group">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem"><label id="fStakeLabel">Stake (R$)</label><select id="fMoeda" onchange="trocarMoedaForm(this.value)" title="Moeda do bilhete" style="width:auto;padding:0.1rem 0.4rem;font-size:0.72rem;margin-bottom:0.3rem"><option value="BRL">R$</option><option value="USD">US$</option></select></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem"><label id="fStakeLabel">Stake (R$)</label><select id="fMoeda" onchange="trocarMoedaForm(this.value)" title="Moeda do bilhete" style="width:auto;height:auto;padding:0.1rem 0.4rem;font-size:0.72rem;margin-bottom:0.3rem"><option value="BRL">R$</option><option value="USD">US$</option></select></div>
         <input type="number" id="fStakeReais" placeholder="0.00" step="0.01" oninput="calcUnidFromReais()">
       </div>
       <div class="form-group">
@@ -694,9 +575,9 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
         <input type="number" id="fResultado" placeholder="0.00" step="0.01">
       </div>
     </div>
-    <div class="modal-footer" style="display:flex;align-items:center;gap:0.75rem">
-      <div id="fLucroDisplay" style="display:none;flex:1;padding:0.6rem 0.9rem;background:rgba(0,212,170,0.10);border:1px solid rgba(0,212,170,0.35);border-radius:8px;color:#00d4aa;font-family:var(--mono);font-size:0.95rem;text-align:center;line-height:1.2">
-        <span style="font-size:0.65rem;letter-spacing:1px;opacity:0.8">TO WIN </span>
+    <div class="modal-footer" style="align-items:center">
+      <div id="fLucroDisplay" class="lucro-previsto">
+        <small>To win</small>
         <span id="fLucroVal" style="font-weight:600"></span>
       </div>
       <button class="btn-outline" onclick="closeModal('modalAposta')">Cancelar</button>
@@ -706,17 +587,9 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
 </div>
 
 <!-- Modal Histórico -->
-
-<div class="modal-overlay" id="modalVerAposta">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-header"><h3>Aposta</h3><button onclick="fecharVerAposta()" style="background:none;border:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 4px">×</button></div>
-    <div class="modal-body" id="verApostaBody" style="font-family:var(--mono);font-size:12.5px"></div>
-    <div class="modal-footer"><button class="btn-filter" onclick="fecharVerAposta()">Fechar</button></div>
-  </div>
-</div>
 <div class="modal-overlay" id="modalHist">
   <div class="modal">
-    <h2>Histórico de Alterações</h2>
+    <h2>Histórico de alterações</h2>
     <div id="histContent"></div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modalHist')">Fechar</button>
@@ -727,7 +600,7 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
 <!-- Modal Cadastro genérico -->
 <div class="modal-overlay" id="modalCadastro">
   <div class="modal" style="max-width:420px">
-    <h2 id="modalCadastroTitle">Novo Cadastro</h2>
+    <h2 id="modalCadastroTitle">Novo cadastro</h2>
     <div id="modalCadastroBody"></div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modalCadastro')">Cancelar</button>
@@ -756,15 +629,11 @@ const SENHA   = 'officedash';
 
 let currentUser = sessionStorage.getItem('rm_apost_user');
 let gFilters = {};
-let evolMode = "month"; // "month" or "day"
-let evolDayMonth = null; // "yyyy-mm" when in day mode
-let evolUnit = "u"; // "u" (unidades), "r" (reais) ou "d" (dólar)
+let paginaAtual = null;   // página aberta agora: dashboard, apostas, ranking_grupos...
 let cache = { operadores:[], tipsters:[], bookies:[], esportes:[], stakes:[], tipos_aposta:[], mercados:[], contas:[] };
 let apostasData = [];
-let filtros = { operador:'', tipster:'', bookie:'', status:'', periodo:'', search:'' };
 let sortField = 'data_evento', sortAsc = false;
 let pageSize = 100, currentPage = 1, apostasTotal = 0;
-let charts = {};
 let selectedApostas = new Set();
 
 const hdrs = { 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'return=representation' };
@@ -783,6 +652,9 @@ function doLogout() {
   sessionStorage.removeItem('rm_apost_user');
   currentUser = null;
   d2Sair();
+  paginaAtual = null;
+  d2PintarLente();
+  d2PintarAcoes();
   document.getElementById('app').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('loginPass').value='';
@@ -793,7 +665,8 @@ async function showApp() {
   document.getElementById('app').style.display='block';
   document.getElementById('sideUser').textContent = currentUser;
   await loadCache();
-  showPage(location.hash === '#novo' ? 'dashboard_novo' : 'dashboard');   // link direto pra prévia
+  try { if (location.hash === '#novo') history.replaceState(null, '', location.pathname + location.search); } catch (e) {}   // link antigo da prévia
+  showPage('dashboard');
 }
 
 // ── CACHE ──────────────────────────────────────────────────
@@ -904,697 +777,67 @@ async function apagarAposta(id) {
 
 // ── PAGES ──────────────────────────────────────────────────
 function showPage(page) {
-  if (page !== 'dashboard_novo') d2Sair();
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const navMap = { dashboard:0, dashboard_novo:1, apostas:2, tipsters:3, bookies:4, operadores:5, esportes:6, tipos_aposta:7, mercados:8, bugs_melhorias:9, ranking_grupos:10 };
-  document.querySelectorAll('.nav-item')[navMap[page]]?.classList.add('active');
-  const titles = { dashboard:'Dashboard', dashboard_novo:'Dashboard novo', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de Aposta', mercados:'Mercados', bugs_melhorias:'Bugs / Melhorias', ranking_grupos:'Ranking de Grupos' };
+  paginaAtual = page;
+  if (page !== 'dashboard') d2Sair();
+  const navMap = { dashboard:0, apostas:1, tipsters:2, bookies:3, operadores:4, esportes:5, tipos_aposta:6, mercados:7, bugs_melhorias:8, ranking_grupos:9 };
+  document.querySelectorAll('.nav-item').forEach((n, i) => {
+    const aqui = i === navMap[page];
+    n.classList.toggle('active', aqui);
+    if (aqui) n.setAttribute('aria-current', 'page'); else n.removeAttribute('aria-current');
+  });
+  const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de aposta', mercados:'Mercados', bugs_melhorias:'Bugs e melhorias', ranking_grupos:'Ranking de grupos' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
   document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
+  d2PintarLente();
+  d2PintarAcoes();
   const content = document.getElementById('pageContent');
   content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
-  if (page==='dashboard') renderDashboard(gFilters);
-  else if (page==='dashboard_novo') d2Entrar();
+  if (page==='dashboard') d2Entrar();
   else if (page==='apostas') renderApostas();
   else if (page==='bugs_melhorias') renderBugsMelhorias();
   else if (page==='ranking_grupos') renderRankingGrupos();
   else renderCadastro(page);
 }
 
-// ── DASHBOARD ──────────────────────────────────────────────
-async function renderDashboard(savedFilters) {
-  const content = document.getElementById('pageContent');
-
-  // Render filters bar (only once or restore values)
-  if (!document.getElementById('dashFilters')) {
-    content.innerHTML = `
-      <div class="filters" id="dashFilters">
-        <select class="filter-select" id="dfOp"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
-        <select class="filter-select" id="dfTi"><option value="">Todos tipsters</option><option value="00000000-0000-0000-0000-000000000000">— Sem tipster —</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
-        <select class="filter-select" id="dfBo"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
-        <select class="filter-select" id="dfSt"><option value="">Todos status</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="PENDING">Pending</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
-        <input type="date" class="filter-select" id="dfDe">
-        <input type="date" class="filter-select" id="dfAte"> <button class="btn-filter" onclick="updateDashboard()">Filtrar</button> <button class="btn-filter btn-limpar" onclick="limparFiltrosDashboard()">Limpar</button> <button class="btn-filter btn-fechar" onclick="abrirModalFecharDia()">⚡ Fechar dia</button>
-        <input type="hidden" id="dfEs">
-        <input type="hidden" id="dfMe">
-      </div>
-      <div id="dashContent"><div class="loading"><div class="spinner"></div>Calculando...</div></div>`;
-  }
-
-  // Restore saved filter values if provided
-  if (savedFilters) {
-    if (savedFilters.op)  document.getElementById('dfOp').value  = savedFilters.op;
-    if (savedFilters.ti)  document.getElementById('dfTi').value  = savedFilters.ti;
-    if (savedFilters.bo)  document.getElementById('dfBo').value  = savedFilters.bo;
-    if (savedFilters.es)  document.getElementById('dfEs').value  = savedFilters.es;
-    if (savedFilters.me)  document.getElementById('dfMe').value  = savedFilters.me;
-    if (savedFilters.st)  document.getElementById('dfSt').value  = savedFilters.st;
-    if (savedFilters.de)  document.getElementById('dfDe').value  = savedFilters.de;
-    if (savedFilters.ate) document.getElementById('dfAte').value = savedFilters.ate;
-  }
-
-  await updateDashboard();
-}
-
-async function updateDashboard() {
-  // Reset evolMode if date range no longer matches a single month
-  if (evolMode === 'day' && evolDayMonth) {
-    const de = document.getElementById('dfDe')?.value || '';
-    if (!de.startsWith(evolDayMonth)) { evolMode = 'month'; evolDayMonth = null; }
-  }
-  gFilters.op  = document.getElementById('dfOp')?.value  ?? gFilters.op ?? '';
-  gFilters.ti  = document.getElementById('dfTi')?.value  ?? gFilters.ti ?? '';
-  gFilters.bo  = document.getElementById('dfBo')?.value  ?? gFilters.bo ?? '';
-  gFilters.es  = document.getElementById('dfEs')?.value  ?? gFilters.es ?? '';
-  gFilters.me  = document.getElementById('dfMe')?.value  ?? gFilters.me ?? '';
-  gFilters.st  = document.getElementById('dfSt')?.value  ?? gFilters.st ?? '';
-  gFilters.de  = document.getElementById('dfDe')?.value  ?? gFilters.de ?? '';
-  gFilters.ate = document.getElementById('dfAte')?.value ?? gFilters.ate ?? '';
-  const dashContent = document.getElementById('dashContent');
-  if (dashContent) dashContent.innerHTML = '<div class="loading"><div class="spinner"></div>Calculando...</div>';
-
-  const p = {
-    p_op:   gFilters.op  || null,
-    p_ti:   gFilters.ti  || null,
-    p_bo:   gFilters.bo  || null,
-    p_es:   gFilters.es  || null,
-    p_me:   gFilters.me  || null,
-    p_st:   gFilters.st  || null,
-    p_de:   gFilters.de  || null,
-    p_ate:  gFilters.ate || null,
-    p_gran: (evolMode === 'day') ? 'day' : 'month'
-  };
-  const d = await sbRpc('dashboard_stats', p);
-  window._dash = d || {};
-  renderDashStats(window._dash);
-}
-
-function buildDashFilters() {
-  const f = [];
-  const op  = document.getElementById('dfOp')?.value;
-  const ti  = document.getElementById('dfTi')?.value;
-  const bo  = document.getElementById('dfBo')?.value;
-  const es  = document.getElementById('dfEs')?.value;
-  const me  = document.getElementById('dfMe')?.value;
-  const st  = document.getElementById('dfSt')?.value;
-  const de  = document.getElementById('dfDe')?.value;
-  const ate = document.getElementById('dfAte')?.value;
-  if (op)  f.push(`operador_id=eq.${op}`);
-  if (ti === '00000000-0000-0000-0000-000000000000') f.push('tipster_id=is.null');
-  else if (ti) f.push(`tipster_id=eq.${ti}`);
-  if (bo)  f.push(`bookie_id=eq.${bo}`);
-  if (es)  f.push(`esporte_id=eq.${es}`);
-  if (me)  f.push(`mercado=eq.${encodeURIComponent(me)}`);
-  if (st)  f.push(`status=eq.${st}`);
-  if (de)  f.push(`data_evento=gte.${de}`);
-  if (ate) f.push(`data_evento=lte.${ate}`);
-  return f;
-}
-
-function renderDashStats(d) {
-  const c = (d && d.cards) || {};
-  const entradas  = +c.entradas  || 0;
-  const pendentes = +c.pendentes || 0;
-  const wonN      = +c.won       || 0;
-  const settledN  = +c.settled   || 0;
-  const plU  = +c.plU  || 0;
-  const plR  = +c.plR  || 0;
-  const invU = +c.invU || 0;
-  const invR = +c.invR || 0;
-  const pendInvU = +c.pendInvU || 0;
-  const pendInvR = +c.pendInvR || 0;
-  const roiU    = invU > 0 ? (plU / invU * 100) : 0;
-  const roiR    = invR > 0 ? (plR / invR * 100) : 0;
-  const acerto  = settledN > 0 ? (wonN / settledN * 100) : 0;
-  const oddMedia = +c.oddMed || 0;  // mediana ponderada por stake (a odd onde cruza metade do dinheiro)
-  const stakeMedia  = entradas > 0 ? invU / entradas : 0;
-  const entradasBrl = entradas - (+c.nUsd || 0);
-  const stakeMediaR = entradasBrl > 0 ? invR / entradasBrl : 0;
-
-  const nUsd = +c.nUsd || 0, plUsd = +c.plUsd || 0, invUsd = +c.invUsd || 0, pendInvUsd = +c.pendInvUsd || 0;
-  const roiUsd = invUsd > 0 ? (plUsd / invUsd * 100) : 0;
-  const usdSub = html => nUsd > 0 ? `<div class="card-sub" style="white-space:nowrap">${html}</div>` : '';
-  const usdLine = v => nUsd > 0 ? `<div class="card-sub">${fmtValMoeda(v, 'USD')}</div>` : '';
-  const pl_color = plU >= 0 ? 'green' : 'red';
-
-  document.getElementById('dashContent').innerHTML = `
-    <div class="cards-grid">
-      <div class="card"><div class="card-label">Entradas</div><div class="card-value purple">${entradas.toLocaleString('pt-BR')}</div><div class="card-sub">${pendentes} pendente${pendentes!==1?'s':''}</div></div>
-      <div class="card hero ${plU >= 0 ? 'pos' : 'neg'}"><div class="card-label">P/L</div><div class="card-value ${pl_color}">${fmtU(plU)}</div><div class="card-sub">${fmtR(plR)}</div>${usdLine(plUsd)}<div class="card-sub" style="white-space:nowrap">${fmtR(plR + (roiR/100) * pendInvR)} projetado</div>${usdSub(fmtValMoeda(plUsd + (roiUsd/100) * pendInvUsd, 'USD') + ' projetado')}</div>
-      <div class="card co"><div class="card-label">ROI</div><div class="card-value ${pl_color}">${roiU.toFixed(2)}%<span style="font-size:0.8rem"> u</span></div><div class="card-sub">${roiR.toFixed(2)}% R$</div>${usdSub(roiUsd.toFixed(2) + '% US$')}</div>
-      <div class="card"><div class="card-label">Investimento</div><div class="card-value cyan">${fmtU(invU)}</div><div class="card-sub">${fmtR(invR)}</div>${usdLine(invUsd)}<div class="card-sub">${fmtR(pendInvR)} pendente</div>${usdSub(fmtValMoeda(pendInvUsd, 'USD') + ' pendente')}</div>
-      <div class="card" title="Mediana ponderada por stake: a odd abaixo da qual está metade do dinheiro investido no filtro. Imune a bilhetes lotéricos de stake pequena."><div class="card-label">Odd Típica ⊗</div><div class="card-value yellow">${oddMedia.toFixed(2)}</div><div class="card-sub">mediana ponderada por stake</div></div>
-      <div class="card"><div class="card-label">Stake Média</div><div class="card-value">${fmtU(stakeMedia)}</div><div class="card-sub">${fmtR(stakeMediaR)}</div>${usdSub(fmtValMoeda(nUsd > 0 ? invUsd / nUsd : 0, 'USD'))}</div>
-      <div class="card"><div class="card-label">Taxa de acerto</div><div class="card-value yellow">${acerto.toFixed(1)}%</div><div class="card-sub">${wonN} de ${settledN}</div></div>
-    </div>
-    <div class="charts-grid">
-      <!-- ROW 1: Evolução full width -->
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between"><span>Evolução Acumulada</span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="evolBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Unidades</button><button id="evolBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Reais</button><button id="evolBtnD" onclick="setEvolUnit('d')" style="background:transparent;color:var(--muted);border:none;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.7rem;cursor:pointer">Dólar</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartEvolucao" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Ritmo do Mês</span><span id="ritmoResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="rtBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="rtBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button><button id="rtBtnD" onclick="setEvolUnit('d')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">US$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartRitmo" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Corrida dos Tipsters</span><span id="corridaResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="coBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="coBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button><button id="coBtnD" onclick="setEvolUnit('d')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">US$</button></div></div><div style="position:relative;width:100%;height:210px;overflow:hidden"><canvas id="chartCorrida" style="max-height:210px"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Calendário</span><span style="display:inline-flex;align-items:center;gap:6px;margin-left:auto"><button onclick="calorNav(-1)" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--mono);font-size:0.7rem">‹</button><span id="calorMesLbl" style="font-family:var(--mono);font-size:0.72rem;color:var(--text);min-width:52px;text-align:center"></span><button onclick="calorNav(1)" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--mono);font-size:0.7rem">›</button></span><span id="calorResumo" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)"></span><div style="display:inline-flex;gap:2px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px"><button id="caBtnU" onclick="setEvolUnit('u')" style="background:var(--accent);color:#fff;border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">u</button><button id="caBtnR" onclick="setEvolUnit('r')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">R$</button><button id="caBtnD" onclick="setEvolUnit('d')" style="background:transparent;color:var(--muted);border:none;padding:3px 8px;border-radius:4px;font-family:var(--mono);font-size:0.65rem;cursor:pointer">US$</button></div></div><div id="calorGrid" style="width:100%;min-height:300px"></div></div>
-      <!-- ROW 2: P/L Operador + Newsletter -->
-      <div class="chart-card"><div class="chart-title">P/L por Operador</div><div style="position:relative;width:100%;height:280px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartOperador"></canvas></div></div></div></div>
-      <div class="chart-card newsletter-card"><div class="chart-title">Destaques da Operação</div><div class="newsletter-body" id="newsletterBody"><div class="nl-placeholder">Calculando…</div></div></div>
-      <!-- ROW 3: P/L Bookie + P/L Tipster -->
-      <div class="chart-card"><div class="chart-title">P/L por Bookie</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartBookie"></canvas></div></div></div></div>
-      <div class="chart-card"><div class="chart-title">P/L por Tipster</div><div style="position:relative;width:100%;height:320px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartTipster"></canvas></div></div></div></div>
-      <!-- ROW 4: P/L Esporte + P/L Mercado -->
-      <div class="chart-card"><div class="chart-title">P/L por Esporte</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartEsporte"></canvas></div></div></div></div>
-      <div class="chart-card"><div class="chart-title">P/L por Mercado</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartMercado"></canvas></div></div></div></div>
-      <!-- ROW 5: P/L Tipo Aposta + Distribuição de Status -->
-      <div class="chart-card"><div class="chart-title">P/L por Tipo de Aposta</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden"><div style="position:relative;width:100%"><canvas id="chartTipo"></canvas></div></div></div></div>
-      <div class="chart-card"><div class="chart-title">Distribuição de Status</div><div style="position:relative;width:100%;height:260px;overflow:hidden"><canvas id="chartStatus" style="max-height:260px"></canvas></div></div>
-    </div>`;
-
-  setTimeout(() => renderCharts(d), 50);
-}
-
-
-
-function limparFiltrosApostas() {
-  ['tOp','tTi','tBo','tSt','tDe','tAte'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value='';
-  });
-  gFilters = {};
-  queryApostas();
-}
-
-// Underwater: distância do acumulado ao pico histórico, dia a dia (série da RPC).
-// Respeita todos os filtros globais — filtrado por tipster vira o raio-x de saúde dele.
-const MES_ABREV = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-function mesLabel(ym) { if (!ym) return ''; const [y, m] = ym.split('-'); return MES_ABREV[+m - 1] + '/' + y.slice(2); }
-
-function renderRitmo(d) {
-  const canvas = document.getElementById('chartRitmo');
-  if (!canvas) return;
-  const rt = d.ritmo || {}; const dias = rt.dias || [];
-  const isReais = evolUnit !== 'u'; const isUsd = evolUnit === 'd'; const SYM = isUsd ? 'US$' : 'R$';
-  const pick = (p, u, r) => { const v = isReais ? p[isUsd ? r.replace(/r$/, 'usd') : r] : p[u]; return v === null || v === undefined ? null : +v; };
-  const labels = dias.map(p => p.d);
-  const atual   = dias.map(p => pick(p, 'au', 'ar'));
-  const media   = dias.map(p => pick(p, 'mu', 'mr'));
-  const recorde = dias.map(p => pick(p, 'ru', 'rr'));
-  const fmt = v => isReais ? SYM + ' ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
-
-  const resumoEl = document.getElementById('ritmoResumo');
-  if (resumoEl) {
-    let li = -1; atual.forEach((v, i) => { if (v !== null) li = i; });
-    if (li >= 0 && media[li] !== null) {
-      const dif = atual[li] - media[li];
-      resumoEl.textContent = `${mesLabel(rt.foco)}: vs média ${dif >= 0 ? '+' : ''}${fmt(dif)} · recorde ${mesLabel(rt.recorde_mes)}`;
-    } else resumoEl.textContent = '';
-  }
-
-  charts['chartRitmo'] = new Chart(canvas, {
-    type: 'line',
-    data: { labels, datasets: [
-      { label: 'Atual', data: atual, borderColor: '#7c76ff', backgroundColor: 'rgba(124,118,255,0.10)',
-        borderWidth: 2.5, pointRadius: 0, tension: 0.2, fill: true, spanGaps: false },
-      { label: 'Média', data: media, borderColor: '#6b6b90', borderDash: [5, 4],
-        borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: false },
-      { label: 'Recorde ' + mesLabel(rt.recorde_mes), data: recorde, borderColor: 'rgba(0,212,170,0.75)', borderDash: [5, 4],
-        borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: false }
-    ]},
-    options: {
-      responsive: true, maintainAspectRatio: false, animation: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: true, position: 'bottom', labels: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9}, boxWidth: 14, boxHeight: 2 } },
-        tooltip: { callbacks: {
-          title: ctx => 'Dia ' + ctx[0].label,
-          label: ctx => ctx.raw === null ? null : `${ctx.dataset.label}: ${ctx.raw >= 0 ? '+' : ''}${fmt(ctx.raw)}`
-        } }
-      },
-      scales: {
-        x: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9}, maxTicksLimit: 16 }, grid: { display: false } },
-        y: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9},
-               callback: v => isReais ? SYM + (v/1000).toFixed(0) + 'k' : v + 'u' },
-             grid: { color: ctx => ctx.tick && ctx.tick.value === 0 ? 'rgba(232,232,245,0.35)' : 'rgba(42,42,69,0.5)' } }
-      }
-    }
-  });
-}
-
-const CORRIDA_CORES = ['#00d4aa', '#7c76ff', '#ffb020', '#ff4d6a', '#4da3ff'];
-function renderCorrida(d) {
-  const canvas = document.getElementById('chartCorrida');
-  if (!canvas) return;
-  const co = d.corrida || {}; const series = co.series || [];
-  const isReais = evolUnit !== 'u'; const isUsd = evolUnit === 'd'; const SYM = isUsd ? 'US$' : 'R$';
-  const gran = co.gran || 'month';
-  if (!series.length) { charts['chartCorrida'] = new Chart(canvas, {type:'line', data:{labels:[],datasets:[]}, options:{responsive:true,maintainAspectRatio:false}}); return; }
-  const labels = (series[0].pts || []).map(p => {
-    const dt = p.d.slice(0, 10);
-    return gran === 'month' ? mesLabel(dt.slice(0, 7)) : dt.slice(8, 10) + '/' + dt.slice(5, 7);
-  });
-  const fmt = v => isReais ? SYM + ' ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (+v).toFixed(1) + 'u';
-
-  const resumoEl = document.getElementById('corridaResumo');
-  if (resumoEl) {
-    const vLast = s => { const pts = s.pts || []; const p = pts[pts.length - 1]; return p ? (isReais ? +(isUsd ? p.usd : p.r) : +p.u) : 0; };
-    const lider = series.reduce((a, b) => vLast(b) > vLast(a) ? b : a, series[0]);
-    const v = vLast(lider);
-    resumoEl.textContent = `Líder: ${lider.nome} ${v >= 0 ? '+' : ''}${fmt(v)}`;
-  }
-
-  charts['chartCorrida'] = new Chart(canvas, {
-    type: 'line',
-    data: { labels, datasets: series.map((s, i) => ({
-      label: s.nome, data: (s.pts || []).map(p => isReais ? +(isUsd ? p.usd : p.r) : +p.u),
-      borderColor: CORRIDA_CORES[i % CORRIDA_CORES.length], borderWidth: 2, pointRadius: 0, tension: 0.2, fill: false
-    })) },
-    options: {
-      responsive: true, maintainAspectRatio: false, animation: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: true, position: 'bottom', labels: { color: '#8b8bb0', font: {family: 'JetBrains Mono', size: 9}, boxWidth: 14, boxHeight: 2 } },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw >= 0 ? '+' : ''}${fmt(ctx.raw)}` } }
-      },
-      scales: {
-        x: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9}, maxTicksLimit: 12 }, grid: { display: false } },
-        y: { ticks: { color: '#6b6b90', font: {family: 'JetBrains Mono', size: 9},
-               callback: v => isReais ? SYM + (v/1000).toFixed(0) + 'k' : v + 'u' },
-             grid: { color: ctx => ctx.tick && ctx.tick.value === 0 ? 'rgba(232,232,245,0.35)' : 'rgba(42,42,69,0.5)' } }
-      }
-    }
-  });
-}
-
-let _calorMes = null;
-function calorNav(delta) {
-  if (!_calorMes || !window._dash) return;
-  const [y, m] = _calorMes.split('-').map(Number);
-  const nova = new Date(y, m - 1 + delta, 15);
-  const alvo = nova.getFullYear() + '-' + String(nova.getMonth() + 1).padStart(2, '0');
-  const meses = new Set((window._dash.calor || []).map(p => p.d.slice(0, 7)));
-  if (!meses.has(alvo)) return;
-  _calorMes = alvo;
-  renderCalor(window._dash);
-}
-
-function renderCalor(d) {
-  const grid = document.getElementById('calorGrid');
-  if (!grid) return;
-  const dias = d.calor || [];
-  const isReais = evolUnit !== 'u'; const isUsd = evolUnit === 'd'; const SYM = isUsd ? 'US$' : 'R$';
-  const lblEl = document.getElementById('calorMesLbl');
-  const resumoEl = document.getElementById('calorResumo');
-  if (!dias.length) { grid.innerHTML = ''; if (lblEl) lblEl.textContent = ''; if (resumoEl) resumoEl.textContent = ''; return; }
-
-  const meses = [...new Set(dias.map(p => p.d.slice(0, 7)))].sort();
-  if (!_calorMes || !meses.includes(_calorMes)) _calorMes = meses[meses.length - 1];
-  if (lblEl) lblEl.textContent = mesLabel(_calorMes);
-
-  const doMes = dias.filter(p => p.d.slice(0, 7) === _calorMes);
-  const mapa = {}; doMes.forEach(p => { mapa[p.d.slice(0, 10)] = p; });
-  const val = p => isReais ? +(isUsd ? p.usd : p.r) : +p.u;
-  const detalheDia = p => {
-    const partes = [((+p.u) > 0 ? '+' : '') + (+p.u).toFixed(1).replace('.', ',') + 'u',
-                    'R$ ' + (+p.r).toLocaleString('pt-BR', {maximumFractionDigits: 0})];
-    if (+p.usd) partes.push('US$ ' + (+p.usd).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-    return partes.join(' · ');
-  };
-  const fmtCel = v => isReais
-    ? (Math.abs(v) >= 1000 ? SYM + (v/1000).toFixed(1).replace('.', ',') + 'k' : SYM + Math.round(v))
-    : (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',');
-  const fmtFull = v => isReais ? SYM + ' ' + (+v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',') + 'u';
-
-  const abs = doMes.map(p => Math.abs(val(p))).filter(v => v > 0).sort((a, b) => a - b);
-  const p95 = abs.length ? abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.95))] : 1;
-
-  const [y, m] = _calorMes.split('-').map(Number);
-  const primeiroDow = (new Date(y, m - 1, 1).getDay() + 6) % 7; // semana começa na segunda
-  const nDias = new Date(y, m, 0).getDate();
-
-  let cels = ['S','T','Q','Q','S','S','D'].map(h =>
-    `<div style="font-family:var(--mono);font-size:0.6rem;color:#6b6b90;text-align:center;padding-bottom:2px">${h}</div>`).join('');
-  for (let i = 0; i < primeiroDow; i++) cels += '<div></div>';
-  for (let dia = 1; dia <= nDias; dia++) {
-    const iso = `${_calorMes}-${String(dia).padStart(2, '0')}`;
-    const p = mapa[iso];
-    if (!p) {
-      cels += `<div style="border-radius:6px;background:rgba(42,42,69,0.28);min-height:44px;padding:3px 5px">` +
-              `<div style="font-family:var(--mono);font-size:0.58rem;color:#44445e">${dia}</div></div>`;
-    } else {
-      const v = val(p);
-      const a = v === 0 ? 0.12 : 0.14 + 0.60 * Math.min(1, Math.abs(v) / p95);
-      const bg = v > 0 ? `rgba(0,212,170,${a.toFixed(2)})` : v < 0 ? `rgba(255,77,106,${a.toFixed(2)})` : 'rgba(107,107,144,0.25)';
-      const cor = v > 0 ? '#7df0d8' : v < 0 ? '#ff9daf' : '#8b8bb0';
-      cels += `<div onclick="irParaDia('${iso}')" title="${dia}/${String(m).padStart(2,'0')}: ${detalheDia(p)} · ${p.n} apostas" ` +
-        `style="border-radius:6px;background:${bg};min-height:44px;padding:3px 5px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between">` +
-        `<div style="font-family:var(--mono);font-size:0.58rem;color:#a0a0c0">${dia}</div>` +
-        `<div style="text-align:center;font-family:var(--mono);font-size:0.68rem;font-weight:700;color:${cor};line-height:1">${fmtCel(v)}</div>` +
-        `<div style="text-align:right;font-family:var(--mono);font-size:0.52rem;color:#8b8bb0">${p.n}</div></div>`;
-    }
-  }
-  grid.innerHTML = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${cels}</div>`;
-
-  if (resumoEl) {
-    const tot = doMes.reduce((s, p) => s + val(p), 0);
-    const verdes = doMes.filter(p => val(p) > 0).length;
-    const totUsd = doMes.reduce((s, p) => s + (+p.usd || 0), 0);
-    const extraUsd = (!isUsd && totUsd) ? ` · US$ ${totUsd.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '';
-    resumoEl.textContent = `${fmtFull(tot)}${extraUsd} · ${verdes}V/${doMes.length}d`;
-  }
-}
-
-
-// ── Navegação a partir dos Destaques ────────────────────────────
-// Leva os filtros atuais do dashboard e abre a aba Apostas naquele dia
-function irParaDia(d) {
-  if (!d) return;
-  gFilters.op = document.getElementById('dfOp')?.value || '';
-  gFilters.ti = document.getElementById('dfTi')?.value || '';
-  gFilters.bo = document.getElementById('dfBo')?.value || '';
-  gFilters.st = document.getElementById('dfSt')?.value || '';
-  gFilters.de = d; gFilters.ate = d;
-  showPage('apostas');
-}
-
-// Filtra o dashboard inteiro num tipster (clique nos Top/Piores 3)
-function filtrarTipsterDash(nome) {
-  const t = (cache.tipsters || []).find(x => x.nome === nome);
-  if (!t) return;
-  const sel = document.getElementById('dfTi');
-  if (sel) { sel.value = t.id; updateDashboard(); }
-}
-
-// Modal read-only da aposta (recordes) — só a "foto", sem edição
-async function verAposta(id) {
-  if (!id) return;
-  const body = document.getElementById('verApostaBody');
-  const ov = document.getElementById('modalVerAposta');
-  if (!body || !ov) return;
-  body.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-  ov.classList.add('open');
-  try {
-    const rows = await sbGet(`apostas?id=eq.${id}&select=*`);
-    const a = rows[0];
-    if (!a) { body.innerHTML = 'Aposta não encontrada.'; return; }
-    const nome = (arr, id_) => (arr || []).find(x => x.id === id_)?.nome || '—';
-    const escv = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    const d = a.data_evento ? `${a.data_evento.substring(8,10)}/${a.data_evento.substring(5,7)}/${a.data_evento.substring(0,4)}` : '—';
-    const lu = a.lucro_unidades !== null ? parseFloat(a.lucro_unidades) : null;
-    const luCls = lu === null ? '' : (lu >= 0 ? 'style="color:var(--green)"' : 'style="color:var(--red)"');
-    const row = (label, val) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">${label}</span><span style="text-align:right">${val}</span></div>`;
-    body.innerHTML =
-      row('Data', d) +
-      row('Evento', escv(a.evento || '—')) +
-      row('Entrada', escv(a.entrada || '—')) +
-      row('Mercado', escv(a.mercado || '—')) +
-      row('Tipster', escv(nome(cache.tipsters, a.tipster_id))) +
-      row('Bookie', escv(nome(cache.bookies, a.bookie_id))) +
-      row('Operador', escv(nome(cache.operadores, a.operador_id))) +
-      row('Contas', escv(a.contas_utilizadas || '—')) +
-      row('Odd', a.odd ?? '—') +
-      row('Stake', `${a.stake_unidades ?? '—'}u · ${fmtValMoeda(a.moeda === 'USD' ? a.stake_usd : a.stake_reais, a.moeda) ?? '—'}`) +
-      row('Status', escv(a.status || '—')) +
-      row('Resultado', escv(a.resultado || '—')) +
-      `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0"><span style="color:var(--muted)">Lucro</span><span ${luCls}>${lu !== null ? (lu>=0?'+':'')+lu.toFixed(2)+'u' : '—'}${(() => { const v = fmtValMoeda(a.moeda === 'USD' ? a.lucro_usd : a.lucro_reais, a.moeda); return v ? ' · ' + v : ''; })()}</span></div>`;
-  } catch (e) {
-    console.error('verAposta:', e);
-    body.innerHTML = 'Erro ao carregar a aposta.';
-  }
-}
-function fecharVerAposta() {
-  document.getElementById('modalVerAposta')?.classList.remove('open');
-}
-
-function setEvolUnit(unit) {
-  evolUnit = unit;
-  const btnU = document.getElementById('evolBtnU');
-  const btnR = document.getElementById('evolBtnR');
-  [[btnU, 'u'], [btnR, 'r'],
-   [document.getElementById('rtBtnU'), 'u'],
-   [document.getElementById('rtBtnR'), 'r'],
-   [document.getElementById('coBtnU'), 'u'],
-   [document.getElementById('coBtnR'), 'r'],
-   [document.getElementById('caBtnU'), 'u'],
-   [document.getElementById('caBtnR'), 'r'],
-   [document.getElementById('evolBtnD'), 'd'],
-   [document.getElementById('rtBtnD'), 'd'],
-   [document.getElementById('coBtnD'), 'd'],
-   [document.getElementById('caBtnD'), 'd']].forEach(([b, w]) => {
-    if (!b) return;
-    b.style.background = unit === w ? 'var(--accent)' : 'transparent';
-    b.style.color = unit === w ? '#fff' : 'var(--muted)';
-  });
-  // Re-renderiza só o gráfico (usa o resultado já em memória, sem refazer a função)
-  if (window._dash) renderCharts(window._dash); else updateDashboard();
-}
-
-function limparFiltrosDashboard() {
-  ['dfOp','dfTi','dfBo','dfEs','dfMe','dfSt','dfDe','dfAte'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value='';
-  });
-  gFilters = {};
-  evolMode = 'month';
-  evolDayMonth = null;
-  window._evolMeses = null;
-  updateDashboard();
-}
-
-function applyDrillDown(chartId, label) {
-  const info = { chartBookie:'dfBo', chartTipster:'dfTi', chartOperador:'dfOp', chartEsporte:'dfEs' };
-  const selId = info[chartId];
-
-  if (selId) {
-    // Find the matching ID in cache
-    const cacheMap = { dfBo: cache.bookies, dfTi: cache.tipsters, dfOp: cache.operadores, dfEs: cache.esportes };
-    const arr = cacheMap[selId] || [];
-    const item = arr.find(x => x.nome === label);
-    const el = document.getElementById(selId);
-    if (el && item) {
-      el.value = item.id;
-      gFilters[selId.replace('df','').toLowerCase()] = item.id;
-    }
-    updateDashboard();
-  } else if (chartId === 'chartMercado') {
-    // Mercado é text livre, não FK — set value direto pelo nome
-    const el = document.getElementById('dfMe');
-    if (el) {
-      // Garante que a opção existe (caso o mercado não esteja cadastrado)
-      let opt = Array.from(el.options).find(o => o.value === label);
-      if (!opt) {
-        opt = document.createElement('option');
-        opt.value = label; opt.textContent = label;
-        el.appendChild(opt);
-      }
-      el.value = label;
-      gFilters.me = label;
-    }
-    updateDashboard();
-  }
-}
-
-function renderCharts(d) {
-  // [nome, u, R$, US$, nº entradas em real, nº entradas em dólar] — contagens vêm da RPC
-  const toEntries = a => (a||[]).map(x => [x.nome, +x.u, +x.r, x.usd != null ? +x.usd : null, x.nr ?? null, x.nusd ?? null]);
-  Object.values(charts).forEach(c => c.destroy());
-  charts = {};
-
-  const chartOpts = (horizontal=false) => ({
-    responsive:true, maintainAspectRatio:false, animation:false,
-    indexAxis: horizontal ? 'y' : 'x',
-    plugins:{ legend:{display:false}, tooltip:{ callbacks:{
-      label: ctx => ` ${fmtU(ctx.raw)}`,
-      // R$ só aparece se o grupo tem entrada em real; US$ só se tem entrada em dólar
-      afterLabel: ctx => {
-        const ds = ctx.dataset, i = ctx.dataIndex;
-        const r = ds._rVals?.[i], usd = ds._dVals?.[i], nR = ds._nR?.[i], nD = ds._nD?.[i];
-        const out = [];
-        if (r != null && (nR == null || nR > 0)) out.push(` ${fmtValMoeda(r, 'BRL')}`);
-        if (usd != null && (nD == null ? usd !== 0 : nD > 0)) out.push(` ${fmtValMoeda(usd, 'USD')}`);
-        return out;
-      }
-    }}},
-    scales:{
-      x:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
-      y:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} }
-    }
-  });
-
-  const drillMap = {
-    chartBookie:   { field:'bookie_id',   arr: cache.bookies },
-    chartTipster:  { field:'tipster_id',  arr: cache.tipsters },
-    chartOperador: { field:'operador_id', arr: cache.operadores },
-    chartEsporte:  { field:'esporte_id',  arr: cache.esportes || [] },
-    chartMercado:  { field:'mercado',     arr: null },
-  };
-
-  const makeBar = (id, entries, horizontal=true) => {
-    const canvas = document.getElementById(id);
-    if (!canvas) return;
-    const labels  = entries.map(e=>e[0]);
-    const vals    = entries.map(e=>e[1]);
-    const rVals   = entries.map(e=>e[2] ?? null); // R$ values
-    const dVals   = entries.map(e=>e[3] ?? null); // US$ values
-    const nR      = entries.map(e=>e[4] ?? null); // nº de entradas em real no grupo
-    const nD      = entries.map(e=>e[5] ?? null); // nº de entradas em dólar no grupo
-    const colors = vals.map(v => v>=0 ? 'rgba(0,212,170,0.7)' : 'rgba(255,77,106,0.7)');
-
-    // Altura do canvas: 28px por barra. Wrapper tem altura fixa via CSS (260/280/320px) com overflow-y:auto.
-    // Quando o canvas é maior que o wrapper, aparece scrollbar automaticamente.
-    if (horizontal && entries.length > 0) {
-      const altura = entries.length * 28 + 30;
-      canvas.style.height = altura + 'px';
-    }
-
-
-    const opts = chartOpts(horizontal);
-    opts.plugins.tooltip.callbacks.label = ctx => ` ${fmtU(ctx.raw)}`;
-    opts.onClick = (evt, elements) => {
-      if (!elements.length) return;
-      const label = labels[elements[0].index];
-      applyDrillDown(id, label);
-    };
-    opts.plugins.tooltip.callbacks.title = ctx => ctx[0].label;
-    canvas.style.cursor = 'pointer';
-    charts[id] = new Chart(canvas, {
-      type:'bar',
-      data:{ labels, datasets:[{ data:vals, backgroundColor:colors, borderRadius:4, _rVals:rVals, _dVals:dVals, _nR:nR, _nD:nD }] },
-      options: opts
-    });
-  };
-
-  makeBar('chartBookie',   toEntries(d.por_bookie));
-  makeBar('chartTipster',  toEntries(d.por_tipster));
-  makeBar('chartOperador', toEntries(d.por_operador));
-  renderRitmo(d);
-  renderCorrida(d);
-  renderCalor(d);
-  makeBar('chartEsporte',  toEntries(d.por_esporte));
-  makeBar('chartMercado',  toEntries(d.por_mercado));
-  makeBar('chartTipo',     toEntries(d.por_tipo));
-
-  // Status donut
-  const statusCount = {};
-  (d.status||[]).forEach(s => { statusCount[s.status] = +s.n; });
-  const sColors = { WON:'rgba(0,212,170,0.8)', LOST:'rgba(255,77,106,0.8)', PENDING:'rgba(108,99,255,0.8)', VOID:'rgba(107,107,144,0.6)', 'HALF WON':'rgba(0,212,170,0.4)', 'HALF LOST':'rgba(255,77,106,0.4)', 'CASH OUT':'rgba(255,216,77,0.7)' };
-  charts['chartStatus'] = new Chart(document.getElementById('chartStatus'), {
-    type:'doughnut',
-    data:{ labels:Object.keys(statusCount), datasets:[{ data:Object.values(statusCount), backgroundColor:Object.keys(statusCount).map(s=>sColors[s]||'gray'), borderWidth:0 }] },
-    options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ position:'right', labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } } } }
-  });
-
-  // Evolução acumulada — vem pronta da função (mensal ou diária, conforme p_gran)
-  const evol = (d.evolucao || []);
-  const meses = evol.map(x => x.mes);
-  const evolMensalVals  = evol.map(x => +x.u);
-  const evolMensalValsR = evol.map(x => +x.r);
-  let _ac = 0, _acR = 0;
-  const evolAcumVals  = evolMensalVals.map(v => { _ac  += v; return parseFloat(_ac.toFixed(4)); });
-  const evolAcumValsR = evolMensalValsR.map(v => { _acR += v; return parseFloat(_acR.toFixed(2)); });
-  const evolMensalValsD = evol.map(x => +(x.usd || 0));
-  let _acD = 0;
-  const evolAcumValsD = evolMensalValsD.map(v => { _acD += v; return parseFloat(_acD.toFixed(2)); });
-  const isDay = (evolMode === 'day');
-  const evolLabels = meses.map(m => isDay
-    ? `${m.substring(8,10)}/${m.substring(5,7)}`
-    : `${m.split('-')[1]}/${m.split('-')[0].slice(2)}`);
-  const dayMeses = isDay ? meses : null;
-  window._evolMeses = meses;
-  window._evolR = evolMensalValsR;
-  window._evolU = evolMensalVals;
-  window._evolD = evolMensalValsD;
-
-  // Aplicar toggle Unidades/Reais
-  const isReais = evolUnit !== 'u'; const isUsd = evolUnit === 'd'; const SYM = isUsd ? 'US$' : 'R$';
-  const dispMensal = isUsd ? evolMensalValsD : (isReais ? evolMensalValsR : evolMensalVals);
-  const dispAcum = isUsd ? evolAcumValsD : (isReais ? evolAcumValsR : evolAcumVals);
-  const labelMensal = isReais ? `Mensal (${SYM})` : 'Mensal (u)';
-  const labelAcum = isReais
-    ? (evolMode==='day' ? `Acumulado ${SYM} (${evolDayMonth})` : `Acumulado ${SYM}`)
-    : (evolMode==='day' ? `Acumulado (${evolDayMonth})` : 'Acumulado');
-
-  charts['chartEvolucao'] = new Chart(document.getElementById('chartEvolucao'), {
-    type:'bar',
-    data:{
-      labels: evolLabels,
-      datasets:[
-        { type:'line', label: labelAcum, data:dispAcum, borderColor:'#ffd84d', backgroundColor:'rgba(255,216,77,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#ffd84d', tension:0.3, yAxisID:'y1' },
-        { label: labelMensal, data:dispMensal, backgroundColor: dispMensal.map(v=>v>=0?'rgba(0,212,170,0.6)':'rgba(255,77,106,0.6)'), borderRadius:4, yAxisID:'y' }
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false, animation:false,
-      onClick: (evt, elements) => {
-        if (!elements.length) return;
-        if (evolMode === 'month') {
-          // Switch to daily view for this month
-          evolDayMonth = meses[elements[0].index];
-          if (!evolDayMonth) return;
-          const [y,m] = evolDayMonth.split('-');
-          const de  = `${y}-${m}-01`;
-          const ate = `${y}-${m}-${new Date(y,m,0).getDate()}`;
-          document.getElementById('dfDe').value  = de;
-          document.getElementById('dfAte').value = ate;
-          gFilters.de = de; gFilters.ate = ate;
-          evolMode = 'day';
-          updateDashboard();
-        } else {
-          // Drill down to specific day
-          const dayLabel = dayMeses ? dayMeses[elements[0].index] : null;
-          if (!dayLabel) return;
-          document.getElementById('dfDe').value  = dayLabel;
-          document.getElementById('dfAte').value = dayLabel;
-          gFilters.de = dayLabel; gFilters.ate = dayLabel;
-          updateDashboard();
-        }
-      },
-      plugins:{
-        legend:{ labels:{ color:'#6b6b90', font:{family:'JetBrains Mono',size:10}, boxWidth:12 } },
-        tooltip:{ callbacks:{
-          afterBody: ctx => {
-            const idx = ctx[0]?.dataIndex;
-            const out = [];
-            const u = window._evolU?.[idx], r = window._evolR?.[idx], dol = window._evolD?.[idx];
-            if (evolUnit !== 'u' && u !== undefined) out.push(`${u.toLocaleString('pt-BR',{minimumFractionDigits:2})} u`);
-            if (evolUnit !== 'r' && r !== undefined) out.push(`R$ ${r.toLocaleString('pt-BR',{minimumFractionDigits:2})}`);
-            if (evolUnit !== 'd' && dol) out.push(`US$ ${dol.toLocaleString('pt-BR',{minimumFractionDigits:2})}`);
-            return out;
-          }
-        }}
-      },
-      scales:{
-        x:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
-        y:{ ticks:{color:'#6b6b90',font:{family:'JetBrains Mono',size:10}}, grid:{color:'rgba(42,42,69,0.5)'} },
-        y1:{ position:'right', ticks:{color:'#ffd84d',font:{family:'JetBrains Mono',size:10}}, grid:{display:false} }
-      }
-    }
-  });
-}
-
 // ── APOSTAS TABLE ──────────────────────────────────────────
+// Filtros de lista: [chave em gFilters, id do campo, coluna no banco, cadastro, rótulo, "todos", "sem"]
+const AP_FILTROS = [
+  ['op', 'tOp', 'operador_id', 'operadores', 'Operador', 'Todos operadores', '— Sem operador —'],
+  ['ti', 'tTi', 'tipster_id',  'tipsters',   'Tipster',  'Todos tipsters',   '— Sem tipster —'],
+  ['bo', 'tBo', 'bookie_id',   'bookies',    'Bookie',   'Todos bookies',    '— Sem bookie —'],
+  ['es', 'tEs', 'esporte_id',  'esportes',   'Esporte',  'Todos esportes',   '— Sem esporte —'],
+  ['me', 'tMe', 'mercado',     'mercados',   'Mercado',  'Todos mercados',   '— Sem mercado —'],
+];
+
 async function renderApostas() {
   const content = document.getElementById('pageContent');
   content.innerHTML = `
     <div class="filters">
-      <input type="text" class="filter-input" id="tSearch" placeholder="Buscar evento, entrada...">
-      <select class="filter-select" id="tOp"><option value="">Todos operadores</option>${cache.operadores.map(o=>`<option value="${o.id}">${o.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="tTi"><option value="">Todos tipsters</option><option value="00000000-0000-0000-0000-000000000000">— Sem tipster —</option>${cache.tipsters.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="tBo"><option value="">Todos bookies</option>${cache.bookies.map(b=>`<option value="${b.id}">${b.nome}</option>`).join('')}</select>
-      <select class="filter-select" id="tSt"><option value="">Todos status</option><option value="PENDING">Pending</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
-      <input type="date" class="filter-select" id="tDe">
-      <input type="date" class="filter-select" id="tAte"> <button class="btn-filter" onclick="currentPage=1;queryApostas()">Filtrar</button> <button class="btn-filter btn-alterar" id="btnAlterar" onclick="abrirAlterarModal()" disabled style="opacity:0.4;cursor:not-allowed">Alterar</button> <button class="btn-filter btn-limpar" onclick="limparFiltrosApostas()">Limpar</button>
+      <input type="text" class="filter-input" id="tSearch" placeholder="Buscar evento, entrada..." aria-label="Buscar por evento ou entrada" onkeydown="if(event.key==='Enter'){currentPage=1;queryApostas()}">
+      ${AP_FILTROS.map(([, id, , , rot]) => `<select class="filter-select" id="${id}" aria-label="${rot}"></select>`).join('\n      ')}
+      <select class="filter-select" id="tSt" aria-label="Status"><option value="">Todos status</option><option value="PENDING">Pending</option><option value="WON">Won</option><option value="LOST">Lost</option><option value="VOID">Void</option><option value="HALF WON">Half Won</option><option value="HALF LOST">Half Lost</option><option value="CASH OUT">Cash Out</option></select>
+      <input type="date" class="filter-select" id="tDe" aria-label="Data inicial">
+      <input type="date" class="filter-select" id="tAte" aria-label="Data final">
+      <button class="btn-filter" onclick="currentPage=1;queryApostas()">Filtrar</button>
+      <button class="btn-filter btn-alterar" id="btnAlterar" onclick="abrirAlterarModal()" disabled style="opacity:0.4;cursor:not-allowed">Alterar</button>
+      <button class="btn-filter btn-limpar" onclick="limparFiltrosApostas()">Limpar</button>
     </div>
     <div class="loading" id="apostaLoading"><div class="spinner"></div>Carregando...</div>
     <div class="table-wrap" id="apostaTable" style="display:none">
-      <table>
+      <table class="tab-apostas">
         <thead><tr>
-          <th style="width:32px;text-align:center"><input type="checkbox" id="selAll" onclick="toggleSelectAll(this.checked)"></th>
+          <th style="width:32px;text-align:center"><input type="checkbox" id="selAll" aria-label="Marcar todas" onclick="toggleSelectAll(this.checked)"></th>
           <th onclick="sortApostas('data_evento')">Data ↕</th>
           <th>Operador</th>
-          <th>Evento</th>
-          <th>Entrada</th>
-          <th>Tipster</th>
+          <th class="estica" style="width:39%">Evento</th>
+          <th class="estica" style="width:35%">Entrada</th>
+          <th class="estica" style="width:26%">Tipster</th>
           <th>Bookie</th>
           <th>Contas</th>
-          <th onclick="sortApostas('stake_unidades')">Stake ↕</th>
-          <th onclick="sortApostas('odd')">Odd ↕</th>
+          <th class="num" onclick="sortApostas('stake_unidades')">Stake ↕</th>
+          <th class="num" onclick="sortApostas('odd')">Odd ↕</th>
           <th>Status</th>
-          <th onclick="sortApostas('lucro_unidades')">Lucro ↕</th>
+          <th class="num" onclick="sortApostas('lucro_unidades')">Lucro ↕</th>
           <th></th>
         </tr></thead>
         <tbody id="apostaTbody"></tbody>
@@ -1602,64 +845,111 @@ async function renderApostas() {
     </div>
     <div id="apostaPagination"></div>`;
   // Restaurar filtros ANTES de carregar
-  const _rk = {op:'tOp',ti:'tTi',bo:'tBo',st:'tSt',de:'tDe',ate:'tAte'};
+  const _rk = {st:'tSt',de:'tDe',ate:'tAte',q:'tSearch'};
   Object.entries(_rk).forEach(([k,id])=>{ const e=document.getElementById(id); if(e&&gFilters[k]) e.value=gFilters[k]; });
+  apostasPintarSelects();
+  if (!D2.opcoes) d2CarregarOpcoes().then(() => { if (paginaAtual === 'apostas') apostasPintarSelects(); });
   await loadApostas();
+}
+
+// Monta as listas dos filtros. Com R$ ou US$ escolhido lá em cima, cada lista só traz o que já teve aposta naquela moeda.
+function apostasPintarSelects() {
+  AP_FILTROS.forEach(([k, id, , cadastro, , todos, sem]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const atual = el.dataset.pronto ? el.value : (gFilters[k] || '');
+    const semVal = k === 'me' ? D2_SEM_MERCADO : D2_ZERO;
+    const perm = (D2.moeda || k === 'me') ? d2Permitidos(k) : null;   // mercado é texto livre: a lista vem do que já foi apostado
+    const itens = k === 'me'
+      ? (perm ? [...perm].map(n => [n, n]) : (cache.mercados || []).map(x => [x.nome, x.nome])).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'))
+      : (cache[cadastro] || []).filter(x => !perm || perm.has(x.id)).map(x => [x.id, x.nome]);
+    if (atual && atual !== semVal && !itens.some(x => x[0] === atual)) itens.unshift([atual, d2NomeFiltro(k, atual)]);
+    el.innerHTML = `<option value="">${todos}</option><option value="${semVal}">${sem}</option>` + itens.map(([v, n]) => `<option value="${d2E(v)}">${d2E(n)}</option>`).join('');
+    el.value = atual;
+    el.dataset.pronto = '1';
+  });
+}
+
+function limparFiltrosApostas() {
+  ['tSearch','tOp','tTi','tBo','tEs','tMe','tSt','tDe','tAte'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  gFilters = {};
+  currentPage = 1;
+  queryApostas();
 }
 
 async function loadApostas() {
   await queryApostas();
-  document.getElementById('apostaLoading').style.display = 'none';
-  document.getElementById('apostaTable').style.display = 'block';
+  const loading = document.getElementById('apostaLoading'), tabela = document.getElementById('apostaTable');
+  if (loading) loading.style.display = 'none';
+  if (tabela) tabela.style.display = 'block';
 }
 
+// "Sem mercado" = mercado vazio ou em branco. Há duas formas de pedir isso ao banco; se ele recusar uma, a outra entra no lugar.
+const AP_SEM_MERCADO = ['or(mercado.is.null,mercado.not.like.*_*)', 'or(mercado.is.null,mercado.eq.)'];
+let apSemMercado = 0, apostasSeq = 0;
+
 async function queryApostas() {
+  const seq = ++apostasSeq;
   selectedApostas.clear();
   updateAlterarBtn();
   const selAll = document.getElementById('selAll');
   if (selAll) selAll.checked = false;
-  gFilters.op  = document.getElementById('tOp')?.value  ?? gFilters.op ?? '';
-  gFilters.ti  = document.getElementById('tTi')?.value  ?? gFilters.ti ?? '';
-  gFilters.bo  = document.getElementById('tBo')?.value  ?? gFilters.bo ?? '';
-  gFilters.st  = document.getElementById('tSt')?.value  ?? gFilters.st ?? '';
-  gFilters.de  = document.getElementById('tDe')?.value  ?? gFilters.de ?? '';
-  gFilters.ate = document.getElementById('tAte')?.value ?? gFilters.ate ?? '';
-  const search = (document.getElementById('tSearch')?.value||'').toLowerCase();
-  const op  = document.getElementById('tOp')?.value;
-  const ti  = document.getElementById('tTi')?.value;
-  const bo  = document.getElementById('tBo')?.value;
-  const st  = document.getElementById('tSt')?.value;
-  const de  = document.getElementById('tDe')?.value;
-  const ate = document.getElementById('tAte')?.value;
+  const campo = (id, k) => { const e = document.getElementById(id); return e ? e.value : (gFilters[k] || ''); };
+  AP_FILTROS.forEach(([k, id]) => { gFilters[k] = campo(id, k); });
+  gFilters.st  = campo('tSt', 'st');
+  gFilters.de  = campo('tDe', 'de');
+  gFilters.ate = campo('tAte', 'ate');
+  gFilters.q   = campo('tSearch', 'q').trim();
 
-  let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,contas_utilizadas,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,moeda,stake_usd,lucro_usd,atualizado_por,atualizado_em&order=data_evento.desc`;
-  if (op)  url += `&operador_id=eq.${op}`;
-  if (ti === '00000000-0000-0000-0000-000000000000') url += '&tipster_id=is.null';
-  else if (ti) url += `&tipster_id=eq.${ti}`;
-  if (bo)  url += `&bookie_id=eq.${bo}`;
-  if (st)  url += `&status=eq.${st}`;
-  if (de)  url += `&data_evento=gte.${de}`;
-  if (ate) url += `&data_evento=lte.${ate}`;
+  const montar = () => {
+    let url = `apostas?select=id,data_evento,operador_id,esporte_id,evento,mercado,entrada,tipster_id,bookie_id,contas_utilizadas,stake_reais,stake_unidades,odd,status,tipo_aposta,resultado,lucro_reais,lucro_unidades,moeda,stake_usd,lucro_usd,atualizado_por,atualizado_em`;
+    // id zerado = "sem cadastro" (operador, tipster, bookie ou esporte em branco na aposta)
+    AP_FILTROS.forEach(([k, , coluna]) => {
+      const v = gFilters[k];
+      if (!v || k === 'me') return;
+      url += v === D2_ZERO ? `&${coluna}=is.null` : `&${coluna}=eq.${v}`;
+    });
+    if (gFilters.me && gFilters.me !== D2_SEM_MERCADO) url += `&mercado=eq.${encodeURIComponent(gFilters.me)}`;
+    if (gFilters.st)  url += `&status=eq.${encodeURIComponent(gFilters.st)}`;
+    if (gFilters.de)  url += `&data_evento=gte.${gFilters.de}`;
+    if (gFilters.ate) url += `&data_evento=lte.${gFilters.ate}`;
+    // moeda escolhida na barra de cima (a mesma do Dashboard): real é tudo que não é dólar
+    if (D2.moeda === 'USD') url += '&moeda=eq.USD';
+    else if (D2.moeda === 'BRL') url += '&moeda=neq.USD';
 
-  if (search) {
-    const t = encodeURIComponent(search.replace(/[,()]/g, ' ').trim());
-    if (t) url += `&or=(evento.ilike.*${t}*,entrada.ilike.*${t}*)`;
-  }
-  const dir = sortAsc ? 'asc' : 'desc';
-  url = url.replace(/&order=[^&]+/, '') + `&order=${sortField}.${dir}.nullslast`;
+    const ou = [];
+    if (gFilters.me === D2_SEM_MERCADO) ou.push(AP_SEM_MERCADO[apSemMercado]);
+    const t = encodeURIComponent(gFilters.q.toLowerCase().replace(/[,()]/g, ' ').trim());
+    if (t) ou.push(`or(evento.ilike.*${t}*,entrada.ilike.*${t}*)`);
+    if (ou.length === 1) url += '&or=' + ou[0].slice(2);
+    else if (ou.length > 1) url += `&and=(${ou.join(',')})`;
+
+    const dir = sortAsc ? 'asc' : 'desc';
+    return url + `&order=${sortField}.${dir}.nullslast`;
+  };
 
   if (pageSize === 'all') pageSize = 1000;
   const from = (currentPage - 1) * pageSize;
   let rows, total;
   try {
-    ({ rows, total } = await sbGetPage(url, from, from + pageSize - 1));
+    try { ({ rows, total } = await sbGetPage(montar(), from, from + pageSize - 1)); }
+    catch (e) {
+      if (gFilters.me !== D2_SEM_MERCADO || seq !== apostasSeq) throw e;
+      apSemMercado = 1 - apSemMercado;   // o banco recusou essa forma do "sem mercado": tenta a outra, uma vez
+      ({ rows, total } = await sbGetPage(montar(), from, from + pageSize - 1));
+    }
   } catch (e) {
+    if (seq !== apostasSeq) return;   // já tem um pedido mais novo a caminho
     console.error('Erro ao buscar apostas:', e);
-    const loading = document.getElementById('apostaLoading');
-    const alvo = loading ? loading.parentElement : document.getElementById('apostasTableWrap');
-    if (alvo) alvo.innerHTML = '<div class="loading" style="color:var(--red)">Erro ao carregar apostas. Recarregue a página ou tente novamente.</div>';
+    const tbody = document.getElementById('apostaTbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="13" class="tabela-vazia" style="color:var(--red)">Não deu pra carregar as apostas. Clique em Filtrar pra tentar de novo.</td></tr>';
+    const pag = document.getElementById('apostaPagination');
+    if (pag) pag.innerHTML = '';
     return;
   }
+  if (seq !== apostasSeq) return;   // chegou resposta de um pedido antigo
   apostasData = rows;
   apostasTotal = total;
 
@@ -1830,29 +1120,35 @@ async function confirmarAlteracao() {
 function renderApostasTable(rows) {
   const tbody = document.getElementById('apostaTbody');
   if (!tbody) return;
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="13" class="tabela-vazia">Nenhuma aposta com esses filtros.</td></tr>'; return; }
   tbody.innerHTML = rows.map(a => {
-    const op  = cache.operadores.find(o=>o.id===a.operador_id)?.nome||'—';
-    const ti  = cache.tipsters.find(t=>t.id===a.tipster_id)?.nome||'—';
-    const bo  = cache.bookies.find(b=>b.id===a.bookie_id)?.nome||'—';
+    const op  = d2E(cache.operadores.find(o=>o.id===a.operador_id)?.nome||'—');
+    const ti  = d2E(cache.tipsters.find(t=>t.id===a.tipster_id)?.nome||'—');
+    const bo  = d2E(cache.bookies.find(b=>b.id===a.bookie_id)?.nome||'—');
     const lu  = parseFloat(a.lucro_unidades)||0;
     const luClass = lu>0?'positive':lu<0?'negative':'neutral';
+    const usd = a.moeda === 'USD';
+    const dinheiro = fmtValMoeda(usd ? a.stake_usd : a.stake_reais, usd ? 'USD' : 'BRL');   // valor do bilhete, quando foi anotado
+    const status = (D2_STATUS.find(x => x[0] === a.status) || [0, a.status || '—'])[1];
+    const [ano, mes, dia] = (a.data_evento || '').split('-');
+    const data = a.data_evento ? `${dia}/${mes}/<span class="ano4">${ano}</span><span class="ano2">${ano.slice(2)}</span>` : '—';   // em tela estreita o ano vai com dois dígitos
     return `<tr>
-      <td style="text-align:center"><input type="checkbox" class="rowCheck" data-id="${a.id}" onclick="toggleSelect('${a.id}', this.checked)" ${selectedApostas.has(a.id)?'checked':''}></td>
-      <td class="mono">${fmtDate(a.data_evento)}</td>
+      <td style="text-align:center"><input type="checkbox" class="rowCheck" data-id="${a.id}" aria-label="Marcar esta aposta" onclick="toggleSelect('${a.id}', this.checked)" ${selectedApostas.has(a.id)?'checked':''}></td>
+      <td class="mono">${data}</td>
       <td>${op}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis" title="${a.evento||''}">${a.evento||'—'}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${a.entrada||''}">${a.entrada||'—'}</td>
-      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis" title="${ti}">${ti}</td>
-      <td>${bo}</td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;font-size:0.75rem;color:var(--muted)" title="${a.contas_utilizadas||''}">${a.contas_utilizadas||'—'}</td>
-      <td class="mono">${fmtU(a.stake_unidades)}</td>
-      <td class="mono">${parseFloat(a.odd||0).toFixed(2)}</td>
-      <td><span class="status-badge ${statusClass(a.status)}">${a.status}</span></td>
-      <td class="${luClass}">${fmtU(lu)}</td>
-      <td><div style="display:flex;gap:0.3rem">
-        <button class="btn-edit" onclick="editAposta('${a.id}')">✎</button>
-        <button class="btn-edit" onclick="showHistAposta('${a.id}')">📋</button>
-        <button class="btn-danger" onclick="deleteAposta('${a.id}')">✕</button>
+      <td class="estica" title="${d2E(a.evento||'')}">${d2E(a.evento||'—')}</td>
+      <td class="estica" title="${d2E(a.entrada||'')}">${d2E(a.entrada||'—')}</td>
+      <td class="estica" title="${ti}">${ti}</td>
+      <td class="corta" style="max-width:116px" title="${bo}">${bo}</td>
+      <td class="corta" style="max-width:100px;font-size:0.78rem;color:var(--muted)" title="${d2E(a.contas_utilizadas||'')}">${d2E(a.contas_utilizadas||'—')}</td>
+      <td class="num"${dinheiro ? ` title="${dinheiro}"` : ''}>${usd && !D2.moeda ? '<span class="tag-usd" title="Aposta em dólar">US$</span>' : ''}${d2T(a.stake_unidades, 'u', false)}</td>
+      <td class="num">${+a.odd ? d2N(a.odd, 2) : '—'}</td>
+      <td><span class="status-badge ${statusClass(a.status)}">${status}</span></td>
+      <td class="num ${luClass}">${a.lucro_unidades == null ? '—' : d2T(lu, 'u')}</td>
+      <td><div class="row-actions">
+        <button class="btn-edit" title="Editar" aria-label="Editar" onclick="editAposta('${a.id}')">✎</button>
+        <button class="btn-edit" title="Histórico de alterações" aria-label="Histórico de alterações" onclick="showHistAposta('${a.id}')">📋</button>
+        <button class="btn-danger" title="Excluir" aria-label="Excluir" onclick="deleteAposta('${a.id}')">✕</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -1860,9 +1156,9 @@ function renderApostasTable(rows) {
 
 // ── MODAL APOSTA ───────────────────────────────────────────
 function openAddModal() {
-  document.getElementById('modalApostaTitle').textContent = 'Nova Aposta';
+  document.getElementById('modalApostaTitle').textContent = 'Nova aposta';
   document.getElementById('fId').value = '';
-  document.getElementById('fData').value = new Date().toISOString().split('T')[0];
+  document.getElementById('fData').value = d2Hoje();   // dia do computador; pelo relógio universal, depois das 21h já vinha o dia seguinte
   ['fOperador','fEsporte','fTipster','fBookie'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   ['fEvento','fMercado','fEntrada','fStakeReais','fStakeUnidades','fOdd','fResultado'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('fStatus').value = 'PENDING';
@@ -1876,7 +1172,7 @@ function openAddModal() {
 function editAposta(id) {
   const a = apostasData.find(x=>x.id===id);
   if (!a) return;
-  document.getElementById('modalApostaTitle').textContent = 'Editar Aposta';
+  document.getElementById('modalApostaTitle').textContent = 'Editar aposta';
   document.getElementById('fId').value           = a.id;
   document.getElementById('fData').value          = a.data_evento||'';
   document.getElementById('fOperador').value       = a.operador_id||'';
@@ -2140,9 +1436,9 @@ async function showHistAposta(id) {
   div.innerHTML = !r.length
     ? '<p style="color:var(--muted);font-size:0.85rem;padding:1rem 0">Nenhuma alteração registrada.</p>'
     : r.map(h=>`<div class="hist-item">
-        <div class="hist-campo">${h.campo_alterado}</div>
-        <div class="hist-valores"><span class="hist-ant">${h.valor_anterior||'—'}</span><span style="color:var(--muted)">→</span><span class="hist-nov">${h.valor_novo||'—'}</span></div>
-        <div class="hist-meta"><span class="hist-user">${h.alterado_por||'?'}</span> · ${new Date(h.alterado_em).toLocaleString('pt-BR')}</div>
+        <div class="hist-campo">${d2E(h.campo_alterado)}</div>
+        <div class="hist-valores"><span class="hist-ant">${d2E(h.valor_anterior||'—')}</span><span style="color:var(--muted)">→</span><span class="hist-nov">${d2E(h.valor_novo||'—')}</span></div>
+        <div class="hist-meta"><span class="hist-user">${d2E(h.alterado_por||'?')}</span> em ${new Date(h.alterado_em).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' })}</div>
       </div>`).join('');
   document.getElementById('modalHist').classList.add('open');
 }
@@ -2156,7 +1452,7 @@ async function renderBugsMelhorias() {
   cache.bugs_melhorias = items;
 
   const statusColor = s => ({
-    'aberto':'#f59e0b', 'em_andamento':'#3b82f6', 'resolvido':'var(--green)', 'descartado':'var(--muted)'
+    'aberto':'var(--accent)', 'em_andamento':'var(--tinta)', 'resolvido':'var(--pos-t)', 'descartado':'var(--tinta3)'
   })[s] || 'var(--muted)';
   const statusLabel = s => ({
     'aberto':'🟠 Aberto', 'em_andamento':'🔵 Em andamento', 'resolvido':'✅ Resolvido', 'descartado':'⚪ Descartado'
@@ -2182,8 +1478,8 @@ async function renderBugsMelhorias() {
   const resolv = items.filter(i=>i.status==='resolvido').length;
 
   content.innerHTML = `
-    <div style="margin-bottom:1rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
-      <button class="btn-filter" onclick="abrirModalBug()" style="background:var(--green);color:#000;border:none">+ Novo</button>
+    <div class="filters">
+      <button class="btn-primary" onclick="abrirModalBug()">+ Novo</button>
       <select class="filter-select" id="bmFiltroTipo" onchange="window._bmFiltroTipo=this.value;renderBugsMelhorias()">
         <option value="">Todos tipos</option>
         <option value="bug" ${filtroTipoAtual==='bug'?'selected':''}>🐛 Bug</option>
@@ -2200,14 +1496,14 @@ async function renderBugsMelhorias() {
         <option value="">Todas categorias</option>
         ${cats.map(c => `<option value="${c.replace(/"/g,'&quot;')}" ${filtroCatAtual===c?'selected':''}>${c.replace(/</g,'&lt;')}</option>`).join('')}
       </select>
-      <div style="color:var(--muted);font-size:0.85rem;margin-left:auto">
-        Abertos: <b style="color:#f59e0b">${aberto}</b> &nbsp;|&nbsp;
-        Em andamento: <b style="color:#3b82f6">${andam}</b> &nbsp;|&nbsp;
-        Resolvidos: <b style="color:var(--green)">${resolv}</b>
+      <div class="bm-cont">
+        <span>Abertos <b style="color:var(--accent)">${aberto}</b></span>
+        <span>Em andamento <b style="color:var(--tinta)">${andam}</b></span>
+        <span>Resolvidos <b style="color:var(--pos-t)">${resolv}</b></span>
       </div>
     </div>
-    <div class="card" style="padding:0;overflow:hidden">
-      <table class="apostas-table" style="margin:0">
+    <div class="table-wrap">
+      <table>
         <thead><tr>
           <th style="width:90px">Tipo</th>
           <th style="width:140px">Categoria</th>
@@ -2222,13 +1518,13 @@ async function renderBugsMelhorias() {
             <tr>
               <td>${tipoLabel(i.tipo)}</td>
               <td style="color:var(--muted);font-size:0.82rem">${(i.categoria||'-').replace(/</g,'&lt;')}</td>
-              <td style="cursor:pointer" onclick="abrirModalBug('${i.id}')"><b>${(i.titulo||'').replace(/</g,'&lt;')}</b>${i.descricao?`<div style="color:var(--muted);font-size:0.78rem;margin-top:2px;max-width:600px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.descricao.replace(/</g,'&lt;')}</div>`:''}</td>
+              <td style="cursor:pointer;white-space:normal;min-width:16rem" onclick="abrirModalBug('${i.id}')"><b style="font-weight:600">${(i.titulo||'').replace(/</g,'&lt;')}</b>${i.descricao?`<div style="color:var(--muted);font-size:0.78rem;margin-top:2px;max-width:600px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.descricao.replace(/</g,'&lt;')}</div>`:''}</td>
               <td><span style="color:${statusColor(i.status)}">${statusLabel(i.status)}</span></td>
               <td style="color:var(--muted);font-size:0.82rem">${i.autor||'-'}</td>
               <td style="color:var(--muted);font-size:0.82rem">${i.criado_em?new Date(i.criado_em).toLocaleDateString('pt-BR'):'-'}</td>
               <td><div class="row-actions">
-                <button class="btn-icon" onclick="abrirModalBug('${i.id}')">✏️</button>
-                <button class="btn-icon" onclick="deletarBug('${i.id}')">🗑</button>
+                <button class="btn-icon" title="Editar" aria-label="Editar" onclick="abrirModalBug('${i.id}')">✎</button>
+                <button class="btn-danger" title="Excluir" aria-label="Excluir" onclick="deletarBug('${i.id}')">✕</button>
               </div></td>
             </tr>
           `).join('') || '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Nenhum registro encontrado.</td></tr>'}
@@ -2241,7 +1537,7 @@ async function renderBugsMelhorias() {
 function abrirModalBug(id) {
   const isEdit = !!id;
   document.getElementById('bmId').value = id || '';
-  document.getElementById('bmTituloModal').textContent = isEdit ? 'Editar Registro' : 'Novo Registro';
+  document.getElementById('bmTituloModal').textContent = isEdit ? 'Editar registro' : 'Novo registro';
 
   // Popula sugestões de categoria com base no que já existe
   const cats = [...new Set((cache.bugs_melhorias || []).map(i => i.categoria).filter(Boolean))].sort();
@@ -2320,7 +1616,7 @@ async function renderCadastro(tipo) {
     bookies:     { label:'Bookie',         cacheKey:'bookies',     temStake:false },
     operadores:  { label:'Operador',       cacheKey:'operadores',  temStake:false },
     esportes:    { label:'Esporte',        cacheKey:'esportes',    temStake:false },
-    tipos_aposta:{ label:'Tipo de Aposta', cacheKey:'tipos_aposta',temStake:false },
+    tipos_aposta:{ label:'Tipo de aposta', cacheKey:'tipos_aposta',temStake:false },
     mercados:    { label:'Mercado',        cacheKey:'mercados',    temStake:false },
   };
   const cfg = config[tipo];
@@ -2349,12 +1645,12 @@ async function renderCadastro(tipo) {
             const stakeUsdAtual = cfg.temStake ? ((cache.stakesUsd||[]).find(s=>s.tipster_id===item.id)?.valor_usd ?? null) : null;
             return `<tr>
               <td>${item.nome}</td>
-              ${cfg.temStake ? `<td class="mono">${stakeAtual !== '—' ? fmtR(stakeAtual) : '—'}${stakeUsdAtual != null ? ' · ' + fmtValMoeda(stakeUsdAtual, 'USD') : ''} <button class="btn-edit" style="font-size:0.68rem" onclick="openStakesModal('${item.id}','${item.nome}')">histórico</button></td>` : ''}
-              ${tipo === 'bookies' ? `<td><button class="btn-edit" style="font-size:0.68rem" title="Clique pra alternar R$ / US$ / R$ e US$" onclick="toggleMoedaBookie('${item.id}')">${simboloMoedaCasa(item.moeda)}</button></td>` : ''}
+              ${cfg.temStake ? `<td class="mono">${stakeAtual !== '—' ? fmtR(stakeAtual) : '—'}${stakeUsdAtual != null ? ' e ' + fmtValMoeda(stakeUsdAtual, 'USD') : ''} <button class="btn-edit" style="font-size:0.72rem;margin-left:.5rem" onclick="openStakesModal('${item.id}','${item.nome}')">histórico</button></td>` : ''}
+              ${tipo === 'bookies' ? `<td><button class="btn-edit" style="font-size:0.72rem" title="Clique pra alternar R$ / US$ / R$ e US$" onclick="toggleMoedaBookie('${item.id}')">${simboloMoedaCasa(item.moeda)}</button></td>` : ''}
               ${'ativo' in item ? `<td><span style="color:${item.ativo?'var(--green)':'var(--muted)'}">${item.ativo?'Ativo':'Inativo'}</span></td>` : ''}
-              <td><div style="display:flex;gap:0.4rem">
-                <button class="btn-edit" onclick="openCadastroModal('${tipo}','${item.id}')">✎</button>
-                <button class="btn-danger" onclick="deleteCadastro('${tipo}','${item.id}')">✕</button>
+              <td><div class="row-actions" style="justify-content:flex-end">
+                <button class="btn-edit" title="Editar" aria-label="Editar" onclick="openCadastroModal('${tipo}','${item.id}')">✎</button>
+                <button class="btn-danger" title="Excluir" aria-label="Excluir" onclick="deleteCadastro('${tipo}','${item.id}')">✕</button>
               </div></td>
             </tr>`;
           }).join('')}
@@ -2364,7 +1660,7 @@ async function renderCadastro(tipo) {
 }
 
 function openCadastroModal(tipo, id) {
-  const config = { tipsters:'Tipster', bookies:'Bookie', operadores:'Operador', esportes:'Esporte' };
+  const config = { tipsters:'Tipster', bookies:'Bookie', operadores:'Operador', esportes:'Esporte', tipos_aposta:'Tipo de aposta', mercados:'Mercado' };
   const label = config[tipo]||tipo;
   const item = id ? (cache[tipo]||[]).find(i=>i.id===id) : null;
   const temAtivo = tipo !== 'esportes';
@@ -2422,19 +1718,19 @@ async function toggleMoedaBookie(id) {
 }
 
 async function openStakesModal(tipsterId, tipsterNome) {
-  document.getElementById('modalStakesTitle').textContent = `Stakes — ${tipsterNome}`;
+  document.getElementById('modalStakesTitle').textContent = `Stakes de ${tipsterNome}`;
   const brl = cache.stakes.filter(s=>s.tipster_id===tipsterId).map(s=>({id:s.id, valor:s.valor_reais, vig:s.vigente_a_partir, moeda:'BRL'}));
   const usd = (cache.stakesUsd||[]).filter(s=>s.tipster_id===tipsterId).map(s=>({id:s.id, valor:s.valor_usd, vig:s.vigente_a_partir, moeda:'USD'}));
   const stakes = [...brl, ...usd].sort((a,b)=> b.vig.localeCompare(a.vig) || a.moeda.localeCompare(b.moeda));
-  const th = 'text-align:left;color:var(--muted);font-size:0.68rem;padding:0.5rem';
+  const th = 'text-align:left;color:var(--muted);font-size:0.76rem;font-weight:500;padding:0.5rem';
   document.getElementById('modalStakesBody').innerHTML = `
     <div style="margin-bottom:1rem">
       <div class="form-grid" style="margin-bottom:0.75rem">
         <div class="form-group">
           <label>Moeda</label>
           <select id="sMoeda" onchange="document.getElementById('sValorLabel').textContent = 'Valor (' + (this.value === 'USD' ? 'US$' : 'R$') + ')'">
-            <option value="BRL">R$ — casas em reais</option>
-            <option value="USD">US$ — casas em dólar</option>
+            <option value="BRL">R$ (casas em reais)</option>
+            <option value="USD">US$ (casas em dólar)</option>
           </select>
         </div>
         <div class="form-group">
@@ -2443,7 +1739,7 @@ async function openStakesModal(tipsterId, tipsterNome) {
         </div>
         <div class="form-group">
           <label>Vigente a partir de</label>
-          <input type="date" id="sData" value="${new Date().toISOString().split('T')[0]}">
+          <input type="date" id="sData" value="${d2Hoje()}">
         </div>
       </div>
       <button class="btn-primary" onclick="addStake('${tipsterId}')">+ Adicionar</button>
@@ -2493,38 +1789,30 @@ async function deleteStake(id, tipsterId, tipsterNome, moeda) {
 }
 
 // ── RANKING DE GRUPOS ──────────────────────────────────────
+// Lê a mesma função do Dashboard (dashboard_v2), sem baixar as apostas: o que aparece aqui bate com a aba Tipsters de lá.
+const RANK_PERIODOS = [['dia','Hoje'], ['semana','Semana'], ['mes','Mês'], ['3m','3 meses'], ['6m','6 meses'], ['12m','12 meses'], ['tudo','Todo período']];
 window._rankPeriodo = 'tudo';
-window._rankApostas = null;
+let rankGrupos = null, rankSeq = 0;
 
-async function renderRankingGrupos() {
-  const c = document.getElementById('pageContent');
-  c.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
-  if (!cache.tipsters.length) await loadCache();
-  if (!window._rankApostas) {
-    window._rankApostas = await sbGet('apostas?select=data_evento,stake_unidades,lucro_unidades,status,tipster_id,moeda');
-  }
-  c.innerHTML = rankingShell();
-  drawRanking();
-}
-
-function rankingShell() {
-  const pills = [
-    ['dia','Hoje'], ['semana','Semana'], ['mes','Mês'],
-    ['3m','3 meses'], ['6m','6 meses'], ['12m','12 meses'], ['tudo','Todo período']
-  ].map(([p,l]) => `<button class="rank-pill ${window._rankPeriodo===p?'active':''}" data-p="${p}" onclick="setRankPeriodo('${p}')">${l}</button>`).join('');
-  return `
-    <div class="rank-pills">${pills}</div>
-    <div class="rank-grid">
-      <div class="chart-card"><div class="chart-title">🏆 Por Unidades</div><div class="rank-list" id="rankU"></div></div>
-      <div class="chart-card"><div class="chart-title">📈 Por ROI</div><div class="rank-list" id="rankRoi"></div></div>
-      <div class="chart-card"><div class="chart-title">💰 Por Financeiro</div><div class="rank-list" id="rankR"></div></div>
+function renderRankingGrupos() {
+  rankGrupos = null;
+  document.getElementById('pageContent').innerHTML = `
+    <div class="rank-topo">
+      <div class="d2-seg" role="group" aria-label="Período">${RANK_PERIODOS.map(([p, l]) => `<button type="button" data-p="${p}" aria-pressed="${window._rankPeriodo === p}" onclick="setRankPeriodo('${p}')">${l}</button>`).join('')}</div>
+      <span class="d2-rot" id="rankNota"></span>
+    </div>
+    <div class="rank-grid" id="rankGrade">
+      <section class="d2-card"><div class="d2-cab"><h2 class="d2-tit">Por unidades</h2></div><div class="rank-list" id="rankU"></div></section>
+      <section class="d2-card"><div class="d2-cab"><h2 class="d2-tit">Por ROI</h2></div><div class="rank-list" id="rankRoi"></div></section>
+      <section class="d2-card"><div class="d2-cab"><h2 class="d2-tit">Por financeiro</h2></div><div class="rank-list" id="rankR"></div></section>
     </div>`;
+  carregarRanking();
 }
 
 function setRankPeriodo(p) {
   window._rankPeriodo = p;
-  document.querySelectorAll('.rank-pill').forEach(b => b.classList.toggle('active', b.dataset.p===p));
-  drawRanking();
+  document.querySelectorAll('.rank-topo [data-p]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === p)));
+  carregarRanking();
 }
 
 function rankLocalISO(d) {
@@ -2542,59 +1830,69 @@ function rankCutoff(p) {
   return null; // todo período
 }
 
-function calcRankingGrupos(apostas, cutoff) {
-  const arr = cutoff ? apostas.filter(a => a.data_evento && a.data_evento >= cutoff) : apostas;
-  const map = {};
-  arr.forEach(a => {
-    const tid = a.tipster_id;
-    if (!tid) return;
-    if (!map[tid]) {
-      const t = cache.tipsters.find(x => x.id===tid);
-      map[tid] = { nome: t?.nome || 'Outros', plU:0, invU:0, plR:0, plUsd:0, nSettled:0 };
-    }
-    if (!['PENDING'].includes(a.status)) {
-      const su = parseFloat(a.stake_unidades) || 0;
-      const lu = parseFloat(a.lucro_unidades) || 0;
-      const sv = getStakeValor(tid, a.data_evento) || 1;
-      map[tid].plU += lu;
-      map[tid].invU += su;
-      if (a.moeda === 'USD') map[tid].plUsd += lu * (getStakeValor(tid, a.data_evento, 'USD') || 0);
-      else map[tid].plR += lu * sv;
-      map[tid].nSettled++;
-    }
-  });
-  return Object.values(map)
-    .filter(g => g.nSettled > 0)
-    .map(g => ({ ...g, roi: g.invU > 0 ? (g.plU / g.invU * 100) : 0 }));
+const RANK_LISTAS = ['rankU', 'rankRoi', 'rankR'];
+async function carregarRanking() {
+  if (!document.getElementById('rankGrade')) return;
+  const seq = ++rankSeq;
+  document.getElementById('rankGrade').classList.add('rank-ocupado');   // enquanto busca, a lista anterior fica no lugar
+  if (!rankGrupos) RANK_LISTAS.forEach(id => { document.getElementById(id).innerHTML = '<div class="loading"><div class="spinner"></div>Calculando...</div>'; });
+  let r = null;
+  try {
+    r = await sbRpc('dashboard_v2', { p_moeda: D2.moeda, p_op: null, p_ti: null, p_bo: null, p_es: null, p_me: null, p_st: null,
+      p_de: rankCutoff(window._rankPeriodo), p_ate: null, p_dias: false });
+  } catch (e) { r = null; }
+  const grade = document.getElementById('rankGrade');
+  if (seq !== rankSeq || !grade) return;   // chegou resposta de um pedido antigo, ou a página já é outra
+  grade.classList.remove('rank-ocupado');
+  if (!r || !r.por || !Array.isArray(r.por.tipster)) {
+    rankGrupos = null;
+    document.getElementById('rankNota').textContent = '';
+    RANK_LISTAS.forEach(id => { document.getElementById(id).innerHTML = '<div class="rank-empty">Não deu pra carregar o ranking.<br><button type="button" class="d2-btn" style="margin-top:.7rem" onclick="carregarRanking()">Tentar de novo</button></div>'; });
+    return;
+  }
+  // Só entra grupo com aposta liquidada; aposta sem tipster fica de fora (como sempre foi).
+  rankGrupos = r.por.tipster.filter(x => x.k && x.ns > 0).map(x => ({
+    nome: x.nome || 'Não cadastrado', plU: +x.lu || 0, plR: +x.lr || 0, plUsd: +x.ld || 0,
+    roi: +x.su > 0 ? x.lu / x.su * 100 : null,       // ROI em unidades, sobre o stake que já liquidou
+    temR: +x.sr > 0, temD: +x.sd > 0                 // tem stake liquidado em reais / em dólar
+  }));
+  drawRanking();
 }
 
 function drawRanking() {
-  const cutoff = rankCutoff(window._rankPeriodo);
-  const grupos = calcRankingGrupos(window._rankApostas || [], cutoff);
-  renderRankList('rankU',   [...grupos].sort((a,b)=>b.plU-a.plU), g => `${g.plU>=0?'+':''}${fmtU(g.plU)}`,        g => g.plU>=0);
-  renderRankList('rankRoi', [...grupos].sort((a,b)=>b.roi-a.roi), g => `${g.roi>=0?'+':''}${g.roi.toFixed(2)}%`,  g => g.roi>=0);
-  renderRankList('rankR',   [...grupos].sort((a,b)=>b.plR-a.plR), g => `${g.plR>=0?'+':''}${fmtR(g.plR)}${g.plUsd ? ' · ' + (g.plUsd>=0?'+':'') + fmtValMoeda(g.plUsd, 'USD') : ''}`,        g => g.plR>=0);
+  const g = rankGrupos || [], porNome = (a, b) => a.nome.localeCompare(b.nome, 'pt-BR');
+  const nota = document.getElementById('rankNota');
+  if (nota) nota.textContent = g.length ? `${g.length} ${d2Pl(g.length, 'grupo', 'grupos')} com aposta liquidada${D2.moeda === 'BRL' ? ' em reais' : D2.moeda === 'USD' ? ' em dólar' : ''}` : '';
+  renderRankList('rankU', [...g].sort((a, b) => b.plU - a.plU || porNome(a, b)), x => d2V(x.plU, 'u'), x => x.plU);
+  renderRankList('rankRoi', g.filter(x => x.roi !== null).sort((a, b) => b.roi - a.roi || porNome(a, b)), x => d2P(x.roi, true, 2), x => x.roi);
+  const emR = g.filter(x => x.temR).sort((a, b) => b.plR - a.plR || porNome(a, b));
+  const emD = g.filter(x => x.temD).sort((a, b) => b.plUsd - a.plUsd || porNome(a, b));
+  if (D2.moeda === 'BRL') renderRankList('rankR', emR, x => d2V(x.plR, 'BRL'), x => x.plR);
+  else if (D2.moeda === 'USD') renderRankList('rankR', emD, x => d2V(x.plUsd, 'USD'), x => x.plUsd);
+  else {
+    // Geral: real e dólar não se somam. Quem tem real entra pela ordem do real, com o dólar embaixo; quem só tem dólar vem depois.
+    renderRankList('rankR', emR, x => d2V(x.plR, 'BRL') + (x.temD ? `<small class="${d2Cls(x.plUsd)}">${d2V(x.plUsd, 'USD')}</small>` : ''), x => x.plR,
+      { titulo: 'Só em dólar', lista: emD.filter(x => !x.temR), valFn: x => d2V(x.plUsd, 'USD'), sinalFn: x => x.plUsd });
+  }
 }
 
-function renderRankList(elId, lista, valFn, posFn) {
+// lista: os 3 primeiros levam medalha, se estiverem no positivo. extra (opcional): um segundo bloco embaixo, com título e sem medalha.
+function renderRankList(elId, lista, valFn, sinalFn, extra) {
   const el = document.getElementById(elId);
   if (!el) return;
-  if (!lista.length) { el.innerHTML = '<div class="rank-empty">Sem dados no período</div>'; return; }
+  const temExtra = !!(extra && extra.lista.length);
+  if (!lista.length && !temExtra) { el.innerHTML = '<div class="rank-empty">Nenhuma aposta liquidada nesse período.</div>'; return; }
   const medals = ['🥇','🥈','🥉'];
-  el.innerHTML = lista.map((g,i) => {
-    const pos = i<3 ? medals[i] : (i+1);
-    const topCls = i<3 ? `top${i+1}` : '';
-    const valCls = posFn(g) ? 'pos' : 'neg';
-    return `<div class="rank-row ${topCls}">
-      <span class="rank-pos">${pos}</span>
-      <span class="rank-name" title="${g.nome}">${g.nome}</span>
-      <span class="rank-val ${valCls}">${valFn(g)}</span>
-    </div>`;
-  }).join('');
+  const linha = (g, i, medalha, vf, sf) => { const podio = medalha && i < 3 && sf(g) > 0; return `<div class="rank-row ${podio ? 'top' + (i + 1) : ''}">
+      <span class="rank-pos">${podio ? medals[i] : i + 1}</span>
+      <span class="rank-name" title="${d2E(g.nome)}">${d2E(g.nome)}</span>
+      <span class="rank-val ${d2Cls(sf(g))}">${vf(g)}</span>
+    </div>`; };
+  el.innerHTML = lista.map((g, i) => linha(g, i, true, valFn, sinalFn)).join('') +
+    (temExtra ? `<div class="d2-meio">${extra.titulo}</div>` + extra.lista.map((g, i) => linha(g, i, false, extra.valFn, extra.sinalFn)).join('') : '');
 }
 
 // ── UTILS ──────────────────────────────────────────────────
-function fmtU(v) { return `${parseFloat(v||0).toFixed(2)}u`; }
 function fmtR(v) { return `R$ ${parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2})}`; }
 function fmtDate(d) { if(!d) return '—'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
 function statusClass(s) {
@@ -2669,105 +1967,6 @@ function mostrarTwitterCard(base64, texto, dataRef) {
   modal.classList.add('open');
 }
 
-function renderDestaques(d) {
-  const body = document.getElementById('newsletterBody');
-  if (!body) return;
-
-  const c = (d && d.cards) || {};
-  if (!c.entradas) {
-    body.innerHTML = '<div class="nl-placeholder">Sem apostas no filtro atual.</div>';
-    return;
-  }
-
-  // Top 3 por unidades, por R$ e por US$ (ranking por tipster, já vindo da função).
-  // R$ e US$ nunca se misturam: cada ranking só considera quem tem entrada naquela moeda.
-  const grupos = (d.por_tipster || []).map(x => ({ nome: x.nome, plU: +x.u, plR: +x.r, plUsd: +(x.usd || 0), nR: x.nr, nUsd: x.nusd }));
-  const topU = [...grupos].sort((a,b)=>b.plU-a.plU).slice(0,3);
-  const topR = grupos.filter(g => g.nR == null || +g.nR > 0).sort((a,b)=>b.plR-a.plR).slice(0,3);
-  const topD = grupos.filter(g => +g.nUsd > 0).sort((a,b)=>b.plUsd-a.plUsd).slice(0,3);
-  const temUsd = (+c.nUsd || 0) > 0;
-
-  const medals = ['🥇','🥈','🥉'];
-  const sg = v => v >= 0 ? '+' : '';
-
-  const rankItem = (icon, nome, valStr, valCls, titulo, onclick) => `
-    <div class="dst-rank-row${onclick ? ' clicavel' : ''}"${onclick ? ` onclick="${onclick}"` : ''}>
-      <span class="dst-rank-pos">${icon}</span>
-      <span class="dst-rank-name" title="${titulo || nome}">${nome}</span>
-      <span class="dst-rank-val ${valCls}">${valStr}</span>
-    </div>`;
-  const topItem = (g, i, valStr, valCls) => rankItem(medals[i], g.nome, valStr, valCls, null,
-    `filtrarTipsterDash('${(g.nome||'').replace(/'/g,"\\'")}')`);
-
-  // Recordes do período
-  const rec = d.recordes || {};
-  const fmtRs = v => (v>=0?'+':'-') + 'R$ ' + Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
-  const fmtUs = v => (v>=0?'+':'-') + 'US$ ' + Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
-  const fmtUu = v => `${sg(v)}${fmtU(v)}`;
-  const fmtD = s => s ? `${s.substring(8,10)}/${s.substring(5,7)}/${s.substring(2,4)}` : '';
-  // Os 4 recordes de uma régua. Cor pelo sinal; green só entra se ganhou e red só se perdeu
-  // (com uma única entrada na moeda, a mesma aposta aparecia como green e como red).
-  const linhasRecorde = (mDia, pDia, green, red, campo, fmt) => {
-    const out = [];
-    const cls = v => v >= 0 ? 'pos' : 'neg';
-    if (mDia && mDia[campo] != null) out.push(rankItem('📈', `Melhor dia · ${fmtD(mDia.d)}`, fmt(+mDia[campo]), cls(+mDia[campo]), 'Abrir as apostas deste dia', `irParaDia('${mDia.d}')`));
-    if (pDia && pDia[campo] != null) out.push(rankItem('📉', `Pior dia · ${fmtD(pDia.d)}`, fmt(+pDia[campo]), cls(+pDia[campo]), 'Abrir as apostas deste dia', `irParaDia('${pDia.d}')`));
-    if (green && green[campo] != null && +green[campo] > 0) out.push(rankItem('🎯', `Maior green · ${green.tipster || '—'}`, fmt(+green[campo]), 'pos', `${green.evento} — ${fmtD(green.d)}`, `verAposta('${green.id || ''}')`));
-    if (red && red[campo] != null && +red[campo] < 0)       out.push(rankItem('💥', `Maior red · ${red.tipster || '—'}`, fmt(+red[campo]), 'neg', `${red.evento} — ${fmtD(red.d)}`, `verAposta('${red.id || ''}')`));
-    return out;
-  };
-  const recRows    = linhasRecorde(rec.melhor_dia,     rec.pior_dia,     rec.maior_green,     rec.maior_red,     'u',   fmtUu);
-  const recRowsR   = linhasRecorde(rec.melhor_dia_r,   rec.pior_dia_r,   rec.maior_green_r,   rec.maior_red_r,   'r',   fmtRs);
-  const recRowsUsd = linhasRecorde(rec.melhor_dia_usd, rec.pior_dia_usd, rec.maior_green_usd, rec.maior_red_usd, 'usd', fmtUs);
-
-  body.innerHTML = `
-    <div class="dst-tops">
-      <div class="dst-top-block">
-        <div class="dst-top-title">Top 3 — Unidades</div>
-        ${topU.length ? topU.map((g,i)=>topItem(g,i,`${sg(g.plU)}${fmtU(g.plU)}`, g.plU>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
-      </div>
-      <div class="dst-top-block">
-        <div class="dst-top-title">Top 3 — R$</div>
-        ${topR.length ? topR.map((g,i)=>topItem(g,i,`${sg(g.plR)}${fmtR(g.plR)}`, g.plR>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
-      </div>
-      <div class="dst-top-block">
-        <div class="dst-top-title">Recordes — Unidades</div>
-        ${recRows.length ? recRows.join('') : '<div class="dst-empty">—</div>'}
-      </div>
-      <div class="dst-top-block">
-        <div class="dst-top-title">Recordes — R$</div>
-        ${recRowsR.length ? recRowsR.join('') : '<div class="dst-empty">—</div>'}
-      </div>
-      ${temUsd ? `
-      <div class="dst-top-block">
-        <div class="dst-top-title">Top 3 — US$</div>
-        ${topD.length ? topD.map((g,i)=>topItem(g,i,`${sg(g.plUsd)}${fmtValMoeda(g.plUsd, 'USD')}`, g.plUsd>=0?'pos':'neg')).join('') : '<div class="dst-empty">—</div>'}
-      </div>
-      <div class="dst-top-block">
-        <div class="dst-top-title">Recordes — US$</div>
-        ${recRowsUsd.length ? recRowsUsd.join('') : '<div class="dst-empty">—</div>'}
-      </div>` : ''}
-    </div>
-    <div class="dst-briefings" id="dstBriefings"></div>
-  `;
-
-  loadDstBriefings();
-}
-
-async function loadDstBriefings() {
-  const el = document.getElementById('dstBriefings');
-  if (!el) return;
-  try {
-    const rows = await sbGet('briefings?select=data_ref&order=data_ref.desc&limit=5');
-    if (!rows.length) { el.innerHTML = ''; return; }
-    const links = rows.map(r => {
-      const [y,m,d] = r.data_ref.split('-');
-      return `<span class="dst-brf-link" onclick="openBriefing('${r.data_ref}')">${d}/${m}</span>`;
-    }).join(' · ');
-    el.innerHTML = `<span class="dst-brf-label">📅 Briefings anteriores:</span> ${links}`;
-  } catch (e) { el.innerHTML = ''; }
-}
-
 async function openBriefing(dataRef) {
   try {
     const rows = await sbGet(`briefings?select=html_completo&data_ref=eq.${dataRef}&limit=1`);
@@ -2777,8 +1976,8 @@ async function openBriefing(dataRef) {
   } catch(e) { showToast('Erro: '+e.message, true); }
 }
 
-/* ═══ DASHBOARD NOVO (início) ═══ */
-// Prévia do dashboard novo. Uma chamada só ao banco (dashboard_v2) traz tudo; o desenho é feito aqui.
+/* ═══ DASHBOARD (início) ═══ */
+// Uma chamada só ao banco (dashboard_v2) traz tudo; o desenho é feito aqui.
 // Moeda: "Geral" soma só unidades. Reais e dólar nunca entram no mesmo total.
 const D2_ZERO = '00000000-0000-0000-0000-000000000000';   // id zerado = "sem cadastro"
 const D2_SEM_MERCADO = '__sem__';
@@ -2805,7 +2004,7 @@ const D2 = {
   calMes: null, calModo: 'mes', dowModo: 'periodo',
   aba: 'tipster', metrica: 'pl', minAp: 10, tudoAberto: false,
   tabelaAberta: false, filtrosAbertos: false,
-  dados: null, chave: null, serie: [], opcoes: null, briefings: null,
+  dados: null, chave: null, serie: [], opcoes: null, opcoesP: null, briefings: null,
   seq: 0, chart: null, erro: false, ativo: false
 };
 
@@ -2955,11 +2154,7 @@ function d2Pl(n, um, varios) { return n === 1 ? um : varios; }
 // ── entrar e sair da página ──
 function d2Entrar() {
   D2.ativo = true;
-  document.body.classList.add('tema-novo');
   if (!D2.calMes) D2.calMes = d2Hoje().slice(0, 7);
-  try { history.replaceState(null, '', '#novo'); } catch (e) {}
-  d2PintarLente();
-  d2PintarAcoes();
   document.getElementById('pageContent').innerHTML = d2Casca();
   const raiz = document.getElementById('d2');
   raiz.addEventListener('click', d2Clique);
@@ -2970,13 +2165,10 @@ function d2Entrar() {
   if (!D2.opcoes) d2CarregarOpcoes();
 }
 function d2Sair() {
-  if (!D2.ativo && !document.body.classList.contains('tema-novo')) return;
+  if (!D2.ativo) return;
   D2.ativo = false;
   D2.seq++;
-  document.body.classList.remove('tema-novo');
-  ['d2TopLeft', 'd2TopRight'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = ''; });
   if (D2.chart) { D2.chart.destroy(); D2.chart = null; }
-  try { if (location.hash === '#novo') history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
 }
 function d2Casca() {
   return `<div class="d2" id="d2">
@@ -2993,12 +2185,15 @@ function d2Casca() {
 }
 
 // ── barra de cima: moeda, medida, briefings, fechar dia ──
+// A moeda vale no Dashboard, nas Apostas e no Ranking de grupos: escolheu R$ ou US$ numa página, as outras acompanham.
+const D2_COM_MOEDA = ['dashboard', 'apostas', 'ranking_grupos'];
 function d2PintarLente() {
   const e = document.getElementById('d2TopLeft');
   if (!e) return;
-  const lente = [['', 'Geral', 'Tudo junto, em unidades'], ['BRL', 'R$', 'Só o que foi apostado em reais'], ['USD', 'US$', 'Só o que foi apostado em dólar']];
-  let h = `<span class="d2-tag">prévia</span><div class="d2-seg" role="group" aria-label="Moeda">${lente.map(([v, r, t]) => `<button type="button" data-a="moeda" data-v="${v}" title="${t}" aria-pressed="${(D2.moeda || '') === v}">${r}</button>`).join('')}</div>`;
-  if (D2.moeda) {
+  if (!D2_COM_MOEDA.includes(paginaAtual)) { e.innerHTML = ''; return; }
+  const lente = [['', 'Geral', 'Reais e dólar juntos'], ['BRL', 'R$', 'Só o que foi apostado em reais'], ['USD', 'US$', 'Só o que foi apostado em dólar']];
+  let h = `<div class="d2-seg" role="group" aria-label="Moeda">${lente.map(([v, r, t]) => `<button type="button" data-a="moeda" data-v="${v}" title="${t}" aria-pressed="${(D2.moeda || '') === v}">${r}</button>`).join('')}</div>`;
+  if (D2.moeda && paginaAtual === 'dashboard') {
     h += `<span class="d2-vt">Ver em</span><div class="d2-seg" role="group" aria-label="Ver em">
       <button type="button" data-a="medida" data-v="m" aria-pressed="${D2.medida === 'm'}">${D2.moeda === 'USD' ? 'Dólar' : 'Reais'}</button>
       <button type="button" data-a="medida" data-v="u" aria-pressed="${D2.medida === 'u'}">Unidades</button></div>`;
@@ -3008,7 +2203,7 @@ function d2PintarLente() {
 function d2PintarAcoes() {
   const d = document.getElementById('d2TopRight');
   if (!d) return;
-  d.innerHTML = `<div class="d2-pop-wrap"><button type="button" class="d2-btn" data-a="briefings" id="d2BtnBrf" aria-expanded="false" aria-controls="d2Pop">Briefings</button><div class="d2-pop" id="d2Pop" hidden></div></div>
+  d.innerHTML = paginaAtual !== 'dashboard' ? '' : `<div class="d2-pop-wrap"><button type="button" class="d2-btn" data-a="briefings" id="d2BtnBrf" aria-expanded="false" aria-controls="d2Pop">Briefings</button><div class="d2-pop" id="d2Pop" hidden></div></div>
     <button type="button" class="d2-btn forte" data-a="fechar-dia">Fechar dia</button>`;
 }
 function d2FecharPop() {
@@ -3089,7 +2284,13 @@ function d2Clique(ev) {
   if (!b) return;
   const a = b.dataset.a, v = b.dataset.v;
   if (a === 'periodo') { D2.periodo = v; D2.de = ''; D2.ate = ''; d2GravarPrefs(); d2MudouPeriodo(); }
-  else if (a === 'moeda') { D2.moeda = v || null; d2PintarLente(); d2PintarFiltros(); d2Carregar(true); }
+  else if (a === 'moeda') {
+    D2.moeda = v || null;
+    d2PintarLente();
+    if (paginaAtual === 'dashboard') { d2PintarFiltros(); d2Carregar(true); }
+    else if (paginaAtual === 'apostas') { apostasPintarSelects(); currentPage = 1; queryApostas(); }
+    else if (paginaAtual === 'ranking_grupos') carregarRanking();
+  }
   else if (a === 'medida') { D2.medida = v; d2GravarPrefs(); d2PintarLente(); d2Pintar(); }
   else if (a === 'filtros') { D2.filtrosAbertos = !D2.filtrosAbertos; d2PintarFiltros(); }
   else if (a === 'tirar') { D2.f[v] = ''; d2PintarFiltros(); d2Carregar(true); }
@@ -3140,8 +2341,10 @@ function d2MudouPeriodo() {
   if (D2.dados && !D2.erro && D2.chave === d2ChaveFiltros()) { d2Pintar(); d2Carregar(false); }
   else d2Carregar(true);
 }
+// Clicar num dia abre as Apostas daquele dia, com os mesmos filtros (a moeda já acompanha pela barra de cima).
 function d2IrParaDia(iso) {
-  gFilters = { op: D2.f.op === D2_ZERO ? '' : D2.f.op, ti: D2.f.ti, bo: D2.f.bo === D2_ZERO ? '' : D2.f.bo, st: D2.f.st, de: iso, ate: iso };
+  gFilters = { op: D2.f.op, ti: D2.f.ti, bo: D2.f.bo, es: D2.f.es, me: D2.f.me, st: D2.f.st, de: iso, ate: iso };
+  currentPage = 1;
   showPage('apostas');
 }
 
@@ -3172,11 +2375,15 @@ async function d2Carregar(comDias) {
   else D2.dados = Object.assign({}, D2.dados, { por: r.por, oddMed: r.oddMed, em: r.em });
   d2Pintar();
 }
-async function d2CarregarOpcoes() {
-  try {
-    const o = await sbRpc('dashboard_v2_opcoes', {});
-    if (o && (o.BRL || o.USD)) { D2.opcoes = o; if (D2.ativo) d2PintarFiltros(); }
-  } catch (e) {}
+function d2CarregarOpcoes() {
+  if (!D2.opcoesP) D2.opcoesP = (async () => {
+    try {
+      const o = await sbRpc('dashboard_v2_opcoes', {});
+      if (o && (o.BRL || o.USD)) { D2.opcoes = o; if (D2.ativo) d2PintarFiltros(); }
+    } catch (e) {}
+    D2.opcoesP = null;
+  })();
+  return D2.opcoesP;
 }
 
 // ── desenho ──
@@ -3193,8 +2400,7 @@ function d2Pintar() {
   if (!document.getElementById('d2Placar')) {
     c.innerHTML = `<section class="d2-placar" id="d2Placar"></section>
       <section class="d2-l2"><div class="d2-card" id="d2Cal"></div><div class="d2-card d2-dow" id="d2Dow"></div></section>
-      <section class="d2-card d2-desemp" id="d2Desemp"></section>
-      <p class="d2-nota">Prévia do dashboard novo. O dashboard atual continua no menu, do jeito que estava.</p>`;
+      <section class="d2-card d2-desemp" id="d2Desemp"></section>`;
   }
   d2PintarPlacar();
   d2PintarCal();
@@ -3529,22 +2735,15 @@ function d2PintarDesemp() {
     <div class="d2-rodape"><span>${aviso.join(' ')}</span>${longa ? `<button type="button" class="d2-link" data-a="abrir-tudo">${D2.tudoAberto ? 'Mostrar só os 5 melhores e os 5 piores' : `Ver todos (${linhas.length})`}</button>` : ''}</div>`;
 }
 
-// O "Fechar dia" chamava esta função e ela não existia: depois de fechar aparecia um erro falso.
-async function loadBriefings() { D2.briefings = null; await loadDstBriefings(); }
+// O "Fechar dia" chama esta função no fim: a lista de briefings é buscada de novo na próxima vez que abrir.
+async function loadBriefings() { D2.briefings = null; }
 
 (function d2Ligar() {
   ['d2TopLeft', 'd2TopRight'].forEach(id => { const e = document.getElementById(id); if (e) e.addEventListener('click', d2Clique); });
   document.addEventListener('click', ev => { if (!ev.target.closest('.d2-pop-wrap')) d2FecharPop(); });
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') d2FecharPop(); });
 })();
-/* ═══ DASHBOARD NOVO (fim) ═══ */
-
-// Hook: renderiza painel de métricas sempre que o dashboard recalcula
-const _origRenderDashStats = renderDashStats;
-renderDashStats = function(data) {
-  _origRenderDashStats.apply(this, arguments);
-  renderDestaques(data);
-};
+/* ═══ DASHBOARD (fim) ═══ */
 
 (function() {
   const m = (location.hash || '').match(/^#briefing\/(\d{4}-\d{2}-\d{2})$/);
@@ -3557,7 +2756,7 @@ if (currentUser) showApp();
 <!-- Bugs / Melhorias Modal -->
 <div class="modal-overlay" id="modalBug">
   <div class="modal">
-    <h2 id="bmTituloModal">Novo Registro</h2>
+    <h2 id="bmTituloModal">Novo registro</h2>
     <input type="hidden" id="bmId">
     <div class="form-grid">
       <div class="form-group">
@@ -3601,8 +2800,8 @@ if (currentUser) showApp();
 <div class="modal-overlay" id="modalAlterar">
   <div class="modal">
     <h2>Alterar <span id="altCount">0</span> apostas</h2>
-    <div style="margin-bottom:1rem;color:var(--muted);font-size:0.78rem;line-height:1.5">
-      Preencha APENAS os campos que deseja alterar. O que ficar em branco / "-- Manter --" permanece como está em cada aposta.
+    <div style="margin-bottom:1rem;color:var(--muted);font-size:0.82rem;line-height:1.5">
+      Preencha só os campos que quer alterar. O que ficar em branco ou em "-- Manter --" continua como está em cada aposta.
     </div>
     <div class="form-grid">
       <div class="form-group">
@@ -3626,7 +2825,7 @@ if (currentUser) showApp();
         <select id="altBookie"><option value="">-- Manter --</option></select>
       </div>
       <div class="form-group">
-        <label>Tipo de Aposta</label>
+        <label>Tipo de aposta</label>
         <select id="altTipo"><option value="">-- Manter --</option></select>
       </div>
       <div class="form-group full">
@@ -3653,7 +2852,7 @@ if (currentUser) showApp();
 <!-- Fechar Dia Modal (escolher data) -->
 <div class="modal-overlay" id="modalFecharDia">
   <div class="modal" style="max-width:420px">
-    <h2>Fechar Dia</h2>
+    <h2>Fechar dia</h2>
     <div style="margin-bottom:1rem;color:var(--muted);font-size:0.82rem;line-height:1.5">
       Isso vai gerar o briefing, enviar no Telegram e preparar o card do Twitter pra download.
     </div>
@@ -3672,7 +2871,7 @@ if (currentUser) showApp();
 <div class="briefing-modal-overlay" id="briefingModal" onclick="if(event.target===this) this.classList.remove('open')">
   <div class="briefing-modal-content">
     <div class="briefing-modal-close">
-      <button onclick="document.getElementById('briefingModal').classList.remove('open')">Fechar ✕</button>
+      <button onclick="document.getElementById('briefingModal').classList.remove('open')">Fechar</button>
     </div>
     <div id="briefingContent"></div>
   </div>
@@ -3683,20 +2882,20 @@ if (currentUser) showApp();
 <div class="briefing-modal-overlay" id="twitterModal" onclick="if(event.target===this) this.classList.remove('open')">
   <div class="briefing-modal-content" style="max-width:640px">
     <div class="briefing-modal-close">
-      <button onclick="document.getElementById('twitterModal').classList.remove('open')">Fechar ✕</button>
+      <button onclick="document.getElementById('twitterModal').classList.remove('open')">Fechar</button>
     </div>
-    <div style="padding:24px;color:#e8e8f5">
-      <h2 style="font-size:18px;font-weight:500;margin:0 0 16px;font-family:var(--mono);color:var(--accent2)">🐦 CARD PRO TWITTER</h2>
-      <p style="font-size:13px;color:var(--muted);margin:0 0 16px;line-height:1.5">Baixe a imagem e o texto abaixo, depois poste manualmente no @evvol_bettor.</p>
+    <div style="padding:24px;color:var(--tinta)">
+      <h2 style="font-size:1.08rem;font-weight:650;margin:0 0 .5rem">Card pro Twitter</h2>
+      <p style="font-size:.84rem;color:var(--tinta3);margin:0 0 1rem;line-height:1.5">Baixe a imagem e o texto abaixo, depois poste manualmente no @evvol_bettor.</p>
 
-      <img id="twitterCardImg" style="width:100%;border-radius:8px;margin-bottom:16px;border:1px solid #2a2a45" alt="Card Twitter">
+      <img id="twitterCardImg" style="width:100%;border-radius:8px;margin-bottom:1rem;border:1px solid var(--linha2)" alt="Card do dia pro Twitter">
 
-      <label style="display:block;font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Texto sugerido</label>
-      <textarea id="twitterText" readonly style="width:100%;min-height:80px;background:var(--s3);border:1px solid #2a2a45;color:#e8e8f5;border-radius:8px;padding:12px;font-family:var(--mono);font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+      <label for="twitterText" style="display:block;font-size:.78rem;color:var(--tinta3);margin-bottom:.35rem">Texto sugerido</label>
+      <textarea id="twitterText" readonly style="width:100%;min-height:80px;background:var(--s2);border:1px solid var(--linha);color:var(--tinta);border-radius:8px;padding:.75rem;font-size:.86rem;resize:vertical;box-sizing:border-box"></textarea>
 
-      <div style="display:flex;gap:8px;margin-top:16px">
-        <button id="twitterDownloadBtn" class="btn-filter" style="flex:1">📥 Baixar imagem</button>
-        <button id="twitterCopyBtn" class="btn-filter btn-limpar" style="flex:1">📋 Copiar texto</button>
+      <div style="display:flex;gap:.5rem;margin-top:1rem">
+        <button id="twitterDownloadBtn" class="btn-filter" style="flex:1">Baixar imagem</button>
+        <button id="twitterCopyBtn" class="btn-filter" style="flex:1">Copiar texto</button>
       </div>
     </div>
   </div>
@@ -3707,7 +2906,7 @@ if (currentUser) showApp();
   <div class="fechar-dia-box">
     <div class="spinner"></div>
     <p id="fecharDiaMsg">Fechando o dia...</p>
-    <p class="sub">Gerando briefing, disparando no Telegram e postando no Twitter. Aguarde 30-60s.</p>
+    <p class="sub">Gerando o briefing, enviando no Telegram e preparando o card do Twitter. Leva de 30 a 60 segundos.</p>
   </div>
 </div>
 
