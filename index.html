@@ -791,6 +791,9 @@ async function apagarAposta(id) {
 
 // ── PAGES ──────────────────────────────────────────────────
 function showPage(page) {
+  // Dashboard e Apostas usam os mesmos filtros, como no dashboard antigo: o que está escolhido num vale no outro.
+  if (paginaAtual === 'dashboard' && page !== 'dashboard') d2LevarFiltros();
+  else if (paginaAtual === 'apostas' && page !== 'apostas') d2TrazerFiltros();
   paginaAtual = page;
   if (page !== 'dashboard') d2Sair();
   const navMap = { dashboard:0, apostas:1, tipsters:2, bookies:3, operadores:4, esportes:5, tipos_aposta:6, mercados:7, bugs_melhorias:8, ranking_grupos:9 };
@@ -2019,7 +2022,8 @@ const D2 = {
   aba: 'tipster', metrica: 'pl', minAp: 10, tudoAberto: false,
   tabelaAberta: false, filtrosAbertos: false,
   dados: null, chave: null, serie: [], opcoes: null, opcoesP: null, briefings: null,
-  seq: 0, chart: null, erro: false, ativo: false
+  seq: 0, chart: null, erro: false, ativo: false,
+  irDia: null           // dia clicado no calendário: as Apostas abrem nele
 };
 
 (function d2LerPrefs() {
@@ -2051,9 +2055,9 @@ function d2DataLonga(iso) { return ['dom.','seg.','ter.','qua.','qui.','sex.','s
 function d2DataCurta(iso) { return iso.slice(8) + '/' + iso.slice(5, 7) + '/' + iso.slice(2, 4); }
 
 // Os atalhos valem "de tal dia em diante": aposta pendente de evento futuro continua contando. "Hoje" é só o dia de hoje.
-function d2Janela() {
+function d2Janela(p = D2.periodo) {
   const h = d2Hoje();
-  switch (D2.periodo) {
+  switch (p) {
     case 'hoje': return { de: h, ate: h };
     case '7d':  return { de: d2Mais(h, -6),  ate: null };
     case '30d': return { de: d2Mais(h, -29), ate: null };
@@ -2360,9 +2364,24 @@ function d2MudouPeriodo() {
 }
 // Clicar num dia abre as Apostas daquele dia, com os mesmos filtros (a moeda já acompanha pela barra de cima).
 function d2IrParaDia(iso) {
-  gFilters = { op: D2.f.op, ti: D2.f.ti, bo: D2.f.bo, es: D2.f.es, me: D2.f.me, st: D2.f.st, de: iso, ate: iso };
-  currentPage = 1;
+  D2.irDia = iso;
   showPage('apostas');
+}
+// Saindo do dashboard: as Apostas recebem os filtros e o período dele (Hoje vira de hoje até hoje; 7 dias, a data de início).
+function d2LevarFiltros() {
+  const j = d2Janela(), dia = D2.irDia;
+  D2.irDia = null;
+  gFilters = { op: D2.f.op, ti: D2.f.ti, bo: D2.f.bo, es: D2.f.es, me: D2.f.me, st: D2.f.st,
+               de: dia || j.de || '', ate: dia || j.ate || '', q: '' };
+  currentPage = 1;
+}
+// Saindo das Apostas: o dashboard recebe os filtros que estavam aplicados lá. Datas que batem com um atalho voltam a ser o atalho.
+function d2TrazerFiltros() {
+  const g = gFilters || {}, de = g.de || '', ate = g.ate || '';
+  D2.f = { op: g.op || '', ti: g.ti || '', bo: g.bo || '', es: g.es || '', me: g.me || '', st: g.st || '' };
+  const atalho = D2_PERIODOS.map(x => x[0]).find(p => { const j = d2Janela(p); return (j.de || '') === de && (j.ate || '') === ate; });
+  if (atalho) { D2.periodo = atalho; D2.de = ''; D2.ate = ''; }
+  else { D2.periodo = 'datas'; D2.de = de; D2.ate = ate; }
 }
 
 // ── buscar no banco ──
