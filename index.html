@@ -2001,7 +2001,7 @@ const D2_SEM = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const D2_SEM_LONGO = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
 const D2_MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const D2_MES_C = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-const D2_PERIODOS = [['7d','7 dias'],['30d','30 dias'],['90d','90 dias'],['mes','Mês'],['tudo','Tudo']];
+const D2_PERIODOS = [['hoje','Hoje'],['7d','7 dias'],['30d','30 dias'],['90d','90 dias'],['mes','Mês'],['tudo','Tudo']];
 const D2_ABAS = [['tipster','Tipsters','Tipster'],['mercado','Mercados','Mercado'],['esporte','Esportes','Esporte'],['casa','Casas','Casa'],['odd','Odds','Faixa de odd'],['unidade','Unidades','Stake da aposta'],['operador','Operadores','Operador']];
 const D2_FILTRO_DA_ABA = { tipster:'ti', mercado:'me', esporte:'es', casa:'bo', operador:'op' };
 const D2_FAIXA_ODD = ['Sem odd','até 1,49','1,50 a 1,79','1,80 a 1,99','2,00 a 2,49','2,50 a 2,99','3,00 a 4,99','5,00 a 9,99','10,00 a 49,99','50,00 ou mais'];
@@ -2012,7 +2012,7 @@ const D2_CAMPOS = [['op','Operador','Todos'],['ti','Tipster','Todos'],['bo','Cas
 const D2 = {
   moeda: null,          // null = geral, 'BRL', 'USD'
   medida: 'm',          // com moeda escolhida: 'm' mostra em dinheiro, 'u' em unidades
-  periodo: '30d',       // 7d, 30d, 90d, mes, tudo ou datas
+  periodo: '30d',       // hoje, 7d, 30d, 90d, mes, tudo ou datas
   de: '', ate: '',      // só quando periodo = 'datas'
   f: { op:'', ti:'', bo:'', es:'', me:'', st:'' },
   calMes: null, calModo: 'mes', dowModo: 'periodo',
@@ -2050,10 +2050,11 @@ function d2MesMais(ym, n) { const [y, m] = ym.split('-').map(Number); const dt =
 function d2DataLonga(iso) { return ['dom.','seg.','ter.','qua.','qui.','sex.','sáb.'][d2Dt(iso).getUTCDay()] + ', ' + (+iso.slice(8)) + ' de ' + D2_MES_C[+iso.slice(5, 7) - 1] + '. de ' + iso.slice(0, 4); }
 function d2DataCurta(iso) { return iso.slice(8) + '/' + iso.slice(5, 7) + '/' + iso.slice(2, 4); }
 
-// Os atalhos valem "de tal dia em diante": aposta pendente de evento futuro continua contando.
+// Os atalhos valem "de tal dia em diante": aposta pendente de evento futuro continua contando. "Hoje" é só o dia de hoje.
 function d2Janela() {
   const h = d2Hoje();
   switch (D2.periodo) {
+    case 'hoje': return { de: h, ate: h };
     case '7d':  return { de: d2Mais(h, -6),  ate: null };
     case '30d': return { de: d2Mais(h, -29), ate: null };
     case '90d': return { de: d2Mais(h, -89), ate: null };
@@ -2064,6 +2065,7 @@ function d2Janela() {
 }
 function d2JanelaAnterior() {
   const h = d2Hoje(), j = d2Janela();
+  if (D2.periodo === 'hoje') return { de: d2Mais(h, -1), ate: d2Mais(h, -1), rotulo: 'Ontem' };
   const n = { '7d': 7, '30d': 30, '90d': 90 }[D2.periodo];
   if (n) return { de: d2Mais(j.de, -n), ate: d2Mais(j.de, -1), rotulo: `${n} dias anteriores` };
   if (D2.periodo === 'mes') {
@@ -2080,6 +2082,7 @@ function d2JanelaAnterior() {
 function d2RotuloPeriodo() {
   const j = d2Janela();
   switch (D2.periodo) {
+    case 'hoje': return 'de hoje';
     case '7d': return 'dos últimos 7 dias';
     case '30d': return 'dos últimos 30 dias';
     case '90d': return 'dos últimos 90 dias';
@@ -2272,7 +2275,7 @@ function d2PintarFiltros() {
   if (!raiz) return;
   raiz.querySelectorAll('#d2Periodos button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === D2.periodo)));
   const j = d2Janela(), de = document.getElementById('d2De'), ate = document.getElementById('d2Ate');
-  if (D2.periodo === 'datas') { de.value = D2.de; ate.value = D2.ate; } else { de.value = j.de || ''; ate.value = ''; }
+  if (D2.periodo === 'datas') { de.value = D2.de; ate.value = D2.ate; } else { de.value = j.de || ''; ate.value = j.ate || ''; }
   document.getElementById('d2Datas').classList.toggle('ativo', D2.periodo === 'datas');
 
   const ativos = D2_CAMPOS.filter(([k]) => D2.f[k]);
