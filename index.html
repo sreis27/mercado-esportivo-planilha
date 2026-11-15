@@ -150,6 +150,80 @@ th.num, td.num { text-align:right; font-variant-numeric:tabular-nums; }
 .rank-topo { display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; margin-bottom:.9rem; }
 .rank-ocupado .rank-list { opacity:.5; }
 
+/* ── Contas ── */
+/* saldo nunca é verde: verde fica só pra lucro. Âmbar = conta pedindo ação; negativo = vermelho */
+.ct { max-width:1480px; font-size:.9rem; line-height:1.4; }
+.ct-seg b { font-weight:650; margin-left:.38rem; color:var(--tinta3); font-variant-numeric:tabular-nums; }
+.ct-seg button[aria-pressed="true"] b { color:var(--tinta); }
+.ct-seg b.ct-n-acao { color:var(--accent); }
+.ct-grupos { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; }
+.ct-grp { display:inline-flex; align-items:center; border:1px solid var(--linha2); border-radius:999px; }
+.ct-grp.ativo { border-color:var(--accent); background:rgba(242,184,75,.08); }
+.ct-grp.arrasto { opacity:.4; }
+.ct-grp.alvo { border-style:dashed; border-color:var(--tinta2); }
+.ct-grp-nome { appearance:none; background:none; border:0; font:inherit; font-size:.8rem; color:var(--tinta); padding:.3rem .25rem .3rem .75rem; cursor:pointer; display:inline-flex; align-items:baseline; gap:.4rem; white-space:nowrap; border-radius:999px; }
+.ct-grp.sem .ct-grp-nome { padding-right:.75rem; color:var(--tinta2); }
+.ct-grp-nome small { font-size:.76rem; color:var(--tinta3); font-variant-numeric:tabular-nums; }
+.ct-grp-x { appearance:none; background:none; border:0; font:inherit; font-size:1rem; line-height:1; color:var(--tinta3); padding:.26rem .62rem .32rem .3rem; cursor:pointer; border-radius:999px; }
+.ct-grp-x:hover { color:var(--neg-t); }
+.ct-grp-add { appearance:none; background:none; border:1px dashed var(--linha2); font:inherit; font-size:.8rem; color:var(--tinta3); padding:.3rem .75rem; border-radius:999px; cursor:pointer; white-space:nowrap; }
+.ct-grp-add:hover { color:var(--tinta); border-color:var(--tinta3); }
+.ct-busca { margin-left:auto; width:260px; }
+.ct-placar { display:flex; flex-wrap:wrap; align-items:flex-end; gap:.75rem 3.2rem; padding:1.05rem 1.35rem 1rem; margin-bottom:.9rem; }
+.ct-placar > .d2-rot { flex-basis:100%; margin-bottom:-.35rem; }
+.ct-moeda { display:flex; flex-direction:column; gap:.22rem; min-width:0; }
+.ct-val { font-size:clamp(1.75rem, 2.7vw, 2.35rem); font-weight:670; font-stretch:84%; line-height:1.05; letter-spacing:-.01em; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.ct-val .d2-un.m { font-size:.55em; font-weight:560; margin-right:.2em; }
+.ct-sub { font-size:.8rem; color:var(--tinta3); }
+.ct-sub b { font-weight:500; color:var(--tinta2); white-space:nowrap; }
+.ct-tab { min-width:1000px; }
+.ct-tab th, .ct-tab td { padding-left:.55rem; padding-right:.55rem; }
+.ct-tab td { padding-top:.42rem; padding-bottom:.42rem; }
+.ct-tab th:last-child, .ct-tab td:last-child { padding-right:.85rem; }
+.ct-th { appearance:none; background:none; border:0; padding:0; font:inherit; color:inherit; cursor:pointer; white-space:nowrap; }
+.ct-th:hover, .ct-th.on { color:var(--tinta); }
+.ct-th span { opacity:.6; }
+.ct-tab .ct-alca { width:1.9rem; padding-left:.85rem; padding-right:0; color:var(--tinta3); text-align:center; }
+.ct-alca span { cursor:grab; user-select:none; }
+.ct-alca span.off { opacity:.25; cursor:default; }
+.ct-tab tr.ct-arrasto { opacity:.35; }
+.ct-tab tr.ct-alvo td { box-shadow:inset 0 2px 0 var(--accent); }
+.ct-tab tr.ct-alvo.baixo td { box-shadow:inset 0 -2px 0 var(--accent); }
+.ct-casa { font-weight:620; }
+.ct-ag { color:var(--tinta2); max-width:11rem; overflow:hidden; text-overflow:ellipsis; }
+.ct-copia, .ct-cel, .ct-olho { appearance:none; background:none; border:0; font:inherit; color:inherit; text-align:inherit; padding:.14rem .32rem; margin:-.14rem -.32rem; border-radius:6px; cursor:pointer; }
+.ct-copia:hover, .ct-cel:hover { background:var(--s3); }
+.ct-copia { color:var(--tinta2); font-size:.83rem; max-width:17rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; }
+.ct-senha { display:inline-flex; align-items:center; gap:.55rem; }
+.ct-pontos { letter-spacing:.1em; }
+.ct-pontos.visivel { letter-spacing:normal; color:var(--tinta); }
+.ct-olho { margin:0; padding:.1rem .3rem; font-size:.8rem; filter:grayscale(1); opacity:.55; }
+.ct-olho:hover, .ct-olho[aria-pressed="true"] { opacity:1; }
+.ct-tab td.num .ct-cel { font-weight:580; font-variant-numeric:tabular-nums; }
+.ct-zero { color:var(--tinta3); }
+.ct-idade { font-size:.72rem; color:var(--tinta3); margin-top:.15rem; white-space:nowrap; }
+.ct-idade.velho { color:var(--accent); }
+.ct-sit { font-size:.72rem; font-weight:600; margin:0; padding:.16rem .5rem; }
+.ct-sit.ativa { background:rgba(182,188,198,.12); color:var(--tinta2); }
+.ct-sit.acao { background:rgba(242,184,75,.14); color:var(--accent); }
+.ct-sit.inativa { background:transparent; box-shadow:inset 0 0 0 1px var(--linha2); color:var(--tinta3); }
+.ct-sit.ativa:hover { background:rgba(182,188,198,.2); }
+.ct-sit.acao:hover { background:rgba(242,184,75,.24); }
+.ct-sit.inativa:hover { background:var(--s3); }
+.ct-obs { max-width:15rem; }
+.ct-obs .ct-cel { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; font-size:.82rem; color:var(--tinta3); }
+.ct-nada { color:var(--tinta3); opacity:.55; }
+.ct-inp { background:var(--s2); border:1px solid var(--accent); color:var(--tinta); font:inherit; font-size:.84rem; padding:.2rem .45rem; border-radius:6px; outline:none; width:10rem; }
+.ct-inp.num { width:7.5rem; text-align:right; font-variant-numeric:tabular-nums; }
+.ct-inp.obs { width:13rem; }
+.ct-excluir { margin-right:auto; }
+.ct-excluir:hover { border-color:var(--neg); color:var(--neg-t); }
+#modalConta textarea { resize:vertical; min-height:4.6rem; line-height:1.4; }
+@media (max-width:560px) {
+  .ct-busca { margin-left:0; width:100%; flex:1 1 100%; }
+  .ct-placar { gap:.7rem 1.8rem; padding:.9rem .9rem .85rem; }
+}
+
 /* ── Janelas ── */
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:200; align-items:center; justify-content:center; padding:1rem; }
 .modal-overlay.open { display:flex; }
@@ -483,6 +557,7 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
       <div class="nav-section">Principal</div>
       <button type="button" class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></button>
       <button type="button" class="nav-item" onclick="showPage('apostas')"><span class="icon">📋</span><span>Apostas</span></button>
+      <button type="button" class="nav-item" onclick="showPage('contas')"><span class="icon">🏦</span><span>Contas</span></button>
       <div class="nav-section">Cadastros</div>
       <button type="button" class="nav-item" onclick="showPage('tipsters')"><span class="icon">👥</span><span>Tipsters</span></button>
       <button type="button" class="nav-item" onclick="showPage('bookies')"><span class="icon">🏠</span><span>Bookies</span></button>
@@ -508,6 +583,7 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
       <div style="display:flex;gap:0.75rem;align-items:center">
         <div id="d2TopRight"></div>
         <button class="btn-primary" id="topbarAddBtn" onclick="openAddModal()" style="display:none">+ Nova aposta</button>
+        <button class="btn-primary" id="topbarAddConta" onclick="ctAbrirModal()" style="display:none">+ Nova conta</button>
       </div>
     </div>
     <div class="content" id="pageContent"></div>
@@ -630,6 +706,72 @@ button.d2-lin:hover .d2-div i { filter:brightness(1.18); }
     <div id="modalStakesBody"></div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modalStakes')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Conta -->
+<div class="modal-overlay" id="modalConta">
+  <div class="modal" style="max-width:560px">
+    <h2 id="ctModalTit">Nova conta</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="ctCasa">Casa *</label>
+        <input type="text" id="ctCasa" placeholder="ex: BET365" autocomplete="off" oninput="ctSugereMoeda()">
+      </div>
+      <div class="form-group">
+        <label for="ctGrupo">Grupo</label>
+        <input type="text" id="ctGrupo" list="ctGruposLista" placeholder="Sem grupo" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="ctAgente">Agente</label>
+        <input type="text" id="ctAgente" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="ctSituacao">Situação</label>
+        <input type="text" id="ctSituacao" list="ctSitLista" placeholder="ex: ATIVA" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="ctLogin">Login</label>
+        <input type="text" id="ctLogin" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="form-group">
+        <label for="ctSenha">Senha</label>
+        <input type="text" id="ctSenha" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="form-group">
+        <label for="ctSaldo" id="ctSaldoRot">Saldo (R$)</label>
+        <input type="number" id="ctSaldo" step="0.01" inputmode="decimal" placeholder="0,00">
+      </div>
+      <div class="form-group">
+        <label for="ctMoeda">Moeda do saldo</label>
+        <select id="ctMoeda" onchange="CT.moedaTocada = true; ctRotuloSaldo()">
+          <option value="BRL">R$ (real)</option>
+          <option value="USD">US$ (dólar)</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label for="ctObs">Observações</label>
+        <textarea id="ctObs" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline ct-excluir" id="ctExcluir" onclick="ctExcluirDoModal()">Excluir conta</button>
+      <button class="btn-outline" onclick="closeModal('modalConta')">Cancelar</button>
+      <button class="btn-save" id="ctSalvarBtn" onclick="ctSalvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+<datalist id="ctGruposLista"></datalist>
+<datalist id="ctSitLista"></datalist>
+
+<!-- Modal Histórico da conta -->
+<div class="modal-overlay" id="modalHistConta">
+  <div class="modal">
+    <h2 id="ctHistTit">Histórico da conta</h2>
+    <div id="ctHistLista"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalHistConta')">Fechar</button>
     </div>
   </div>
 </div>
@@ -796,24 +938,730 @@ function showPage(page) {
   else if (paginaAtual === 'apostas' && page !== 'apostas') d2TrazerFiltros();
   paginaAtual = page;
   if (page !== 'dashboard') d2Sair();
-  const navMap = { dashboard:0, apostas:1, tipsters:2, bookies:3, operadores:4, esportes:5, tipos_aposta:6, mercados:7, bugs_melhorias:8, ranking_grupos:9 };
+  const navMap = { dashboard:0, apostas:1, contas:2, tipsters:3, bookies:4, operadores:5, esportes:6, tipos_aposta:7, mercados:8, bugs_melhorias:9, ranking_grupos:10 };
   document.querySelectorAll('.nav-item').forEach((n, i) => {
     const aqui = i === navMap[page];
     n.classList.toggle('active', aqui);
     if (aqui) n.setAttribute('aria-current', 'page'); else n.removeAttribute('aria-current');
   });
-  const titles = { dashboard:'Dashboard', apostas:'Apostas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de aposta', mercados:'Mercados', bugs_melhorias:'Bugs e melhorias', ranking_grupos:'Ranking de grupos' };
+  const titles = { dashboard:'Dashboard', apostas:'Apostas', contas:'Contas', tipsters:'Tipsters', bookies:'Bookies', operadores:'Operadores', esportes:'Esportes', tipos_aposta:'Tipos de aposta', mercados:'Mercados', bugs_melhorias:'Bugs e melhorias', ranking_grupos:'Ranking de grupos' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
   document.getElementById('topbarAddBtn').style.display = page==='apostas' ? 'block' : 'none';
+  document.getElementById('topbarAddConta').style.display = page==='contas' ? 'block' : 'none';
   d2PintarLente();
   d2PintarAcoes();
   const content = document.getElementById('pageContent');
   content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
   if (page==='dashboard') d2Entrar();
   else if (page==='apostas') renderApostas();
+  else if (page==='contas') renderContas();
   else if (page==='bugs_melhorias') renderBugsMelhorias();
   else if (page==='ranking_grupos') renderRankingGrupos();
   else renderCadastro(page);
+}
+
+// ── CONTAS ─────────────────────────────────────────────────
+// Era o site separado das contas; agora é uma página daqui, com o mesmo login. R$ e US$ nunca se somam.
+// Conta sem grupo (vazio, 'Sem Grupo' ou nome de grupo que não existe mais) aparece em "Sem grupo".
+// Apagar grupo nunca apaga conta: as contas vão pra Sem grupo.
+const CT_SEM = 'Sem Grupo';   // valor que o banco usa
+const CT_TRANSITORIAS = ['FACIAL', 'EMAIL', 'DEPOSITAR', 'REDEFINIR SENHA', 'SEM SALDO', 'LIMITADA'];   // pedem ação e não deviam envelhecer
+const CT_CAMPOS = { casa:'Casa', agente:'Agente', situacao:'Situação', login:'Login', senha:'Senha', saldo:'Saldo', moeda:'Moeda', observacoes:'Observações', grupo:'Grupo' };
+const CT_SIT_ROT = { ativa:'ativas', acao:'que pedem ação', inativa:'inativas' };
+const CT = {
+  contas: [], grupos: [], grupoId: {}, pend: null, idadeSaldo: {}, idadeSit: {}, moedaCasa: {},
+  sit: '', grupo: '', busca: '', ordCol: '', ordDir: 1,   // ordCol vazio = ordem manual (a arrastada)
+  editando: null, moedaTocada: false, arrastoConta: null, arrastoGrupo: null, seq: 0
+};
+
+const ctEl = id => document.getElementById(id);
+function ctNorm(s) { return String(s || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function ctNormCasa(s) { return ctNorm(s).replace(/[^A-Z0-9]/g, ''); }
+function ctMesmo(a, b) { return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase(); }
+function ctUsd(c) { return c.moeda === 'USD'; }
+function ctNum(v) { return Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function ctDin(v, moeda) { return (moeda === 'USD' ? 'US$ ' : 'R$ ') + ctNum(v); }
+function ctSoma(lista) { return lista.reduce((s, c) => s + (parseFloat(c.saldo) || 0), 0); }
+function ctClasse(s) {
+  const n = ctNorm(s);
+  if (n.includes('INATIVA') || n.includes('LIMITADA')) return 'inativa';
+  if (n === 'ATIVA') return 'ativa';
+  return 'acao';   // qualquer outra situação pede alguma ação
+}
+function ctGrupoDe(c) { return CT.grupos.includes(c.grupo) ? c.grupo : CT_SEM; }
+function ctConta(id) { return CT.contas.find(c => c.id === id); }
+function ctAqui() { return paginaAtual === 'contas' && !!ctEl('ctTabela'); }
+function ctErro(e) {
+  let m = (e && e.message) || String(e);
+  try { const j = JSON.parse(m); m = j.message || j.hint || m; } catch (_) {}
+  return m.length > 140 ? m.slice(0, 140) + '…' : m;
+}
+async function ctGet(path) {   // diferente do sbGet: erro vira erro, não lista vazia
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: hdrs });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function ctPatchOnde(filtro, data) {
+  const r = await fetch(`${SB_URL}/rest/v1/${filtro}`, { method:'PATCH', headers: Object.assign({}, hdrs, { Prefer: 'return=minimal' }), body: JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function ctEmLotes(itens, fn, tam = 8) {
+  for (let i = 0; i < itens.length; i += tam) await Promise.all(itens.slice(i, i + tam).map(fn));
+}
+async function ctHistoricoGravar(linhas) {
+  if (!linhas.length) return true;
+  try { await sbPost('historico_contas', linhas); return true; }
+  catch (e) { console.error('historico_contas:', e); return false; }
+}
+// as apostas usam cache.contas; fica igual ao que está na página
+function ctSincronizarCache() {
+  const t = v => String(v || '');
+  cache.contas = CT.contas.map(c => ({ id: c.id, casa: c.casa, login: c.login, situacao: c.situacao }))
+    .sort((a, b) => t(a.casa).localeCompare(t(b.casa), 'pt-BR') || t(a.login).localeCompare(t(b.login), 'pt-BR'));
+}
+function ctOrdemBase() {   // a mesma ordem que vem do banco: ordem, depois data de criação
+  CT.contas.sort((a, b) => ((a.ordem || 0) - (b.ordem || 0)) || String(a.created_at || '').localeCompare(String(b.created_at || '')));
+}
+function ctListas() {
+  const gl = ctEl('ctGruposLista');
+  if (gl) gl.innerHTML = CT.grupos.map(g => `<option value="${d2E(g)}"></option>`).join('');
+  const sits = [...new Set(CT.contas.map(c => String(c.situacao || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const sl = ctEl('ctSitLista');
+  if (sl) sl.innerHTML = sits.map(s => `<option value="${d2E(s)}"></option>`).join('');
+}
+
+async function renderContas() {
+  const seq = ++CT.seq;
+  try {
+    const [contas, grupos, pend, idS, idSit] = await Promise.all([
+      ctGet('contas?select=*&order=ordem.asc,created_at.asc'),
+      ctGet('grupos_contas?select=id,nome,ordem&order=ordem'),
+      sbRpc('saldo_pendente_por_bookie'),
+      sbRpc('idade_saldos'),
+      sbRpc('idade_situacoes'),
+    ]);
+    if (seq !== CT.seq || paginaAtual !== 'contas') return;
+    CT.contas = Array.isArray(contas) ? contas : [];
+    CT.grupos = (grupos || []).map(g => g.nome);
+    CT.grupoId = Object.fromEntries((grupos || []).map(g => [g.nome, g.id]));
+    CT.pend = pend && pend.total ? pend : null;
+    CT.idadeSaldo = idS || {};
+    CT.idadeSit = idSit || {};
+    CT.moedaCasa = Object.fromEntries((cache.bookies || []).filter(b => b.moeda).map(b => [ctNormCasa(b.nome), b.moeda]));
+    ctSincronizarCache();
+    ctListas();
+    ctMontar();
+    ctAtualizar(true);
+  } catch (e) {
+    if (seq !== CT.seq || paginaAtual !== 'contas') return;
+    ctEl('pageContent').innerHTML = `<div class="d2-erro"><p>As contas não carregaram: ${d2E(ctErro(e))}</p><button type="button" class="d2-btn" onclick="renderContas()">Tentar de novo</button></div>`;
+  }
+}
+
+function ctMontar() {
+  ctEl('pageContent').innerHTML = `
+    <div class="ct">
+      <div class="d2-filtros">
+        <div class="d2-seg ct-seg" id="ctSeg" role="group" aria-label="Situação"></div>
+        <div class="ct-grupos" id="ctGrupos" role="group" aria-label="Grupos"></div>
+        <input type="search" class="filter-input ct-busca" id="ctBusca" placeholder="Buscar casa, agente ou login" aria-label="Buscar conta" autocomplete="off">
+      </div>
+      <section class="d2-card ct-placar" id="ctPlacar"></section>
+      <div class="table-wrap" id="ctTabela"></div>
+    </div>`;
+  const busca = ctEl('ctBusca');
+  busca.value = CT.busca;
+  busca.addEventListener('input', () => { CT.busca = busca.value; ctAtualizar(); });
+
+  ctEl('ctSeg').addEventListener('click', e => {
+    const b = e.target.closest('button[data-sit]');
+    if (!b) return;
+    CT.sit = CT.sit === b.dataset.sit ? '' : b.dataset.sit;
+    ctAtualizar();
+    const nb = ctEl('ctSeg').querySelector(`button[data-sit="${b.dataset.sit}"]`);
+    if (nb) nb.focus();
+  });
+
+  const gr = ctEl('ctGrupos');
+  gr.addEventListener('click', ctClicarGrupo);
+  gr.addEventListener('dblclick', e => {
+    const w = e.target.closest('.ct-grp');
+    if (w && !w.classList.contains('sem') && e.target.closest('.ct-grp-nome')) ctGrupoRenomear(w.dataset.grupo);
+  });
+  gr.addEventListener('dragstart', e => {
+    const w = e.target.closest && e.target.closest('.ct-grp[draggable="true"]');
+    if (!w) return;
+    CT.arrastoGrupo = w.dataset.grupo;
+    w.classList.add('arrasto');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', CT.arrastoGrupo); } catch (_) {}
+  });
+  gr.addEventListener('dragover', e => {
+    if (CT.arrastoGrupo == null) return;
+    const w = ctAlvoDe(e, '.ct-grp[draggable="true"]');
+    if (!w) return;
+    e.preventDefault();
+    gr.querySelectorAll('.ct-grp.alvo').forEach(x => { if (x !== w) x.classList.remove('alvo'); });
+    w.classList.toggle('alvo', w.dataset.grupo !== CT.arrastoGrupo);
+  });
+  gr.addEventListener('drop', e => {
+    if (CT.arrastoGrupo == null) return;
+    e.preventDefault();
+    const w = ctAlvoDe(e, '.ct-grp[draggable="true"]');
+    const de = CT.arrastoGrupo;
+    ctFimArrastoGrupo();
+    if (w && w.dataset.grupo !== de) ctMoverGrupo(de, w.dataset.grupo);
+  });
+  gr.addEventListener('dragend', ctFimArrastoGrupo);
+
+  const tab = ctEl('ctTabela');
+  tab.addEventListener('click', ctClicarTabela);
+  tab.addEventListener('dragstart', e => {
+    const tr = e.target.closest && e.target.closest('tr[data-id][draggable="true"]');
+    if (!tr) return;
+    CT.arrastoConta = tr.dataset.id;
+    tr.classList.add('ct-arrasto');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', ''); } catch (_) {}
+  });
+  tab.addEventListener('dragover', e => {
+    if (!CT.arrastoConta) return;
+    const tr = ctAlvoDe(e, 'tr[data-id]');
+    if (!tr) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    ctMarcarAlvo(tr);
+  });
+  tab.addEventListener('drop', e => {
+    if (!CT.arrastoConta) return;
+    e.preventDefault();
+    const tr = ctAlvoDe(e, 'tr[data-id]');
+    const de = CT.arrastoConta;
+    ctFimArrastoConta();
+    if (tr && tr.dataset.id !== de) ctMoverConta(de, tr.dataset.id);
+  });
+  tab.addEventListener('dragend', ctFimArrastoConta);
+}
+function ctAlvoDe(e, sel) {
+  const t = e.target && e.target.nodeType === 1 ? e.target : e.target && e.target.parentElement;
+  return t ? t.closest(sel) : null;
+}
+
+// busca e grupo valem pra tudo; a situação só filtra a lista (os botões de situação mostram quantas há de cada)
+function ctBase() {
+  const q = CT.busca.trim().toLowerCase();
+  return CT.contas.filter(c =>
+    (!q || [c.casa, c.agente, c.login].some(v => String(v || '').toLowerCase().includes(q))) &&
+    (!CT.grupo || ctGrupoDe(c) === CT.grupo));
+}
+function ctPassa(c) {
+  const q = CT.busca.trim().toLowerCase();
+  return (!q || [c.casa, c.agente, c.login].some(v => String(v || '').toLowerCase().includes(q))) &&
+    (!CT.grupo || ctGrupoDe(c) === CT.grupo) && (!CT.sit || ctClasse(c.situacao) === CT.sit);
+}
+function ctPodeArrastar() { return !!CT.grupo && !CT.ordCol; }
+
+function ctAtualizar(comGrupos, semTabela) {
+  if (!ctAqui()) return;
+  // filtro de grupo que deixou de existir (grupo apagado, Sem grupo esvaziado) volta pra todas
+  if (CT.grupo && (CT.grupo === CT_SEM ? !CT.contas.some(c => ctGrupoDe(c) === CT_SEM) : !CT.grupos.includes(CT.grupo))) { CT.grupo = ''; comGrupos = true; }
+  const base = ctBase();
+  const lista = CT.sit ? base.filter(c => ctClasse(c.situacao) === CT.sit) : base;
+  ctPintarSeg(base);
+  if (comGrupos) ctPintarGrupos();
+  ctPintarPlacar(lista, base);
+  if (!semTabela) ctPintarTabela(ctOrdenar(lista));
+}
+
+function ctPintarSeg(base) {
+  const n = { '': base.length, ativa: 0, acao: 0, inativa: 0 };
+  base.forEach(c => { n[ctClasse(c.situacao)]++; });
+  ctEl('ctSeg').innerHTML = [['', 'Todas'], ['ativa', 'Ativas'], ['acao', 'Ação'], ['inativa', 'Inativas']].map(([v, r]) =>
+    `<button type="button" data-sit="${v}" aria-pressed="${CT.sit === v}">${r}<b${v === 'acao' && n[v] ? ' class="ct-n-acao"' : ''}>${n[v]}</b></button>`).join('');
+}
+
+function ctPintarGrupos() {
+  const gr = ctEl('ctGrupos');
+  if (!gr) return;
+  const dica = 'Clique pra filtrar. Duplo clique renomeia; arraste pra mudar a ordem.';
+  let h = CT.grupos.map(g => {
+    const on = CT.grupo === g, n = CT.contas.filter(c => c.grupo === g).length;
+    return `<span class="ct-grp${on ? ' ativo' : ''}" draggable="true" data-grupo="${d2E(g)}"><button type="button" class="ct-grp-nome" aria-pressed="${on}" title="${dica}">${d2E(g)} <small>${n}</small></button><button type="button" class="ct-grp-x" aria-label="Apagar o grupo ${d2E(g)}" title="Apagar o grupo (as contas vão pra Sem grupo)">×</button></span>`;
+  }).join('');
+  const nSem = CT.contas.filter(c => ctGrupoDe(c) === CT_SEM).length;
+  if (nSem) {
+    const on = CT.grupo === CT_SEM;
+    h += `<span class="ct-grp sem${on ? ' ativo' : ''}" data-grupo="${CT_SEM}"><button type="button" class="ct-grp-nome" aria-pressed="${on}" title="Contas sem grupo. Pra pôr num grupo: ✎ na conta e escolha o grupo">Sem grupo <small>${nSem}</small></button></span>`;
+  }
+  gr.innerHTML = h + '<button type="button" class="ct-grp-add" title="Criar grupo">+ Grupo</button>';
+}
+
+function ctClicarGrupo(e) {
+  if (e.target.closest('.ct-grp-add')) { ctGrupoNovo(); return; }
+  const w = e.target.closest('.ct-grp');
+  if (!w) return;
+  if (e.target.closest('.ct-grp-x')) { ctGrupoApagar(w.dataset.grupo); return; }
+  if (!e.target.closest('.ct-grp-nome')) return;
+  CT.grupo = CT.grupo === w.dataset.grupo ? '' : w.dataset.grupo;
+  // só troca as marcas: refazer os botões aqui quebraria o duplo clique de renomear
+  ctEl('ctGrupos').querySelectorAll('.ct-grp').forEach(x => {
+    const on = x.dataset.grupo === CT.grupo;
+    x.classList.toggle('ativo', on);
+    const b = x.querySelector('.ct-grp-nome');
+    if (b) b.setAttribute('aria-pressed', on);
+  });
+  ctAtualizar();
+}
+
+// Saldo real = o que está nas contas + o stake das apostas pendentes nessas casas (cada moeda no seu total).
+// Com filtro de situação o pendente não entra: não dá pra saber de qual conta da casa saiu a aposta.
+function ctPintarPlacar(lista, base) {
+  const el = ctEl('ctPlacar');
+  if (!el) return;
+  const brl = lista.filter(c => !ctUsd(c)), usd = lista.filter(ctUsd);
+  let pR = null, pU = null;
+  if (!CT.sit && CT.pend) {
+    if (!CT.busca.trim() && !CT.grupo) { pR = +CT.pend.total.r || 0; pU = +CT.pend.total.usd || 0; }
+    else {
+      const casas = new Set(base.map(c => ctNorm(c.casa)));
+      const delas = (CT.pend.bookies || []).filter(x => casas.has(ctNorm(x.b)));
+      pR = delas.reduce((s, x) => s + (+x.r || 0), 0);
+      pU = delas.reduce((s, x) => s + (+x.usd || 0), 0);
+    }
+  }
+  const comPend = pR !== null;
+  const rot = CT.sit ? `Saldo das contas ${CT_SIT_ROT[CT.sit]}, sem o pendente`
+    : !CT.pend ? 'Saldo nas contas (o pendente não carregou)' : 'Saldo real';
+  const col = (moeda, disp, pend, n) => {
+    const sim = moeda === 'USD' ? 'US$' : 'R$', tot = disp + (pend || 0);
+    const sub = comPend ? `<b>${sim} ${ctNum(disp)}</b> disponível · <b>${sim} ${ctNum(pend)}</b> pendente` : `${n} conta${n === 1 ? '' : 's'}`;
+    return `<div class="ct-moeda"><div class="ct-val${tot < 0 ? ' neg' : ''}"><span class="d2-un m">${sim}</span>${ctNum(tot)}</div><div class="ct-sub">${sub}</div></div>`;
+  };
+  const temUsd = usd.length > 0 || (pU || 0) > 0;
+  const temBrl = brl.length > 0 || (pR || 0) > 0 || !temUsd;
+  el.innerHTML = `<div class="d2-rot">${rot}</div>${temBrl ? col('BRL', ctSoma(brl), pR, brl.length) : ''}${temUsd ? col('USD', ctSoma(usd), pU, usd.length) : ''}`;
+}
+
+function ctOrdenar(lista) {
+  if (!CT.ordCol) return lista;
+  const col = CT.ordCol, dir = CT.ordDir;
+  const txt = v => String(v || '');
+  const cmpT = (a, b) => txt(a).localeCompare(txt(b), 'pt-BR', { sensitivity: 'base' });
+  return [...lista].sort((a, b) => {
+    let r;
+    if (col === 'saldo') {
+      const m = (ctUsd(a) ? 1 : 0) - (ctUsd(b) ? 1 : 0);   // R$ e US$ não se comparam: real primeiro, depois dólar
+      if (m) return m;
+      r = (parseFloat(a.saldo) || 0) - (parseFloat(b.saldo) || 0);
+    } else r = cmpT(a[col], b[col]);
+    if (r) return r * dir;
+    return cmpT(a.casa, b.casa) || cmpT(a.agente, b.agente) || cmpT(a.login, b.login);
+  });
+}
+function ctOrdenarPor(col) {
+  if (CT.ordCol === col && CT.ordDir === 1) CT.ordDir = -1;
+  else if (CT.ordCol === col) { CT.ordCol = ''; CT.ordDir = 1; }
+  else { CT.ordCol = col; CT.ordDir = 1; }
+  ctAtualizar();
+  const b = document.querySelector(`#ctTabela button[data-ord="${col}"]`);
+  if (b) b.focus();
+}
+function ctTh(col, rot, num) {
+  const on = CT.ordCol === col;
+  const seta = on ? (CT.ordDir === 1 ? '↑' : '↓') : '↕';
+  const sort = on ? (CT.ordDir === 1 ? 'ascending' : 'descending') : 'none';
+  return `<th${num ? ' class="num"' : ''} aria-sort="${sort}"><button type="button" class="ct-th${on ? ' on' : ''}" data-ord="${col}" title="Ordenar por ${rot.toLowerCase()} (o 3º clique volta pra ordem manual)">${rot} <span aria-hidden="true">${seta}</span></button></th>`;
+}
+
+function ctPintarTabela(lista) {
+  const el = ctEl('ctTabela');
+  if (!el) return;
+  const cab = `<thead><tr><th class="ct-alca" aria-label="Ordem"></th>${ctTh('casa', 'Casa')}${ctTh('agente', 'Agente')}<th>Login</th><th>Senha</th>${ctTh('saldo', 'Saldo', true)}${ctTh('situacao', 'Situação')}${ctTh('observacoes', 'Obs')}<th aria-label="Ações"></th></tr></thead>`;
+  let corpo;
+  if (!lista.length) {
+    corpo = CT.contas.length
+      ? '<tr><td colspan="9" class="tabela-vazia">Nenhuma conta com esse filtro. <button type="button" class="d2-link" data-a="limpar">Limpar filtros</button></td></tr>'
+      : '<tr><td colspan="9" class="tabela-vazia">Nenhuma conta cadastrada. Use “+ Nova conta”, lá em cima.</td></tr>';
+  } else {
+    const arrasta = ctPodeArrastar();
+    corpo = lista.map(c => ctLinha(c, arrasta)).join('');
+  }
+  el.innerHTML = `<table class="ct-tab">${cab}<tbody>${corpo}</tbody></table>`;
+}
+
+function ctIdadeHtml(c, tipo) {
+  const raw = (tipo === 'saldo' ? CT.idadeSaldo : CT.idadeSit)[c.id];
+  if (!raw) return '';
+  const ts = typeof raw === 'string' ? raw : raw.ts, por = typeof raw === 'string' ? null : raw.por;
+  const d = new Date(ts);
+  if (!ts || isNaN(d)) return '';
+  const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+  const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const txt = (dias <= 0 ? `hoje ${hora}` : `há ${dias}d`) + (por ? ` · ${por}` : '');
+  const quando = `${d.toLocaleDateString('pt-BR')} ${hora}${por ? ', por ' + por : ''}`;
+  const velho = tipo === 'saldo'
+    ? dias >= 30 && ctClasse(c.situacao) === 'ativa'
+    : dias >= 2 && CT_TRANSITORIAS.includes(String(c.situacao || '').trim().toUpperCase());
+  const dica = tipo === 'saldo'
+    ? `Saldo atualizado em ${quando}${velho ? '. Conta ativa com saldo de 30 dias ou mais' : ''}`
+    : `Situação desde ${quando}${velho ? '. Parada há 2 dias ou mais' : ''}`;
+  return `<div class="ct-idade${velho ? ' velho' : ''}" title="${d2E(dica)}">${d2E(txt)}</div>`;
+}
+
+function ctLinha(c, arrasta) {
+  const v = parseFloat(c.saldo) || 0;
+  const alca = arrasta ? '<span title="Arraste pra mudar a ordem">⠿</span>'
+    : `<span class="off" title="${CT.grupo ? 'Pra arrastar, volte à ordem manual: clique no cabeçalho até a seta sumir' : 'Filtre um grupo pra mudar a ordem das contas'}">⠿</span>`;
+  const login = c.login ? `<button type="button" class="ct-copia" data-a="login" title="Copiar login">${d2E(c.login)}</button>` : '<span class="ct-nada">—</span>';
+  const senha = c.senha
+    ? `<span class="ct-senha"><button type="button" class="ct-copia" data-a="senha" title="Copiar senha"><span class="ct-pontos">••••••</span></button><button type="button" class="ct-olho" data-a="olho" aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha">👁</button></span>`
+    : '<span class="ct-nada">—</span>';
+  const obs = c.observacoes
+    ? `<button type="button" class="ct-cel" data-a="obs" title="${d2E(c.observacoes)}">${d2E(c.observacoes)}</button>`
+    : '<button type="button" class="ct-cel" data-a="obs" title="Escrever uma observação" aria-label="Escrever uma observação"><span class="ct-nada">+</span></button>';
+  return `<tr data-id="${c.id}"${arrasta ? ' draggable="true"' : ''}>
+    <td class="ct-alca">${alca}</td>
+    <td class="ct-casa">${d2E(c.casa)}</td>
+    <td class="ct-ag" title="${d2E(c.agente || '')}">${d2E(c.agente || '')}</td>
+    <td>${login}</td>
+    <td>${senha}</td>
+    <td class="num"><button type="button" class="ct-cel${v < 0 ? ' neg' : v === 0 ? ' ct-zero' : ''}" data-a="saldo" title="Clique pra mudar o saldo">${ctDin(v, c.moeda)}</button>${ctIdadeHtml(c, 'saldo')}</td>
+    <td><button type="button" class="ct-cel ct-sit ${ctClasse(c.situacao)}" data-a="sit" title="Clique pra mudar a situação">${d2E(c.situacao || '—')}</button>${ctIdadeHtml(c, 'sit')}</td>
+    <td class="ct-obs">${obs}</td>
+    <td><div class="row-actions">
+      <button class="btn-edit" data-a="editar" title="Editar" aria-label="Editar conta">✎</button>
+      <button class="btn-edit" data-a="hist" title="Histórico de alterações" aria-label="Histórico de alterações">📋</button>
+      <button class="btn-danger" data-a="apagar" title="Excluir" aria-label="Excluir conta">✕</button>
+    </div></td>
+  </tr>`;
+}
+// depois de mexer numa conta: refaz só a linha dela (não derruba outra célula aberta), mais o saldo e as contagens
+function ctLinhaDepois(c) {
+  if (!ctAqui()) return;
+  const tr = document.querySelector(`#ctTabela tr[data-id="${c.id}"]`);
+  if (tr && ctPassa(c)) { tr.outerHTML = ctLinha(c, ctPodeArrastar()); ctAtualizar(false, true); }
+  else ctAtualizar();
+}
+
+function ctClicarTabela(e) {
+  const th = e.target.closest('button[data-ord]');
+  if (th) { ctOrdenarPor(th.dataset.ord); return; }
+  const b = e.target.closest('[data-a]');
+  if (!b) return;
+  if (b.dataset.a === 'limpar') {
+    CT.busca = ''; CT.sit = ''; CT.grupo = '';
+    const bu = ctEl('ctBusca'); if (bu) bu.value = '';
+    ctAtualizar(true);
+    return;
+  }
+  const tr = b.closest('tr[data-id]');
+  const c = tr && ctConta(tr.dataset.id);
+  if (!c) return;
+  switch (b.dataset.a) {
+    case 'login': ctCopiar(c.login, 'Login copiado'); break;
+    case 'senha': ctCopiar(c.senha, 'Senha copiada'); break;
+    case 'olho': ctOlho(b, c); break;
+    case 'saldo': case 'sit': case 'obs': ctEditar(b, c, b.dataset.a); break;
+    case 'editar': ctAbrirModal(c); break;
+    case 'hist': ctHistorico(c); break;
+    case 'apagar': ctApagar(c, false); break;
+  }
+}
+
+function ctOlho(b, c) {
+  const p = b.closest('.ct-senha').querySelector('.ct-pontos');
+  const ver = b.getAttribute('aria-pressed') !== 'true';
+  p.textContent = ver ? (c.senha || '') : '••••••';
+  p.classList.toggle('visivel', ver);
+  b.setAttribute('aria-pressed', ver);
+  b.setAttribute('aria-label', ver ? 'Esconder senha' : 'Mostrar senha');
+  b.title = ver ? 'Esconder senha' : 'Mostrar senha';
+}
+function ctCopiar(txt, ok) {
+  if (!txt) { showToast('Está vazio', true); return; }
+  const reserva = () => {
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    let foi = false;
+    try { foi = document.execCommand('copy'); } catch (_) {}
+    ta.remove();
+    showToast(foi ? ok : 'Não deu pra copiar', !foi);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => showToast(ok), reserva);
+  else reserva();
+}
+
+// Saldo, situação e observação mudam direto na tabela: Enter ou clicar fora salva, Esc desiste
+function ctEditar(btn, c, campo) {
+  const col = campo === 'saldo' ? 'saldo' : campo === 'sit' ? 'situacao' : 'observacoes';
+  const atual = campo === 'saldo' ? (parseFloat(c.saldo) || 0) : String(c[col] || '');
+  const inp = document.createElement('input');
+  inp.className = 'ct-inp' + (campo === 'saldo' ? ' num' : campo === 'obs' ? ' obs' : '');
+  if (campo === 'saldo') { inp.type = 'number'; inp.step = '0.01'; inp.inputMode = 'decimal'; }
+  else inp.type = 'text';
+  if (campo === 'sit') inp.setAttribute('list', 'ctSitLista');
+  inp.value = atual;
+  inp.setAttribute('aria-label', `${campo === 'saldo' ? 'Saldo' : campo === 'sit' ? 'Situação' : 'Observação'} de ${c.casa}`);
+  btn.replaceWith(inp);
+  inp.focus();
+  if (inp.select) inp.select();
+  let feito = false;
+  const fim = async salvar => {
+    if (feito) return;
+    feito = true;
+    let novo = inp.value.trim();
+    if (campo === 'saldo') { novo = novo === '' ? NaN : parseFloat(novo); if (isNaN(novo)) salvar = false; }   // apagou o número: não vira zero
+    if (campo === 'sit' && !novo) salvar = false;   // situação vazia: fica a que estava
+    inp.disabled = true;
+    if (!salvar || novo === atual) { ctLinhaDepois(c); return; }
+    try {
+      const agora = new Date().toISOString();
+      await sbPatch('contas', c.id, { [col]: novo, atualizado_em: agora, atualizado_por: currentUser });
+      c[col] = novo; c.atualizado_em = agora; c.atualizado_por = currentUser;
+      if (campo === 'saldo') CT.idadeSaldo[c.id] = { ts: agora, por: currentUser };
+      if (campo === 'sit') { CT.idadeSit[c.id] = { ts: agora, por: currentUser }; ctSincronizarCache(); ctListas(); }
+      const hOk = await ctHistoricoGravar([{ conta_id: c.id, campo_alterado: col, valor_anterior: String(atual), valor_novo: String(novo), alterado_por: currentUser }]);
+      const msg = campo === 'saldo' ? 'Saldo atualizado' : campo === 'sit' ? 'Situação atualizada' : 'Observação salva';
+      showToast(hOk ? msg : msg + ', mas o histórico não gravou', !hOk);
+    } catch (e) { showToast('Não salvou: ' + ctErro(e), true); }
+    ctLinhaDepois(c);
+  };
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); fim(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fim(false); }
+  });
+  inp.addEventListener('blur', () => fim(true));
+}
+
+// ── arrastar: contas dentro do grupo filtrado, e os grupos entre si
+function ctMarcarAlvo(tr) {
+  const linhas = [...tr.parentNode.children];
+  const i = linhas.findIndex(x => x.dataset.id === CT.arrastoConta), j = linhas.indexOf(tr);
+  linhas.forEach(x => { if (x !== tr) x.classList.remove('ct-alvo', 'baixo'); });
+  if (i < 0 || i === j) { tr.classList.remove('ct-alvo', 'baixo'); return; }
+  tr.classList.add('ct-alvo');
+  tr.classList.toggle('baixo', i < j);   // descendo, entra depois da linha; subindo, antes
+}
+function ctFimArrastoConta() {
+  CT.arrastoConta = null;
+  document.querySelectorAll('#ctTabela tr.ct-arrasto, #ctTabela tr.ct-alvo').forEach(x => x.classList.remove('ct-arrasto', 'ct-alvo', 'baixo'));
+}
+async function ctMoverConta(de, para) {
+  if (!ctPodeArrastar()) return;
+  const doGrupo = CT.contas.filter(c => ctGrupoDe(c) === CT.grupo);
+  const i = doGrupo.findIndex(c => c.id === de), j0 = doGrupo.findIndex(c => c.id === para);
+  if (i < 0 || j0 < 0 || i === j0) return;
+  const [mov] = doGrupo.splice(i, 1);
+  const j = doGrupo.findIndex(c => c.id === para);
+  doGrupo.splice(i < j0 ? j + 1 : j, 0, mov);
+  const mudou = [];
+  doGrupo.forEach((c, k) => { if (c.ordem !== k) { c.ordem = k; mudou.push(c); } });
+  ctOrdemBase();
+  ctAtualizar();
+  try { await ctEmLotes(mudou, c => sbPatch('contas', c.id, { ordem: c.ordem })); }
+  catch (e) { showToast('A ordem nova não salvou inteira: ' + ctErro(e), true); }
+}
+function ctFimArrastoGrupo() {
+  CT.arrastoGrupo = null;
+  document.querySelectorAll('#ctGrupos .ct-grp.arrasto, #ctGrupos .ct-grp.alvo').forEach(x => x.classList.remove('arrasto', 'alvo'));
+}
+async function ctMoverGrupo(de, para) {
+  const i = CT.grupos.indexOf(de), j = CT.grupos.indexOf(para);
+  if (i < 0 || j < 0) return;
+  CT.grupos.splice(i, 1);
+  CT.grupos.splice(j, 0, de);   // pra direita fica depois do alvo, pra esquerda antes
+  ctPintarGrupos();
+  ctListas();
+  await ctSalvarOrdemGrupos();
+}
+async function ctSalvarOrdemGrupos() {
+  const itens = CT.grupos.map((g, k) => ({ id: CT.grupoId[g], ordem: k + 1 })).filter(x => x.id);
+  try { await ctEmLotes(itens, x => sbPatch('grupos_contas', x.id, { ordem: x.ordem })); }
+  catch (e) { showToast('A ordem dos grupos não salvou: ' + ctErro(e), true); }
+}
+
+// ── grupos
+async function ctGrupoNovo() {
+  const nome = (prompt('Nome do grupo novo:') || '').trim();
+  if (!nome) return;
+  if (ctMesmo(nome, CT_SEM)) { showToast('"Sem grupo" já existe e não pode ser criado', true); return; }
+  if (CT.grupos.some(g => ctMesmo(g, nome))) { showToast('Já existe um grupo com esse nome', true); return; }
+  try {
+    const r = await sbPost('grupos_contas', { nome, ordem: CT.grupos.length + 1 });
+    const novo = Array.isArray(r) ? r[0] : r;
+    if (novo && novo.id) CT.grupoId[nome] = novo.id;
+    CT.grupos.push(nome);   // conta que já tinha esse nome de grupo (grupo apagado e recriado) volta pra ele sozinha
+    ctListas();
+    ctAtualizar(true);
+    showToast('Grupo criado');
+    await ctSalvarOrdemGrupos();   // renumera 1..n pra ordem do banco bater com a da tela
+  } catch (e) { showToast('Não criou o grupo: ' + ctErro(e), true); }
+}
+async function ctGrupoRenomear(atual) {
+  const novo = (prompt(`Novo nome pro grupo "${atual}":`, atual) || '').trim();
+  if (!novo || novo === atual) return;
+  if (ctMesmo(novo, CT_SEM)) { showToast('"Sem grupo" é reservado', true); return; }
+  if (CT.grupos.some(g => g !== atual && ctMesmo(g, novo))) { showToast('Já existe um grupo com esse nome', true); return; }
+  try {
+    const id = CT.grupoId[atual];
+    if (id) await sbPatch('grupos_contas', id, { nome: novo });
+    await ctPatchOnde(`contas?grupo=eq.${encodeURIComponent(atual)}`, { grupo: novo });
+    CT.contas.forEach(c => { if (c.grupo === atual) c.grupo = novo; });
+    delete CT.grupoId[atual];
+    if (id) CT.grupoId[novo] = id;
+    CT.grupos = CT.grupos.map(g => g === atual ? novo : g);
+    if (CT.grupo === atual) CT.grupo = novo;
+    ctListas();
+    ctAtualizar(true);
+    showToast('Grupo renomeado');
+  } catch (e) { showToast('Não renomeou: ' + ctErro(e), true); }
+}
+async function ctGrupoApagar(g) {
+  const afetadas = CT.contas.filter(c => c.grupo === g);
+  const n = afetadas.length;
+  const comSaldo = afetadas.filter(c => (parseFloat(c.saldo) || 0) !== 0);
+  const r = ctSoma(comSaldo.filter(c => !ctUsd(c))), u = ctSoma(comSaldo.filter(ctUsd));
+  const saldo = [r ? ctDin(r, 'BRL') : '', u ? ctDin(u, 'USD') : ''].filter(Boolean).join(' e ');
+  const msg = n
+    ? `Apagar o grupo "${g}"?\n\n${n === 1 ? 'A conta dele vai' : `As ${n} contas dele vão`} pra Sem grupo${comSaldo.length ? ` (${comSaldo.length} com saldo: ${saldo})` : ''}.\nNenhuma conta é apagada.`
+    : `Apagar o grupo "${g}"? Ele não tem conta.`;
+  if (!confirm(msg)) return;
+  try {
+    if (n) {
+      await ctPatchOnde(`contas?grupo=eq.${encodeURIComponent(g)}`, { grupo: CT_SEM });
+      afetadas.forEach(c => { c.grupo = CT_SEM; });
+      await ctHistoricoGravar(afetadas.map(c => ({ conta_id: c.id, campo_alterado: 'grupo', valor_anterior: g, valor_novo: CT_SEM, alterado_por: currentUser })));
+    }
+    const id = CT.grupoId[g];
+    if (id) await sbDelete('grupos_contas', id);
+    delete CT.grupoId[g];
+    CT.grupos = CT.grupos.filter(x => x !== g);
+    if (CT.grupo === g) CT.grupo = '';
+    ctListas();
+    ctAtualizar(true);
+    showToast('Grupo apagado');
+  } catch (e) { showToast('Não apagou o grupo: ' + ctErro(e), true); }
+}
+
+// ── janela da conta
+function ctNormGrupo(v) {   // vazio → Sem grupo; igual a um grupo, sem olhar maiúscula → o nome cadastrado
+  const t = String(v || '').trim();
+  if (!t || ctMesmo(t, CT_SEM)) return CT_SEM;
+  return CT.grupos.find(g => ctMesmo(g, t)) || t;
+}
+function ctRotuloSaldo() { ctEl('ctSaldoRot').textContent = ctEl('ctMoeda').value === 'USD' ? 'Saldo (US$)' : 'Saldo (R$)'; }
+function ctSugereMoeda() {   // conta nova: a moeda segue o cadastro da casa, até escolher na mão
+  if (CT.moedaTocada) return;
+  const m = CT.moedaCasa[ctNormCasa(ctEl('ctCasa').value)];
+  if (m !== 'AMBAS') ctEl('ctMoeda').value = m === 'USD' ? 'USD' : 'BRL';   // casa de R$ e US$: fica a escolhida
+  ctRotuloSaldo();
+}
+function ctAbrirModal(c) {
+  c = c && c.id ? c : null;
+  CT.editando = c ? c.id : null;
+  if (!Object.keys(CT.moedaCasa).length) CT.moedaCasa = Object.fromEntries((cache.bookies || []).filter(b => b.moeda).map(b => [ctNormCasa(b.nome), b.moeda]));
+  ctEl('ctModalTit').textContent = c ? 'Editar conta' : 'Nova conta';
+  ctEl('ctCasa').value = c ? (c.casa || '') : '';
+  ctEl('ctGrupo').value = c ? (c.grupo && c.grupo !== CT_SEM ? c.grupo : '') : (CT.grupo && CT.grupo !== CT_SEM ? CT.grupo : '');
+  ctEl('ctAgente').value = c ? (c.agente || '') : '';
+  ctEl('ctSituacao').value = c ? (c.situacao || '') : 'ATIVA';
+  ctEl('ctLogin').value = c ? (c.login || '') : '';
+  ctEl('ctSenha').value = c ? (c.senha || '') : '';
+  ctEl('ctSaldo').value = c && c.saldo != null ? c.saldo : '';
+  ctEl('ctMoeda').value = c && c.moeda === 'USD' ? 'USD' : 'BRL';
+  ctEl('ctObs').value = c ? (c.observacoes || '') : '';
+  CT.moedaTocada = !!c;
+  ctRotuloSaldo();
+  ctListas();
+  ctEl('ctExcluir').style.display = c ? '' : 'none';
+  ctEl('ctSalvarBtn').disabled = false;
+  ctEl('modalConta').classList.add('open');
+  setTimeout(() => { const f = ctEl('ctCasa'); if (f) f.focus(); }, 30);
+}
+async function ctSalvar() {
+  const id = CT.editando;
+  const casa = ctEl('ctCasa').value.trim().toUpperCase();
+  if (!casa) { showToast('Falta a casa', true); ctEl('ctCasa').focus(); return; }
+  const body = {
+    casa,
+    agente:      ctEl('ctAgente').value.trim(),
+    situacao:    ctEl('ctSituacao').value.trim(),
+    login:       ctEl('ctLogin').value.trim(),
+    senha:       ctEl('ctSenha').value.trim(),
+    saldo:       parseFloat(ctEl('ctSaldo').value) || 0,
+    observacoes: ctEl('ctObs').value.trim(),
+    grupo:       ctNormGrupo(ctEl('ctGrupo').value),
+    moeda:       ctEl('ctMoeda').value === 'USD' ? 'USD' : 'BRL',
+    atualizado_em:  new Date().toISOString(),
+    atualizado_por: currentUser,
+  };
+  const btn = ctEl('ctSalvarBtn');
+  btn.disabled = true;
+  try {
+    let hOk = true;
+    if (id) {
+      const old = ctConta(id) || {};
+      await sbPatch('contas', id, body);
+      const linhas = Object.keys(CT_CAMPOS)
+        .filter(k => String(old[k] ?? '') !== String(body[k] ?? ''))
+        .map(k => ({ conta_id: id, campo_alterado: k, valor_anterior: String(old[k] ?? ''), valor_novo: String(body[k] ?? ''), alterado_por: currentUser }));
+      hOk = await ctHistoricoGravar(linhas);
+      if (linhas.some(l => l.campo_alterado === 'saldo')) CT.idadeSaldo[id] = { ts: body.atualizado_em, por: currentUser };
+      if (linhas.some(l => l.campo_alterado === 'situacao')) CT.idadeSit[id] = { ts: body.atualizado_em, por: currentUser };
+      Object.assign(old, body);
+    } else {
+      body.ordem = CT.contas.length;
+      const r = await sbPost('contas', body);
+      const nova = Array.isArray(r) ? r[0] : r;
+      if (!nova || !nova.id) throw new Error('o banco não devolveu a conta nova');
+      CT.contas.push(nova);
+      CT.idadeSaldo[nova.id] = { ts: nova.created_at || body.atualizado_em, por: null };
+      CT.idadeSit[nova.id] = { ts: nova.created_at || body.atualizado_em, por: null };
+    }
+    closeModal('modalConta');
+    ctSincronizarCache();
+    ctListas();
+    ctAtualizar(true);
+    if (body.grupo !== CT_SEM && !CT.grupos.includes(body.grupo)) showToast(`Conta salva em Sem grupo: o grupo "${body.grupo}" não existe (crie no + Grupo)`, true);
+    else showToast(hOk ? 'Conta salva' : 'Conta salva, mas o histórico não gravou', !hOk);
+  } catch (e) { showToast('Não salvou: ' + ctErro(e), true); }
+  btn.disabled = false;
+}
+function ctExcluirDoModal() { const c = ctConta(CT.editando); if (c) ctApagar(c, true); }
+async function ctApagar(c, doModal) {
+  if (!confirm(`Excluir a conta ${c.casa}${c.login ? ' (' + c.login + ')' : ''}?\n\nNão tem como desfazer.`)) return;
+  try {
+    await sbDelete('contas', c.id);
+    CT.contas = CT.contas.filter(x => x.id !== c.id);
+    if (doModal) closeModal('modalConta');
+    ctSincronizarCache();
+    ctListas();
+    ctAtualizar(true);
+    showToast('Conta excluída');
+  } catch (e) { showToast('Não excluiu: ' + ctErro(e), true); }
+}
+async function ctHistorico(c) {
+  ctEl('ctHistTit').textContent = `Histórico: ${c.casa}${c.login ? ' · ' + c.login : ''}`;
+  const lista = ctEl('ctHistLista');
+  lista.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+  ctEl('modalHistConta').classList.add('open');
+  try {
+    const rows = await ctGet(`historico_contas?conta_id=eq.${c.id}&select=campo_alterado,valor_anterior,valor_novo,alterado_por,alterado_em&order=alterado_em.desc&limit=50`);
+    if (!rows.length) { lista.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;padding:1rem 0">Nenhuma alteração registrada.</p>'; return; }
+    const val = (campo, v) => {
+      const s = String(v ?? '');
+      if (!s) return '<span class="ct-nada">vazio</span>';
+      if (campo === 'saldo' && !isNaN(+s)) return d2E(ctNum(+s));
+      if (campo === 'moeda') return s === 'USD' ? 'US$' : s === 'BRL' ? 'R$' : d2E(s);
+      return d2E(s);
+    };
+    lista.innerHTML = rows.map(h => `<div class="hist-item">
+        <div class="hist-campo">${d2E(CT_CAMPOS[h.campo_alterado] || h.campo_alterado)}</div>
+        <div class="hist-valores"><span class="hist-ant">${val(h.campo_alterado, h.valor_anterior)}</span><span style="color:var(--muted)">→</span><span class="hist-nov">${val(h.campo_alterado, h.valor_novo)}</span></div>
+        <div class="hist-meta"><span class="hist-user">${d2E(h.alterado_por || '?')}</span> em ${new Date(h.alterado_em).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' })}</div>
+      </div>`).join('');
+  } catch (e) { lista.innerHTML = `<p class="d2-erro">O histórico não carregou: ${d2E(ctErro(e))}</p>`; }
 }
 
 // ── APOSTAS TABLE ──────────────────────────────────────────
